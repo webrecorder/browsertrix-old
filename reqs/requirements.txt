@@ -1,0 +1,13 @@
+aiodns
+aiofiles
+aiohttp
+aiohttp_jinja2
+aiojobs
+aioredis
+async-timeout
+attrs
+better_exceptions
+cchardet
+jinja2
+ujson
+uvloop

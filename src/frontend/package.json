@@ -1,0 +1,11 @@
+{
+  "name": "crawlmanager-frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "Appache 2.0",
+  "dependencies": {
+    "@hot-loader/react-dom": "16.8.4",
+    "react": "^16.8.4",
+    "react-dom": "npm:@hot-loader/react-dom"
+  }
+}
