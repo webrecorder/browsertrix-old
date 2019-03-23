@@ -30,10 +30,6 @@ license = "Apache 2.0"
 readme = "README.md"
 repository = "https://github.com/webrecorder/crawlmanager"
 authors = ["John Berlin <john.berlin@rhizome.org>"]
-packages = [
-    { include = "src/crawlmanager" }
-]
-
 
 [tool.poetry.dependencies]
 python = ">= 3.7"

@@ -431,8 +431,8 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "515065c2eaadd99f843b0945c4aae79f3f31359ffbaf1d0f35c29db3a13693ca"
-python-versions = "^3.7"
+content-hash = "9e2564cfa457bd9c2fcd2b1bfe7e709f0df9500da1e3e76bad5d7b15d4a12f8a"
+python-versions = ">= 3.7"
 
 [metadata.hashes]
 aiodns = ["815fdef4607474295d68da46978a54481dd1e7be153c7d60f9e72773cd38d77d", "aaa5ac584f40fe778013df0aa6544bf157799bd3f608364b451840ed2c8688de"]
