@@ -13,3 +13,13 @@ To use crawlmanager, run:
 poetry install
 # or "pip install -r reqs/requirements.txt -r reqs/dev-requirements.txt"
 ```
+
+
+### Tests
+
+Run tests with:
+
+```bash
+py.test --cov ./crawlmanager -vv ./tests/
+```
+
