@@ -1,22 +1,6 @@
 import requests
 import webbrowser
 import time
-import pytest
-import yaml
-import os
-
-
-crawls = None
-with open(os.path.join(os.path.dirname(__file__), 'crawl_tests.yaml')) as fh:
-    crawls = yaml.load(fh.read())
-
-
-crawl_map = {crawl['name']: crawl for crawl in crawls['crawls'] if not crawl.get('skip')}
-
-
-@pytest.fixture(scope='module', params=crawl_map.keys())
-def crawl(request):
-    return crawl_map[request.param]
 
 
 class TestCrawls(object):

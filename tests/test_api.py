@@ -9,6 +9,8 @@ import crawlmanager.crawl
 
 # ============================================================================
 class AwaitFakeRedis(object):
+    """ async adapter for fakeredis
+    """
     def __init__(self):
         self.redis = fakeredis.FakeStrictRedis(decode_responses=True)
 
@@ -22,8 +24,9 @@ class AwaitFakeRedis(object):
         return self.redis.hmset(key, kwargs)
 
 
+# ============================================================================
 def init():
-    async def mock_await_none(*args):
+    async def mock_await_none(*args, **kwargs):
         return None
 
     with patch('aioredis.create_redis', mock_await_none):
@@ -36,9 +39,11 @@ def init():
 client = init()
 
 
+# ============================================================================
 shepherd_api_urls = defaultdict(list)
 shepherd_api_post_datas = defaultdict(list)
 reqid_counter = 0
+
 
 async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
     global shepherd_api_urls
