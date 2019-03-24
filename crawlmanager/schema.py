@@ -22,6 +22,10 @@ class CrawlInfoResponse(CreateCrawlRequest):
     browsers_done: OptionalList
 
 
+class CrawlInfosResponse(BaseModel):
+    crawls: List[CrawlInfoResponse]
+
+
 class CrawlInfo(BaseModel):
     """ Model for validate a:{crawl_id}:info key
     All fields should be set in the model

@@ -20,6 +20,10 @@ class AwaitFakeRedis(object):
 
         return func
 
+    async def iscan(self, match=None, count=None):
+        for key in self.redis.scan_iter(match=match, count=count):
+            yield key
+
     async def hmset_dict(self, key, kwargs):
         return self.redis.hmset(key, kwargs)
 
@@ -135,6 +139,19 @@ class TestCrawlAPI(object):
         # save for deletion
         TestCrawlAPI.crawl_id_2 = crawl_id
 
+    def test_get_all_crawls(self):
+        res = client.get(f'/crawls')
+        res = res.json()
+
+        assert len(res['crawls']) == 2
+
+        expected_crawls = {
+            (self.crawl_id, 'all-links'),
+            (self.crawl_id_2, 'same-domain')
+        }
+
+        assert set((crawl['id'], crawl['scope_type']) for crawl in res['crawls']) == expected_crawls
+
     def test_invalid_crawl(self):
         res = client.get(f'/crawl/x-invalid')
 
@@ -182,8 +199,8 @@ class TestCrawlAPI(object):
 
         # shepherd api urls
         assert shepherd_api_urls['request'] == [
-            '/request_flock/browsers',
-            '/request_flock/browsers',
+            '/request_flock/browsers?pool=',
+            '/request_flock/browsers?pool=',
         ]
 
         assert set(shepherd_api_urls['start']) == set([
@@ -248,4 +265,8 @@ class TestCrawlAPI(object):
         assert res.json()['success'] == True
 
         assert fakeredis.FakeStrictRedis().keys('a:*') == []
+
+        res = client.delete(f'/crawl/{self.crawl_id_2}')
+
+        assert res.json()['detail'] == 'not_found'
 

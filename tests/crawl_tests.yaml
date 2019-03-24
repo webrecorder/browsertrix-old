@@ -4,7 +4,8 @@ crawls:
   - name: social-media-behaviors
     spec:
       scope_type: single-page
-      num_browsers: 2
+      num_browsers: 1
+      num_tabs: 2
 
     urls:
       - https://twitter.com/webrecorder_io

@@ -41,8 +41,9 @@ class CrawlManager(object):
         self.shepherd_host = os.environ.get('DEFAULT_SHEPHERD', 'http://shepherd:9020')
 
         self.browser_api_url = f'{self.shepherd_host}/api'
-        if os.environ.get('DEFAULT_POOL'):
-            self.browser_api_url += '/' + os.environ.get('DEFAULT_POOL')
+        self.pool = os.environ.get('DEFAULT_POOL', '')
+
+        self.scan_key = 'a:*:info'
 
         self.container_environ = {
             'URL': 'about:blank',
@@ -104,6 +105,21 @@ class CrawlManager(object):
             print(e)
             text = str(e)
             raise HTTPException(400,  text)
+
+    async def get_all_crawls(self):
+        all_infos = []
+
+        async for key in redis.iscan(match=self.scan_key):
+            _, crawl_id, _2 = key.split(':', 2)
+
+            try:
+                crawl = Crawl(crawl_id)
+                info = await crawl.get_info()
+                all_infos.append(info)
+            except HTTPException:
+                continue
+
+        return {'crawls': all_infos}
 
 
 # ============================================================================
@@ -196,6 +212,7 @@ class Crawl(object):
 
         environ = crawl_man.container_environ.copy()
         environ['AUTO_ID'] = self.crawl_id
+        environ['NUM_TABS'] = self.model.num_tabs
         if start_request.behavior_timeout > 0:
             environ['BEHAVIOR_RUN_TIME'] = start_request.behavior_timeout
 
@@ -216,7 +233,8 @@ class Crawl(object):
         errors = []
 
         for x in range(self.model.num_browsers):
-            res = await crawl_man.do_request('/request_flock/' + crawl_man.flock, opts)
+            request_url = f'/request_flock/{crawl_man.flock}?pool={crawl_man.pool}'
+            res = await crawl_man.do_request(request_url, opts)
             reqid = res.get('reqid')
             if not reqid:
                 if 'error' in res:

@@ -6,6 +6,7 @@ services:
         build: ./
         environment:
             - REDIS_URL=redis://redis/0
+            - DEFAULT_POOL=auto-pool
 
         depends_on:
             - redis

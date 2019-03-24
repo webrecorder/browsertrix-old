@@ -15,6 +15,11 @@ async def create_crawl(new_crawl: CreateCrawlRequest):
     return await crawl_man.create_new(new_crawl)
 
 
+@app.get('/crawls', response_model=CrawlInfosResponse)
+async def get_all_crawls():
+    return await crawl_man.get_all_crawls()
+
+
 @app.put('/crawl/{crawl_id}/urls')
 async def queue_urls(crawl_id: str, url_list: QueueUrlsRequest):
     crawl = await crawl_man.load_crawl(crawl_id)

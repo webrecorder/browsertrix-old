@@ -9,11 +9,14 @@ class TestCrawls(object):
     seen = []
     browsers = []
 
+    all_crawl_ids = []
+
     @classmethod
     def teardown_class(cls):
-        if cls.crawl_id:
-            res = requests.delete(cls.api_host + '/crawl/' + cls.crawl_id)
-            assert res.json()['success']
+        for crawl_id in cls.all_crawl_ids:
+            res = requests.delete(cls.api_host + '/crawl/' + crawl_id)
+            res = res.json()
+            assert res.get('success') or res.get('detail') == 'not_found'
 
     def test_crawl_create(self, crawl):
         res = requests.post(self.api_host + '/crawls', json=crawl['spec'])
@@ -21,6 +24,7 @@ class TestCrawls(object):
         res = res.json()
         assert res['success']
         TestCrawls.crawl_id = res['id']
+        TestCrawls.all_crawl_ids.append(res['id'])
 
     def test_crawl_queue_urls(self, crawl):
         urls = {'urls': crawl['urls']}
