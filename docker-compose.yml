@@ -1,0 +1,73 @@
+version: '3.5'
+
+services:
+    crawlman:
+        image: webrecorder/crawlman
+        build: ./
+        environment:
+            - REDIS_URL=redis://redis/0
+
+        depends_on:
+            - redis
+            - pywb
+
+        ports:
+            - 8000:8000
+
+        volumes:
+            - ./:/app/
+
+    pywb:
+        image: webrecorder/pywb
+
+        command: wayback --live --proxy coll --proxy-record -a --auto-interval 10
+
+        environment:
+            - INIT_COLLECTION=coll
+
+        #volumes:
+        #    - ./webarchive:/webarchive
+
+        networks:
+            - browsers
+
+        ports:
+            - 8180:8080
+
+    shepherd:
+        image: oldwebtoday/browser-shepherd
+
+        environment:
+            - REDIS_BROWSER_URL=redis://redis/0
+            - IDLE_TIMEOUT=60
+            - BROWSER_NET=crawlmanager_browsers
+            - WEBRTC_HOST_IP=127.0.0.1
+            - MAIN_NET=crawlmanager_default
+
+            - PROXY_HOST=pywb
+            - PROXY_PORT=8080
+ 
+        depends_on:
+            - redis
+
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            #- ./flocks:/app/flocks
+
+        ports:
+            - 9020:9020
+
+    redis:
+        image: redis:3.2.4
+
+    behaviors:
+      image: webrecorder/behaviors
+
+
+networks:
+    default:
+        driver: bridge
+
+    browsers:
+        driver: bridge
+

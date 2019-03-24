@@ -40,6 +40,7 @@ jinja2 = ">= 2.10"
 ujson = ">= 1.35"
 uvloop = ">= 0.12.2"
 fastapi = "^0.9.1"
+uvicorn = "^0.6.1"
 
 
 [tool.poetry.dev-dependencies]

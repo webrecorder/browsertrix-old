@@ -1,0 +1,40 @@
+
+
+crawls:
+  - name: social-media-behaviors
+    spec:
+      scope_type: single-page
+      num_browsers: 2
+
+    urls:
+      - https://twitter.com/webrecorder_io
+      - https://instagram.com/rhizomedotorg
+
+    max_timeout: 120
+
+    behavior_timeout: 20
+
+  - name: all-links-single-page
+    spec:
+      scope_type: all-links
+      num_browsers: 2
+
+    urls:
+      - https://www.iana.org/domains/reserved
+
+    max_timeout: 600
+
+    # expected size of seen list
+    expected_seen: 51
+   
+  - name: multi-browser-test
+    spec:
+      scope_type: single-page
+      num_browsers: 2
+
+    urls:
+      - https://rhizome.org/
+      - https://youtube.com/watch?v=aT-Up5Y4uRI
+
+    max_timeout: 300
+

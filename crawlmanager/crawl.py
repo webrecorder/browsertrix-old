@@ -20,7 +20,7 @@ def init_redis():
     async def init():
         global redis
         redis = await aioredis.create_redis(
-            os.environ.get('REDIS_HOST', DEFAULT_REDIS_URL))
+            os.environ.get('REDIS_URL', DEFAULT_REDIS_URL), encoding='utf-8')
 
     try:
         return asyncio.get_running_loop().create_task(init())
@@ -40,7 +40,9 @@ class CrawlManager(object):
 
         self.shepherd_host = os.environ.get('DEFAULT_SHEPHERD', 'http://shepherd:9020')
 
-        self.browser_api_url = f'{self.shepherd_host}/api/crawl-pool'
+        self.browser_api_url = f'{self.shepherd_host}/api'
+        if os.environ.get('DEFAULT_POOL'):
+            self.browser_api_url += '/' + os.environ.get('DEFAULT_POOL')
 
         self.container_environ = {
             'URL': 'about:blank',
@@ -91,13 +93,17 @@ class CrawlManager(object):
 
         return crawl
 
-    async def do_request(self, url_path, post_data=None, use_pool=True):
+    async def do_request(self, url_path, post_data=None):
         err = None
         try:
-            res = await aiohttp.post((self.browser_api_url if use_pool else self.shepherd_host) + url_path, json=post_data)
-            return res.json()
+            url = self.browser_api_url + url_path
+            async with aiohttp.ClientSession() as session:
+                async with session.post(url, json=post_data) as res:
+                    return await res.json()
         except Exception as e:
-            raise HTTPException(400,  res.text)
+            print(e)
+            text = str(e)
+            raise HTTPException(400,  text)
 
 
 # ============================================================================
