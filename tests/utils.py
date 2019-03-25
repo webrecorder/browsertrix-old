@@ -1,17 +1,32 @@
-from typing import Dict, List
+from typing import Any, Callable, Dict, List, Optional, Set
 from ujson import loads as ujson_loads
 
 import fakeredis
 
 __all__ = [
-    "AwaitFakeRedis",
-    "convert_list_str_to_list_dict",
-    "init_fake_redis"
+    'AwaitFakeRedis',
+    'convert_list_str_to_list',
+    'convert_list_str_to_set',
+    'init_fake_redis',
 ]
 
+PropSelector = Callable[[Dict], Any]
 
-def convert_list_str_to_list_dict(list_str: List[str]) -> List[Dict]:
-    return list(map(ujson_loads, list_str))
+
+def convert_list_str_to_list(
+    list_str: List[str], prop_selector: Optional[PropSelector] = None
+) -> List[Any]:
+    if prop_selector is None:
+        return list(map(ujson_loads, list_str))
+    return list(map(lambda x: prop_selector(ujson_loads(x)), list_str))
+
+
+def convert_list_str_to_set(
+    list_str: List[str], prop_selector: Optional[PropSelector] = None
+) -> Set[Any]:
+    if prop_selector is None:
+        return set(map(ujson_loads, list_str))
+    return set(map(lambda x: prop_selector(ujson_loads(x)), list_str))
 
 
 class AwaitFakeRedis:

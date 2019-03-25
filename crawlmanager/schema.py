@@ -1,19 +1,19 @@
 from typing import Any, Dict, List, Optional, Set
 
-from pydantic import BaseModel, UrlStr
+from pydantic import BaseModel, Schema
 
 __all__ = [
-    "CrawlDoneResponse",
-    "CrawlInfo",
-    "CrawlInfoResponse",
-    "CrawlInfoUrlsResponse",
-    "CrawlInfosResponse",
-    "CreateCrawlRequest",
-    "CreateNewCrawlResponse",
-    "OperationSuccessResponse",
-    "QueueUrlsRequest",
-    "StartCrawlRequest",
-    "StartCrawlResponse"
+    'CrawlDoneResponse',
+    'CrawlInfo',
+    'CrawlInfoResponse',
+    'CrawlInfoUrlsResponse',
+    'CrawlInfosResponse',
+    'CreateCrawlRequest',
+    'CreateNewCrawlResponse',
+    'OperationSuccessResponse',
+    'QueueUrlsRequest',
+    'StartCrawlRequest',
+    'StartCrawlResponse',
 ]
 
 # ============================================================================
@@ -22,14 +22,18 @@ OptionalSet = Optional[Set[str]]
 
 
 class CreateCrawlRequest(BaseModel):
-    scope_type: str = "single-page"
-    num_browsers: int = 2
-    num_tabs: int = 1
+    scope_type: str = Schema(
+        'single-page', description='What type of crawl should be launched'
+    )
+    num_browsers: int = Schema(
+        2, description='How many browsers should be used for the crawl'
+    )
+    num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
 
 
 class CrawlInfoResponse(CreateCrawlRequest):
     id: str
-    status: str = "new"
+    status: str = 'new'
     crawl_depth: int = 0
 
     browsers: OptionalList
@@ -55,7 +59,6 @@ class CrawlInfo(BaseModel):
 
 class CrawlInfoUrlsResponse(BaseModel):
     scopes: OptionalSet
-
     queue: OptionalList
     pending: OptionalList
     seen: OptionalSet
@@ -70,7 +73,7 @@ class CreateNewCrawlResponse(OperationSuccessResponse):
 
 
 class QueueUrlsRequest(BaseModel):
-    urls: List[UrlStr]
+    urls: List[str]
 
 
 class StartCrawlRequest(BaseModel):

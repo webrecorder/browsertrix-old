@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-black -v crawlmanager
+black -S -v crawlmanager

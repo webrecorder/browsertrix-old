@@ -11,6 +11,7 @@ case "$1" in
 
     *)
      printf "Checking Typing And Linting\n"
-     flake8 --mypy-config mypy.ini crawlmanager/
+     mypy --config-file mypy.ini crawlmanager/
+     flake8 crawlmanager/
     ;;
 esac

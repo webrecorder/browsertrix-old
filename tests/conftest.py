@@ -4,9 +4,10 @@ from os import environ
 import pytest
 import uvloop
 import yaml
-from starlette.testclient import TestClient
-from .utils import init_fake_redis
 from mock import patch as mock_patch
+from starlette.testclient import TestClient
+
+from .utils import init_fake_redis
 
 uvloop.install()
 
@@ -68,5 +69,5 @@ def api_test_client(request):
 
 @pytest.fixture(scope="class")
 def crawlmanager_use_fake_redis(request):
-    with mock_patch("crawlmanager._redis.init_redis", init_fake_redis):
+    with mock_patch("crawlmanager.utils.init_redis", init_fake_redis):
         yield
