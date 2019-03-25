@@ -5,3 +5,7 @@ mypy
 pytest
 pytest-asyncio
 black
+mock
+requests
+fakeredis
+PyYAML

@@ -1,6 +1,20 @@
-from typing import List, Set, Dict, Optional
-from pydantic import BaseModel
+from typing import Any, Dict, List, Optional, Set
 
+from pydantic import BaseModel, UrlStr
+
+__all__ = [
+    "CrawlDoneResponse",
+    "CrawlInfo",
+    "CrawlInfoResponse",
+    "CrawlInfoUrlsResponse",
+    "CrawlInfosResponse",
+    "CreateCrawlRequest",
+    "CreateNewCrawlResponse",
+    "OperationSuccessResponse",
+    "QueueUrlsRequest",
+    "StartCrawlRequest",
+    "StartCrawlResponse"
+]
 
 # ============================================================================
 OptionalList = Optional[List[str]]
@@ -8,14 +22,14 @@ OptionalSet = Optional[Set[str]]
 
 
 class CreateCrawlRequest(BaseModel):
-    scope_type: str = 'single-page'
+    scope_type: str = "single-page"
     num_browsers: int = 2
     num_tabs: int = 1
 
 
 class CrawlInfoResponse(CreateCrawlRequest):
     id: str
-    status: str = 'new'
+    status: str = "new"
     crawl_depth: int = 0
 
     browsers: OptionalList
@@ -30,6 +44,7 @@ class CrawlInfo(BaseModel):
     """ Model for validate a:{crawl_id}:info key
     All fields should be set in the model
     """
+
     id: str
     status: str
     scope_type: str
@@ -46,15 +61,30 @@ class CrawlInfoUrlsResponse(BaseModel):
     seen: OptionalSet
 
 
+class OperationSuccessResponse(BaseModel):
+    success: bool
+
+
+class CreateNewCrawlResponse(OperationSuccessResponse):
+    id: str
+
+
 class QueueUrlsRequest(BaseModel):
-    urls: List[str]
+    urls: List[UrlStr]
 
 
 class StartCrawlRequest(BaseModel):
     browser: Optional[str]
-    user_params: dict = dict()
+    user_params: Dict[Any, Any] = dict()
 
     behavior_timeout: int = 0
     headless: bool = False
-    screenshot_target_uri: str = None
+    screenshot_target_uri: Optional[str] = None
 
+
+class StartCrawlResponse(OperationSuccessResponse):
+    browsers: List[str]
+
+
+class CrawlDoneResponse(BaseModel):
+    done: bool

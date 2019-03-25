@@ -1,62 +1,85 @@
-from fastapi import FastAPI
+from fastapi import APIRouter, FastAPI
+from starlette.responses import UJSONResponse
 
-from crawlmanager.schema import *
-
-from crawlmanager.crawl import CrawlManager, Crawl, init_redis, crawl_man
+from .crawl import CrawlManager
+from .schema import *
 
 app = FastAPI()
-
-init_redis()
+crawl_man = CrawlManager()
+crawl_router = APIRouter()
 
 
 # ============================================================================
-@app.post('/crawls')
+@app.post("/crawls", response_model=CreateNewCrawlResponse, content_type=UJSONResponse)
 async def create_crawl(new_crawl: CreateCrawlRequest):
     return await crawl_man.create_new(new_crawl)
 
 
-@app.get('/crawls', response_model=CrawlInfosResponse)
+@app.get("/crawls", response_model=CrawlInfosResponse, content_type=UJSONResponse)
 async def get_all_crawls():
     return await crawl_man.get_all_crawls()
 
 
-@app.put('/crawl/{crawl_id}/urls')
+@crawl_router.put(
+    "/{crawl_id}/urls",
+    response_model=OperationSuccessResponse,
+    content_type=UJSONResponse,
+)
 async def queue_urls(crawl_id: str, url_list: QueueUrlsRequest):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.queue_urls(url_list.urls)
 
 
-@app.get('/crawl/{crawl_id}', response_model=CrawlInfoResponse)
+@crawl_router.get(
+    "/{crawl_id}", response_model=CrawlInfoResponse, content_type=UJSONResponse
+)
 async def get_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.get_info()
 
 
-@app.get('/crawl/{crawl_id}/urls', response_model=CrawlInfoUrlsResponse)
+@crawl_router.get(
+    "/{crawl_id}/urls", response_model=CrawlInfoUrlsResponse, content_type=UJSONResponse
+)
 async def get_crawl_urls(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.get_info_urls()
 
 
-@app.post('/crawl/{crawl_id}/start')
+@crawl_router.post(
+    "/{crawl_id}/start", response_model=StartCrawlResponse, content_type=UJSONResponse
+)
 async def start_crawl(crawl_id: str, start_request: StartCrawlRequest):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.start(start_request)
 
 
-@app.post('/crawl/{crawl_id}/stop')
+@crawl_router.post(
+    "/{crawl_id}/stop",
+    response_model=OperationSuccessResponse,
+    content_type=UJSONResponse,
+)
 async def stop_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.stop()
 
 
-@app.get('/crawl/{crawl_id}/done')
+@crawl_router.get(
+    "/{crawl_id}/done", response_model=CrawlDoneResponse, content_type=UJSONResponse
+)
 async def is_done_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.is_done()
 
-@app.delete('/crawl/{crawl_id}')
+
+@crawl_router.delete(
+    "/{crawl_id}", response_model=OperationSuccessResponse, content_type=UJSONResponse
+)
 async def delete_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.delete()
 
+
+app.include_router(crawl_router, prefix="/crawl", tags=["crawl"])
+app.add_event_handler("startup", crawl_man.startup)
+app.add_event_handler("shutdown", crawl_man.shutdown)

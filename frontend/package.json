@@ -2,10 +2,31 @@
   "name": "crawlmanager-frontend",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "Appache 2.0",
+  "license": "Appache-2.0",
   "dependencies": {
-    "@hot-loader/react-dom": "16.8.4",
+    "bootstrap": "^4.3.1",
     "react": "^16.8.4",
-    "react-dom": "npm:@hot-loader/react-dom"
-  }
+    "react-dom": "npm:@hot-loader/react-dom",
+    "reactstrap": "^7.1.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.0",
+    "babel-loader": "^8.0.5",
+    "babel-preset-env": "^1.7.0",
+    "gatsby": "^2.2.11",
+    "prettier": "^1.16.4",
+    "prop-types": "^15.7.2",
+    "react-hot-loader": "^4.8.0",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0",
+    "webpack-hot-middleware": "^2.24.3"
+  },
+  "scripts": {
+    "build": "gatsby build",
+    "develop": "gatsby develop",
+    "deploy": "gatsby build && gh-pages -d public -b master"
+  },
+  "browserslist": [
+    "> 1.5%"
+  ]
 }

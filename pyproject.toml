@@ -33,14 +33,21 @@ authors = ["John Berlin <john.berlin@rhizome.org>", "Ilya Kreymer <ikreymer@gmai
 
 [tool.poetry.dependencies]
 python = ">= 3.7"
+aiodns = ">= 2.0"
 aiohttp = ">= 3.5.4"
-aiohttp_jinja2 = ">= 1.1.0"
 aioredis = ">= 1.2.0"
+async-timeout = ">= 3.0"
+cchardet = ">= 2.1"
+fastapi = ">= 0.9.1"
 jinja2 = ">= 2.10"
+pydantic = ">= 0.21"
+python-multipart = ">= 0.0.5"
+starlette = ">= 0.11.1"
 ujson = ">= 1.35"
+uvicorn = ">= 0.6.1"
 uvloop = ">= 0.12.2"
-fastapi = "^0.9.1"
-uvicorn = "^0.6.1"
+better_exceptions = ">= 0.2.2"
+pyyaml = "^5.1"
 
 
 [tool.poetry.dev-dependencies]
@@ -54,3 +61,4 @@ black = ">= 19.3b0"
 mock = "^2.0"
 requests = "^2.21"
 fakeredis = "^1.0"
+
