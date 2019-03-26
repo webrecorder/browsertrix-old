@@ -1,13 +1,12 @@
 import React from 'react';
-import Layout from '../components/Layout';
-import { Row } from 'reactstrap';
+import { Row, Col } from 'reactstrap';
+import Layout from '../containers/Layout';
+import Crawls from '../containers/Crawls';
 
 export default function Home({ location }) {
   return (
-    <Layout location={location} fluid>
-      <Row>
-        <p>hi</p>
-      </Row>
+    <Layout location={location}>
+      <Crawls />
     </Layout>
   );
 }

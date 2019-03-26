@@ -1,8 +1,8 @@
 import '../styles/global.scss';
 import React, { Fragment } from 'react';
 import * as PropTypes from 'prop-types';
-import { Container } from 'reactstrap';
-import Header from './Header';
+import { Container } from 'react-bootstrap';
+import Header from '../components/Header';
 
 export default function Layout({ location, children, fluid }) {
   return (

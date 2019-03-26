@@ -1,10 +1,10 @@
 import React from 'react';
-import { NavItem } from 'reactstrap';
+import { NavItem } from 'react-bootstrap';
 import { Link } from 'gatsby';
 
 export default function HeaderLink({ to, location, children }) {
   return (
-    <NavItem active={location.pathname === to}>
+    <NavItem>
       <Link to={to} className='nav-link' activeClassName={'active'}>
         {children}
       </Link>
