@@ -4,11 +4,11 @@ const { root, crawl } =
       ? window.__crawlmanEndpoints
       : {
           root: 'http://localhost:8001',
-          crawl: 'http://localhost:8001/crawl'
+          crawl: 'http://localhost:8001/crawl/'
         }
     : {
         root: 'http://localhost:8001',
-        crawl: 'http://localhost:8001/crawl'
+        crawl: 'http://localhost:8001/crawl/'
       };
 
 /**

@@ -30,11 +30,9 @@ function untrackURL(url) {
 
 function createRequestMiddleware() {
   return store => next => action => {
-    console.log(action);
     if (!HTTPRequests.actions.has(action.type)) return next(action);
     if (action.meta && action.meta.httpRequest) {
       if (!action.meta.httpRequest.done) {
-        console.log('not done');
         if (isURLTracked(action.meta.httpRequest.url)) return;
         trackURL(action.meta.httpRequest.url);
       } else {

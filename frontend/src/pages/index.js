@@ -1,7 +1,6 @@
 import React from 'react';
-import { Row, Col } from 'reactstrap';
-import Layout from '../containers/Layout';
-import Crawls from '../containers/Crawls';
+import Layout from '../components/Layout';
+import Crawls from '../components/Crawls';
 
 export default function Home({ location }) {
   return (

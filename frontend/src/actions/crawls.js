@@ -1,18 +1,17 @@
 import { Crawls, HTTPRequests } from '../utils/keys';
 import { FetchStates, makeRequestRequest } from '../utils/makeHTTPRequest';
 import { EndPointRequests } from '../utils/endpoints';
+import { toast } from 'react-toastify';
 
-export function getAllCrawls() {
+export function getAllCrawls(init = false) {
   const request = EndPointRequests.retrieveAllCrawls();
   return makeRequestRequest(request, {
-    init: () => ({
-      type: HTTPRequests.make,
-      payload: {
-        fetchState: FetchStates.inflight
-      }
-    }),
+    init: () => ({ type: HTTPRequests.make }),
     async responseOrError({ dispatch, response, error }) {
       if (error) {
+        toast('Failed to retrieve info about all crawls', {
+          type: toast.TYPE.ERROR
+        });
         return {
           type: HTTPRequests.done,
           payload: {
@@ -22,7 +21,7 @@ export function getAllCrawls() {
         };
       }
       return {
-        type: Crawls.gotAll,
+        type: init ? Crawls.gotAllInit : Crawls.gotAll,
         payload: await response.json()
       };
     }
@@ -42,6 +41,9 @@ export function getCrawlInfo(id) {
     init: () => ({ type: HTTPRequests.make }),
     async responseOrError({ dispatch, response, error }) {
       if (error) {
+        toast(`Failed to retrieve the info for crawl ${id}`, {
+          type: toast.TYPE.ERROR
+        });
         return {
           type: Crawls.done,
           payload: {
@@ -61,19 +63,22 @@ export function getCrawlInfo(id) {
 }
 
 export function createCrawl(newCrawl = {}) {
-  const { scope = 'single-page', browsers = 2, tabs = 2 } = newCrawl;
+  const { scope = 'single-page', browsers = 2, tabs = 2, urls = [] } = newCrawl;
   const body = {
-    scope_type: scope,
-    num_browsers: browsers,
-    num_tabs: tabs
+    crawlType: scope,
+    numBrowsers: browsers,
+    numTabs: tabs,
+    seedURLs: urls
   };
   const request = EndPointRequests.createNewCrawl(body);
   return makeRequestRequest(request, {
     init: () => ({ type: HTTPRequests.make }),
     async responseOrError({ dispatch, response, error }) {
       if (error) {
+        toast(`Failed to create the crawl ${error}`, {
+          type: toast.TYPE.ERROR
+        });
         return {
-          forAction: Crawls.create,
           type: HTTPRequests.done,
           payload: {
             fetchState: FetchStates.error,
@@ -81,14 +86,11 @@ export function createCrawl(newCrawl = {}) {
           }
         };
       }
-      const { id } = await response.json();
-      Promise.resolve().then(() => {
-        dispatch(getCrawlInfo(id));
-      });
+      const json = await response.json();
       return {
         type: Crawls.create,
         payload: {
-          id,
+          id: json.id,
           ...body
         }
       };

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from asyncio import AbstractEventLoop, get_event_loop
+from asyncio import AbstractEventLoop, get_event_loop, gather as aio_gather
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Set
 from ujson import dumps as ujson_dumps
 from urllib.parse import urlsplit
 
@@ -106,24 +106,26 @@ class CrawlManager:
         """
         crawl_id = self.new_crawl_id()
 
-        if create_request.scope_type == 'all-links':
-            crawl_depth = 1
-        elif create_request.scope_type == 'same-domain':
-            crawl_depth = self.same_domain_depth
-        else:
-            crawl_depth = 0
+        crawl_depth = create_request.crawlDepth
+        if crawl_depth is None:
+            if create_request.crawlType == 'all-links':
+                crawl_depth = 1
+            elif create_request.crawlType == 'same-domain':
+                crawl_depth = self.same_domain_depth
+            else:
+                crawl_depth = 0
 
         data = {
             'id': crawl_id,
-            'num_browsers': create_request.num_browsers,
-            'num_tabs': create_request.num_tabs,
+            'numBrowsers': create_request.numBrowsers,
+            'numTabs': create_request.numTabs,
             # 'owner': collection.my_id,
-            'scope_type': create_request.scope_type,
+            'crawlType': create_request.crawlType,
             'status': 'new',
-            'crawl_depth': crawl_depth,
+            'crawlDepth': crawl_depth,
         }
 
-        await self.redis.hmset_dict(f'a:{crawl_id}:info', data)
+        await Crawl.create(self, crawl_id, data, create_request.seedURLs)
 
         return {'success': True, 'id': crawl_id}
 
@@ -217,7 +219,44 @@ class Crawl:
     and the operations on it
     """
 
-    def __init__(self, crawl_id: str, manager: CrawlManager) -> None:
+    __slots__ = [
+        'browser_done_key',
+        'browser_key',
+        'crawl_id',
+        'frontier_q_key',
+        'info_key',
+        'manager',
+        'model',
+        'pending_q_key',
+        'scopes_key',
+        'seen_key',
+    ]
+
+    @classmethod
+    async def create(
+        cls,
+        manager: CrawlManager,
+        crawl_id: str,
+        info: Dict,
+        seed_urls: Optional[List[str]] = None,
+    ) -> Crawl:
+        """Creates a new crawl and returns it
+
+        :param manager: The crawl manager instance
+        :param crawl_id: The id for the new crawl
+        :param info: The crawl info object created from the CreateCrawlRequest
+        :param seed_urls: Optional list of URLs to be queued for this crawl
+        :return: The newly created or updated crawl
+        """
+        crawl = Crawl(crawl_id, manager)
+        await crawl.update_info(info)
+        if seed_urls is not None:
+            await crawl.queue_urls(seed_urls)
+        return crawl
+
+    def __init__(
+        self, crawl_id: str, manager: CrawlManager, model: Optional[CrawlInfo] = None
+    ) -> None:
         """Create a new crawl object
 
         :param crawl_id: The id of the crawl
@@ -237,7 +276,7 @@ class Crawl:
         self.browser_key: str = f'a:{crawl_id}:br'
         self.browser_done_key: str = f'a:{crawl_id}:br:done'
 
-        self.model: CrawlInfo = None
+        self.model: Optional[CrawlInfo] = model
 
     @property
     def redis(self) -> Redis:
@@ -246,6 +285,14 @@ class Crawl:
         :return: The redis instance of the crawl manager
         """
         return self.manager.redis
+
+    @property
+    def loop(self) -> AbstractEventLoop:
+        """Retrieve the running event loop
+
+        :return: The running event loop
+        """
+        return self.manager.loop
 
     async def delete(self) -> Dict[str, bool]:
         """Delete this crawl
@@ -274,17 +321,12 @@ class Crawl:
 
         :param urls: A list of URLs that define this crawls domain scope
         """
-        domains = set()
-
-        for url in urls:
-            domain = urlsplit(url).netloc
-            domains.add(domain)
+        domains = {ujson_dumps({'domain': urlsplit(url).netloc}) for url in urls}
 
         if not domains:
             return
 
-        for domain in domains:
-            await self.redis.sadd(self.scopes_key, ujson_dumps({'domain': domain}))
+        await self.redis.sadd(self.scopes_key, *domains)
 
     async def queue_urls(self, urls: List[str]) -> Dict[str, bool]:
         """Adds the supplied list of URLs to this crawls queue
@@ -293,27 +335,44 @@ class Crawl:
         :return: An dictionary indicating if this operation
         was successful
         """
-        for url in urls:
-            url_req = {'url': url, 'depth': 0}
-            await self.redis.rpush(self.frontier_q_key, ujson_dumps(url_req))
+        if not urls:
+            return {'success': True}
+        urls_to_q = []
+        # add to seen list to avoid dupes
+        urls_seen = []
 
-            # add to seen list to avoid dupes
-            await self.redis.sadd(self.seen_key, url)
+        for url in urls:
+            urls_to_q.append(ujson_dumps({'url': url, 'depth': 0}))
+            urls_seen.append(url)
+
+        await aio_gather(
+            self.redis.rpush(self.frontier_q_key, *urls_to_q),
+            self.redis.sadd(self.seen_key, *urls_seen),
+            loop=self.loop,
+        )
 
         if self.model.scope_type == 'same-domain':
             await self._init_domain_scopes(urls)
 
         return {'success': True}
 
+    async def update_info(self, info: Dict) -> None:
+        await self.redis.hmset_dict(self.info_key, info)
+
     async def get_info(self) -> Dict:
         """Returns this crawls information
 
         :return: The crawl information
         """
-        data = await self.redis.hgetall(self.info_key)
+        data, browsers, browsers_done = await aio_gather(
+            self.redis.hgetall(self.info_key),
+            self.redis.smembers(self.browser_key),
+            self.redis.smembers(self.browser_done_key),
+            loop=self.loop,
+        )
 
-        data['browsers'] = list(await self.redis.smembers(self.browser_key))
-        data['browsers_done'] = list(await self.redis.smembers(self.browser_done_key))
+        data['browsers'] = list(browsers)
+        data['browsersDone'] = list(browsers_done)
 
         return data
 
@@ -322,11 +381,19 @@ class Crawl:
 
         :return: The crawls URL information
         """
+        scopes, queue, pending, seen = await aio_gather(
+            self.redis.smembers(self.scopes_key),
+            self.redis.lrange(self.frontier_q_key, 0, -1),
+            self.redis.smembers(self.pending_q_key),
+            self.redis.smembers(self.seen_key),
+            loop=self.loop,
+        )
+
         data = {
-            'scopes': list(await self.redis.smembers(self.scopes_key)),
-            'queue': await self.redis.lrange(self.frontier_q_key, 0, -1),
-            'pending': list(await self.redis.smembers(self.pending_q_key)),
-            'seen': await self.redis.smembers(self.seen_key),
+            'scopes': list(scopes),
+            'queue': queue,
+            'pending': list(pending),
+            'seen': seen,
         }
 
         return data
@@ -347,12 +414,12 @@ class Crawl:
 
         environ = self.manager.container_environ.copy()
         environ['AUTO_ID'] = self.crawl_id
-        environ['NUM_TABS'] = self.model.num_tabs
+        environ['NUM_TABS'] = self.model.numTabs
         if start_request.behavior_timeout > 0:
-            environ['BEHAVIOR_RUN_TIME'] = start_request.behavior_timeout
+            environ['BEHAVIOR_RUN_TIME'] = start_request.behaviorTimeout
 
         if start_request.screenshot_target_uri:
-            environ['SCREENSHOT_TARGET_URI'] = start_request.screenshot_target_uri
+            environ['SCREENSHOT_TARGET_URI'] = start_request.screenshotTargetUri
             environ['SCREENSHOT_FORMAT'] = 'png'
 
         deferred = {'autodriver': False}

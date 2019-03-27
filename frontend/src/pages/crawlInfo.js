@@ -1,5 +1,5 @@
 import React from 'react'
-import Layout from '../containers/Layout'
+import Layout from '../components/Layout'
 
 export default function CrawlInfo ({ location }) {
   return (

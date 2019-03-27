@@ -22,22 +22,22 @@ OptionalSet = Optional[Set[str]]
 
 
 class CreateCrawlRequest(BaseModel):
-    scope_type: str = Schema(
+    crawlType: str = Schema(
         'single-page', description='What type of crawl should be launched'
     )
-    num_browsers: int = Schema(
-        2, description='How many browsers should be used for the crawl'
+    crawlDepth: Optional[int] = None
+    numBrowsers: int = Schema(
+        1, description='How many browsers should be used for the crawl'
     )
-    num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
+    numTabs: int = Schema(1, description='How many tabs should be used for the crawl')
+    seedURLs: OptionalList = None
 
 
 class CrawlInfoResponse(CreateCrawlRequest):
     id: str
     status: str = 'new'
-    crawl_depth: int = 0
-
     browsers: OptionalList
-    browsers_done: OptionalList
+    browsersDone: OptionalList
 
 
 class CrawlInfosResponse(BaseModel):
@@ -51,10 +51,10 @@ class CrawlInfo(BaseModel):
 
     id: str
     status: str
-    scope_type: str
-    num_browsers: int
-    num_tabs: int
-    crawl_depth: int
+    crawlType: str
+    numBrowsers: int
+    numTabs: int
+    crawlDepth: int
 
 
 class CrawlInfoUrlsResponse(BaseModel):
@@ -80,9 +80,9 @@ class StartCrawlRequest(BaseModel):
     browser: Optional[str]
     user_params: Dict[Any, Any] = dict()
 
-    behavior_timeout: int = 0
+    behaviorTimeout: int = 0
     headless: bool = False
-    screenshot_target_uri: Optional[str] = None
+    screenshotTargetUri: Optional[str] = None
 
 
 class StartCrawlResponse(OperationSuccessResponse):

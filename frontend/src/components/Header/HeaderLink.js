@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavItem } from 'react-bootstrap';
+import NavItem  from 'react-bootstrap/NavItem';
 import { Link } from 'gatsby';
 
 export default function HeaderLink({ to, location, children }) {

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, FastAPI
 from starlette.responses import UJSONResponse
-from starlette.middleware.cors import CORSMiddleware
+from starlette.middleware.cors import CORSMiddleware, ALL_METHODS
 
 from .crawl import CrawlManager
 from .schema import (
@@ -93,6 +93,6 @@ async def delete_crawl(crawl_id: str):
 
 
 app.include_router(crawl_router, prefix='/crawl', tags=['crawl'])
-app.add_middleware(CORSMiddleware, allow_origins=['*'])
+app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=ALL_METHODS)
 app.add_event_handler('startup', crawl_man.startup)
 app.add_event_handler('shutdown', crawl_man.shutdown)

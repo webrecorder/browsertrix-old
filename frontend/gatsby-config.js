@@ -9,9 +9,12 @@ module.exports = {
     {
       resolve: 'gatsby-plugin-sass',
       options: {
-        includePaths: ['node_modules/bootstrap/scss'],
+        includePaths: [
+          'node_modules/bootstrap/scss',
+          'node_modules/react-toastify/scss/main'
+        ],
         precision: 10
       }
-    },
+    }
   ]
 };

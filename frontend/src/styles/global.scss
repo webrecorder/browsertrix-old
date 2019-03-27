@@ -1,2 +1,20 @@
+@charset "UTF-8";
+@import "../../node_modules/react-toastify/scss/main";
 @import "../../node_modules/bootstrap/scss/bootstrap";
 
+.form-border {
+    position: relative;
+    color: #212529;
+    padding: 1rem;
+    margin-right: 0;
+    margin-left: 0;
+    border: .2rem solid #ececec;
+    border-radius: 8px;
+}
+
+.create-crawl-seedlist {
+    height: 300px;
+    max-height: 300px;
+    overflow: auto;
+    margin-top: 1rem !important;
+}

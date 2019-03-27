@@ -22,7 +22,7 @@ services:
     pywb:
         image: webrecorder/pywb
 
-        command: wayback --live --proxy coll --proxy-record -a --auto-interval 10
+        command: wayback --live --proxy coll --proxy-record
 
         environment:
             - INIT_COLLECTION=coll

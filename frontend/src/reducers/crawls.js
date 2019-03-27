@@ -1,38 +1,48 @@
 import { List, Map, Record } from 'immutable';
 import { Crawls } from '../utils/keys';
 
-const Crawl = Record(
+export const Crawl = Record(
   {
-    scope_type: ' ',
-    num_browsers: 0,
-    num_tabs: 0,
+    crawlType: ' ',
+    numBrowsers: 0,
+    numTabs: 0,
     id: '',
     browsers: List([]),
     browsers_done: List([]),
-    running: false
+    running: false,
+    status: ''
   },
   'Crawl'
 );
 
-export default function crawlsReducer(state = Map({}), { type, payload }) {
+export function crawlsFetchedReducer(state = false, action) {
+  if (action.type === Crawls.gotAllInit) {
+    return true;
+  }
+  return state;
+}
+
+export default function crawlsReducer(
+  state = Map({}),
+  { type, payload, meta }
+) {
   switch (type) {
-    case Crawls.gotAll: {
+    case Crawls.gotAllInit:
+    case Crawls.gotAll:
       return state.withMutations(mutable => {
-        for (let i = 0; i < payload.length; i++) {
-          const crawl = payload[i];
+        const { crawls } = payload;
+        console.log(crawls);
+        for (let i = 0; i < crawls.length; i++) {
+          const crawl = crawls[i];
           mutable.set(crawl.id, Crawl(crawl));
         }
+        return mutable;
       });
-    }
-    case Crawls.create: {
-      if (state.has(payload.id)) return state;
-      return state.set(payload.id, Crawl(payload));
-    }
-    case Crawls.info: {
+    case Crawls.create:
+    case Crawls.info:
       return state.update(payload.id, null, crawl =>
         crawl == null ? Crawl(payload) : crawl.merge(payload)
       );
-    }
     default:
       return state;
   }
