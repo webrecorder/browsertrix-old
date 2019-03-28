@@ -114,6 +114,9 @@ export class URLFields extends Component {
 
   renderURLS() {
     const { fields } = this.props;
+    if (fields.length === 0) {
+      return <URLToBeCrawled key='no-urls-to-crawl' empty />;
+    }
     const urls = new Array(fields.length);
     for (let i = 0; i < fields.length; i++) {
       urls[i] = (
@@ -125,9 +128,6 @@ export class URLFields extends Component {
         />
       );
     }
-    if (urls.length === 0) {
-      urls.push(<URLToBeCrawled key='no-urls-to-crawl' empty />);
-    }
     return urls;
   }
 
@@ -138,6 +138,7 @@ export class URLFields extends Component {
           <Col>
             <FormControl
               size='sm'
+              name='url'
               as='input'
               type='url'
               placeholder='Seed URL'

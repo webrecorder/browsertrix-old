@@ -24,11 +24,11 @@ export default function Crawl({ crawl, crawlActions }) {
             </thead>
             <tbody>
               <tr>
-                <td>{crawl.crawlType}</td>
+                <td>{crawl.crawl_type}</td>
                 <td>{crawl.running ? 'yes' : 'no'}</td>
-                <td>{crawl.numBrowsers}</td>
-                <td>{crawl.numTabs}</td>
                 <td>{crawl.status}</td>
+                <td>{crawl.num_browsers}</td>
+                <td>{crawl.num_tabs}</td>
               </tr>
             </tbody>
           </Table>

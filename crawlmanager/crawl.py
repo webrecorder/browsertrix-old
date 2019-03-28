@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import uuid
-from asyncio import AbstractEventLoop, get_event_loop, gather as aio_gather
+from asyncio import AbstractEventLoop, gather as aio_gather, get_event_loop
 from functools import partial
-from typing import Dict, List, Optional, Union, Set
-from ujson import dumps as ujson_dumps
+from typing import Dict, List, Optional, Union
 from urllib.parse import urlsplit
 
 from aiohttp import AsyncResolver, ClientSession, TCPConnector
 from aioredis import Redis
 from starlette.exceptions import HTTPException
+from ujson import dumps as ujson_dumps
 
 from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest
 from .utils import env, init_redis
@@ -106,26 +106,26 @@ class CrawlManager:
         """
         crawl_id = self.new_crawl_id()
 
-        crawl_depth = create_request.crawlDepth
+        crawl_depth = create_request.depth
         if crawl_depth is None:
-            if create_request.crawlType == 'all-links':
+            if create_request.crawl_type == 'all-links':
                 crawl_depth = 1
-            elif create_request.crawlType == 'same-domain':
+            elif create_request.crawl_type == 'same-domain':
                 crawl_depth = self.same_domain_depth
             else:
                 crawl_depth = 0
 
         data = {
             'id': crawl_id,
-            'numBrowsers': create_request.numBrowsers,
-            'numTabs': create_request.numTabs,
+            'num_browsers': create_request.num_browsers,
+            'num_tabs': create_request.num_tabs,
             # 'owner': collection.my_id,
-            'crawlType': create_request.crawlType,
+            'crawl_type': create_request.crawl_type,
             'status': 'new',
-            'crawlDepth': crawl_depth,
+            'depth': crawl_depth,
         }
 
-        await Crawl.create(self, crawl_id, data, create_request.seedURLs)
+        await Crawl.create(self, crawl_id, data, create_request.seed_urls)
 
         return {'success': True, 'id': crawl_id}
 
@@ -138,7 +138,7 @@ class CrawlManager:
         crawl = Crawl(crawl_id, self)
         data = await self.redis.hgetall(crawl.info_key)
         if not data:
-            raise HTTPException(404, detail='not_found')
+            raise HTTPException(404, detail='not found')
 
         crawl.model = CrawlInfo(**data)
 
@@ -335,7 +335,7 @@ class Crawl:
         :return: An dictionary indicating if this operation
         was successful
         """
-        if not urls:
+        if len(urls) == 0:
             return {'success': True}
         urls_to_q = []
         # add to seen list to avoid dupes
@@ -351,7 +351,7 @@ class Crawl:
             loop=self.loop,
         )
 
-        if self.model.scope_type == 'same-domain':
+        if self.model.crawl_type == 'same-domain':
             await self._init_domain_scopes(urls)
 
         return {'success': True}
@@ -406,7 +406,7 @@ class Crawl:
         was successful and a list of browsers in the crawl
         """
         if self.model.status == 'running':
-            raise HTTPException(400, detail='already_running')
+            raise HTTPException(400, detail='already running')
 
         browser = start_request.browser or self.manager.default_browser
 
@@ -414,12 +414,12 @@ class Crawl:
 
         environ = self.manager.container_environ.copy()
         environ['AUTO_ID'] = self.crawl_id
-        environ['NUM_TABS'] = self.model.numTabs
-        if start_request.behavior_timeout > 0:
-            environ['BEHAVIOR_RUN_TIME'] = start_request.behaviorTimeout
+        environ['NUM_TABS'] = self.model.num_tabs
+        if start_request.behavior_run_time > 0:
+            environ['BEHAVIOR_RUN_TIME'] = start_request.behavior_run_time
 
         if start_request.screenshot_target_uri:
-            environ['SCREENSHOT_TARGET_URI'] = start_request.screenshotTargetUri
+            environ['SCREENSHOT_TARGET_URI'] = start_request.screenshot_target_uri
             environ['SCREENSHOT_FORMAT'] = 'png'
 
         deferred = {'autodriver': False}
@@ -497,7 +497,7 @@ class Crawl:
         :return: An dictionary indicating if the operation was successful
         """
         if self.model.status != 'running':
-            raise HTTPException(400, detail='not_running')
+            raise HTTPException(400, detail='not running')
 
         errors = []
 

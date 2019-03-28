@@ -7,7 +7,7 @@ import validate from './validate';
 
 function CrawlCreator({ handleSubmit, pristine, reset, submitting }) {
   return (
-    <Form onSubmit={handleSubmit} className='form-border'>
+    <Form onSubmit={handleSubmit} className='form-border' autoComplete='on'>
       <Form.Row>
         <Field name='scope' component={ScopeField} />
         <Field name='browsers' component={NumBrowsersField} />

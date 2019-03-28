@@ -1,6 +1,7 @@
+import math
 from typing import Any, Dict, List, Optional, Set
 
-from pydantic import BaseModel, Schema
+from pydantic import BaseModel, Schema, UrlStr
 
 __all__ = [
     'CrawlDoneResponse',
@@ -20,24 +21,30 @@ __all__ = [
 OptionalList = Optional[List[str]]
 OptionalSet = Optional[Set[str]]
 
+UrlStr.max_length = math.inf
+UrlStr.relative = True
 
-class CreateCrawlRequest(BaseModel):
-    crawlType: str = Schema(
+
+class BaseCreateCrawl(BaseModel):
+    crawl_type: str = Schema(
         'single-page', description='What type of crawl should be launched'
     )
-    crawlDepth: Optional[int] = None
-    numBrowsers: int = Schema(
-        1, description='How many browsers should be used for the crawl'
+    depth: Optional[int] = None
+    num_browsers: int = Schema(
+        2, description='How many browsers should be used for the crawl'
     )
-    numTabs: int = Schema(1, description='How many tabs should be used for the crawl')
-    seedURLs: OptionalList = None
+    num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
 
 
-class CrawlInfoResponse(CreateCrawlRequest):
+class CreateCrawlRequest(BaseCreateCrawl):
+    seed_urls: List[UrlStr] = []
+
+
+class CrawlInfoResponse(BaseCreateCrawl):
     id: str
     status: str = 'new'
     browsers: OptionalList
-    browsersDone: OptionalList
+    browsers_done: OptionalList
 
 
 class CrawlInfosResponse(BaseModel):
@@ -51,10 +58,10 @@ class CrawlInfo(BaseModel):
 
     id: str
     status: str
-    crawlType: str
-    numBrowsers: int
-    numTabs: int
-    crawlDepth: int
+    crawl_type: str
+    num_browsers: int
+    num_tabs: int
+    depth: int
 
 
 class CrawlInfoUrlsResponse(BaseModel):
@@ -80,9 +87,9 @@ class StartCrawlRequest(BaseModel):
     browser: Optional[str]
     user_params: Dict[Any, Any] = dict()
 
-    behaviorTimeout: int = 0
+    behavior_timeout: int = 0
     headless: bool = False
-    screenshotTargetUri: Optional[str] = None
+    screenshot_target_uri: Optional[str] = None
 
 
 class StartCrawlResponse(OperationSuccessResponse):

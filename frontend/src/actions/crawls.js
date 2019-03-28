@@ -65,10 +65,10 @@ export function getCrawlInfo(id) {
 export function createCrawl(newCrawl = {}) {
   const { scope = 'single-page', browsers = 2, tabs = 2, urls = [] } = newCrawl;
   const body = {
-    crawlType: scope,
-    numBrowsers: browsers,
-    numTabs: tabs,
-    seedURLs: urls
+    crawl_type: scope,
+    num_browsers: browsers,
+    num_tabs: tabs,
+    seed_urls: urls
   };
   const request = EndPointRequests.createNewCrawl(body);
   return makeRequestRequest(request, {

@@ -11,14 +11,13 @@ export default function ViewAllCrawls({ crawls, crawlActions }) {
       <Crawl key={`crawl-${id}`} crawlActions={crawlActions} crawl={crawl} />
     );
   }
-  return (
-    <ListGroup>
-      {allCrawls}
-    </ListGroup>
-  );
+  return <ListGroup>{allCrawls}</ListGroup>;
 }
 
 ViewAllCrawls.propTypes = {
   crawls: PropTypes.instanceOf(Map).isRequired,
-  crawlActions: PropTypes.object.isRequired
+  crawlActions: PropTypes.shape({
+    getAllCrawls: PropTypes.func.isRequired,
+    getCrawlInfo: PropTypes.func.isRequired
+  })
 };

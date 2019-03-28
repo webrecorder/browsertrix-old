@@ -3,9 +3,9 @@ import { Crawls } from '../utils/keys';
 
 export const Crawl = Record(
   {
-    crawlType: ' ',
-    numBrowsers: 0,
-    numTabs: 0,
+    crawl_type: '',
+    num_browsers: 0,
+    num_tabs: 0,
     id: '',
     browsers: List([]),
     browsers_done: List([]),
@@ -31,10 +31,14 @@ export default function crawlsReducer(
     case Crawls.gotAll:
       return state.withMutations(mutable => {
         const { crawls } = payload;
-        console.log(crawls);
         for (let i = 0; i < crawls.length; i++) {
           const crawl = crawls[i];
-          mutable.set(crawl.id, Crawl(crawl));
+          const crec = mutable.get(crawl.id);
+          if (!crec) {
+            mutable.set(crawl.id, Crawl(crawl));
+          } else {
+            mutable.set(crawl.id, crec.merge(crawl));
+          }
         }
         return mutable;
       });

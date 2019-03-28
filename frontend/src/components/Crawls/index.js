@@ -1,9 +1,8 @@
 import React, { PureComponent } from 'react';
-import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { Map } from 'immutable';
-import * as crawlActions from '../../actions/crawls';
+import { createCrawl, getAllCrawls, getCrawlInfo } from '../../actions/crawls';
 import LoadingCrawls from './LoadingCrawls';
 import CrawlCreator from '../CrawlCreator';
 import ViewAllCrawls from './ViewAllCrawls';
@@ -16,13 +15,13 @@ class Crawls extends PureComponent {
   }
 
   createCrawl = values => {
-    this.props.createCrawl(values.toJS());
+    this.props.crawlActions.createCrawl(values.toJS());
   };
 
   render() {
     if (!this.props.crawlsFetched) {
       return <LoadingCrawls />;
-    } else if (this.props.crawls.size === 1) {
+    } else if (this.props.crawls.size === 0) {
       return (
         <>
           <h1 className='display-4'>There were no pre-existing crawls</h1>
@@ -43,14 +42,28 @@ Crawls.propTypes = {
   crawls: PropTypes.instanceOf(Map).isRequired,
   crawlsFetched: PropTypes.bool.isRequired,
   init: PropTypes.func.isRequired,
-  crawlActions: PropTypes.object.isRequired,
+  crawlActions: PropTypes.shape({
+    createCrawl: PropTypes.func.isRequired,
+    getAllCrawls: PropTypes.func.isRequired,
+    getCrawlInfo: PropTypes.func.isRequired
+  })
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   init() {
-    dispatch(crawlActions.getAllCrawls(true));
+    dispatch(getAllCrawls(true));
   },
-  crawlActions: bindActionCreators(crawlActions, dispatch)
+  crawlActions: {
+    createCrawl(crawlInfo) {
+      dispatch(createCrawl(crawlInfo));
+    },
+    getAllCrawls() {
+      dispatch(getAllCrawls(true));
+    },
+    getCrawlInfo(id) {
+      dispatch(getCrawlInfo(id));
+    }
+  }
 });
 
 const mapStateToProps = (state, ownProps) => ({
