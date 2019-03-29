@@ -1,21 +1,53 @@
-import React, { PureComponent } from 'react';
+import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import * as PropTypes from 'prop-types';
 import { Map } from 'immutable';
-import { createCrawl, getAllCrawls, getCrawlInfo } from '../../actions/crawls';
+import {
+  createCrawl,
+  getAllCrawls,
+  getCrawlInfo,
+  removeCrawl
+} from '../../actions/crawls';
 import LoadingCrawls from './LoadingCrawls';
 import CrawlCreator from '../CrawlCreator';
 import ViewAllCrawls from './ViewAllCrawls';
 
-class Crawls extends PureComponent {
+class Crawls extends Component {
+  static propTypes = {
+    crawls: PropTypes.instanceOf(Map).isRequired,
+    crawlsFetched: PropTypes.bool.isRequired,
+    init: PropTypes.func.isRequired,
+    crawlActions: PropTypes.shape({
+      createCrawl: PropTypes.func.isRequired,
+      getAllCrawls: PropTypes.func.isRequired,
+      getCrawlInfo: PropTypes.func.isRequired,
+      removeCrawl: PropTypes.func.isRequired
+    })
+  };
+
   componentDidMount() {
     if (!this.props.crawls.get('fetched')) {
       this.props.init();
     }
   }
 
+  // shouldComponentUpdate(nextProps, nextState, nextContext) {
+  //   return (
+  //     this.props.crawlsFetched !== nextProps.crawlsFetched ||
+  //     this.props.crawls !== nextProps.crawls
+  //   );
+  // }
+
   createCrawl = values => {
     this.props.crawlActions.createCrawl(values.toJS());
+  };
+
+  updateCrawlInfo = id => {
+    this.props.crawlActions.getCrawlInfo(id);
+  };
+
+  removeCrawl = id => {
+    this.props.crawlActions.removeCrawl(id);
   };
 
   render() {
@@ -30,24 +62,15 @@ class Crawls extends PureComponent {
       );
     }
     return (
-      <ViewAllCrawls
-        crawls={this.props.crawls}
-        crawlActions={this.props.crawlActions}
-      />
+      <>
+        <ViewAllCrawls
+          crawls={this.props.crawls}
+          crawlActions={this.props.crawlActions}
+        />
+      </>
     );
   }
 }
-
-Crawls.propTypes = {
-  crawls: PropTypes.instanceOf(Map).isRequired,
-  crawlsFetched: PropTypes.bool.isRequired,
-  init: PropTypes.func.isRequired,
-  crawlActions: PropTypes.shape({
-    createCrawl: PropTypes.func.isRequired,
-    getAllCrawls: PropTypes.func.isRequired,
-    getCrawlInfo: PropTypes.func.isRequired
-  })
-};
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   init() {
@@ -58,10 +81,13 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
       dispatch(createCrawl(crawlInfo));
     },
     getAllCrawls() {
-      dispatch(getAllCrawls(true));
+      dispatch(getAllCrawls());
     },
     getCrawlInfo(id) {
       dispatch(getCrawlInfo(id));
+    },
+    removeCrawl(id) {
+      dispatch(removeCrawl(id));
     }
   }
 });

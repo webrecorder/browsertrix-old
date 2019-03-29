@@ -1,176 +1,169 @@
-const { root, crawl } =
-  typeof window !== 'undefined'
-    ? window.__crawlmanEndpoints != null
-      ? window.__crawlmanEndpoints
-      : {
-          root: 'http://localhost:8001',
-          crawl: 'http://localhost:8001/crawl/'
-        }
-    : {
-        root: 'http://localhost:8001',
-        crawl: 'http://localhost:8001/crawl/'
-      };
-
-/**
- * @type {{crawls: {retrieve: {method: string, ep: string}, create: {method: string, ep: string}}, crawl: {urls: {add: {method: string, ep: (function(*): string)}, retrieve: {method: string, ep: (function(*): string)}}, stop: {method: string, ep: (function(*): string)}, start: {method: string, ep: (function(*): string)}, done: {method: string, ep: (function(*): string)}, remove: {method: string, ep: (function(*): string)}, info: {method: string, ep: (function(*): string)}}}}
- */
-export const Endpoints = {
-  crawls: {
-    retrieve: {
-      ep: `${root}/crawls`,
-      method: 'GET'
-    },
-    create: {
-      ep: `${root}/crawls`,
-      method: 'POST'
-    }
-  },
-  crawl: {
-    info: {
-      ep: id => `${crawl}${id}`,
-      method: 'GET'
-    },
-    remove: {
-      ep: id => `${crawl}${id}`,
-      method: 'DELETE'
-    },
-    start: {
-      ep: id => `${crawl}${id}/start`,
-      method: 'POST'
-    },
-    stop: {
-      ep: id => `${crawl}${id}/stop`,
-      method: 'POST'
-    },
-    done: {
-      ep: id => `${crawl}${id}/done`,
-      method: 'GET'
-    },
-    urls: {
-      retrieve: {
-        ep: id => `${crawl}${id}/urls`,
-        method: 'GET'
-      },
-      add: {
-        ep: id => `${crawl}${id}/urls`,
+function getEndpointConfig() {
+  if (typeof window !== 'undefined' && window.__crawlmanEndpoints != null) {
+    return window.__crawlmanEndpoints;
+  }
+  return {
+    crawls: {
+      ep: 'http://localhost:8001/crawls',
+      retrieve: { method: 'GET' },
+      create: {
+        defaults: { scope: 'single-page', numBrowsers: 2, numTabs: 1 },
         method: 'POST'
       }
+    },
+    crawl: {
+      ep: 'http://localhost:8001/crawl/',
+      info: { method: 'GET' },
+      remove: { method: 'DELETE' },
+      start: {
+        defaults: {
+          browser: 'chrome:67',
+          behaviorTimeout: 60,
+          headless: false
+        },
+        method: 'POST',
+        path: '/start'
+      },
+      stop: { method: 'POST', path: '/stop' },
+      done: { method: 'GET', path: '/done' },
+      retrieveURLS: { method: 'GET', path: '/urls' },
+      addURLS: { method: 'POST', path: '/urls' }
     }
-  }
-};
+  };
+}
 
-export class EndPointRequests {
+class Endpoints {
+  constructor({ crawls, crawl }) {
+    this.crawls = crawls;
+    this.crawl = crawl;
+  }
+
+  /**
+   * @param {Object} [newCrawlConfig]
+   * @return {{body: Object, request: Request}}
+   */
+  createNewCrawl(newCrawlConfig) {
+    const { defaults = {}, method } = this.crawls.create;
+    const newCrawl = Object.assign(defaults, newCrawlConfig);
+
+    const body = {
+      crawl_type: newCrawl.crawlType,
+      num_browsers: newCrawl.numBrowsers,
+      num_tabs: newCrawl.numTabs
+    };
+
+    if (Array.isArray(newCrawl.urls)) body.seed_urls = newCrawl.urls;
+    if (newCrawl.depth) body.depth = newCrawl.depth;
+
+    return {
+      body,
+      request: new Request(this.crawls.ep, {
+        method,
+        body: JSON.stringify(body)
+      })
+    };
+  }
+
   /**
    * @return {Request}
    */
-  static retrieveAllCrawls() {
-    const {
-      retrieve: { ep, method }
-    } = Endpoints.crawls;
-    return new Request(ep, {
-      method
-    });
+  retrieveAllCrawls() {
+    const { method } = this.crawls.retrieve;
+    return new Request(this.crawls.ep, { method });
   }
 
   /**
-   * @param body
-   * @return {Request}
-   */
-  static createNewCrawl(body) {
-    const {
-      create: { ep, method }
-    } = Endpoints.crawls;
-    return new Request(ep, {
-      method,
-      body: JSON.stringify(body)
-    });
-  }
-
-  /**
-   *
    * @param {string} id
    * @return {Request}
    */
-  static crawlInfo(id) {
-    const { info } = Endpoints.crawl;
-    return new Request(info.ep(id), {
-      method: info.method
-    });
+  crawlInfo(id) {
+    const { path = '', method } = this.crawl.info;
+    const url = `${this.crawl.ep}${id}${path}`;
+    return new Request(url, { method });
   }
 
   /**
-   *
    * @param {string} id
    * @return {Request}
    */
-  static removeCrawl(id) {
-    const { remove } = Endpoints.crawl;
-    return new Request(remove.ep(id), {
-      method: remove.method
-    });
+  crawlDone(id) {
+    const { path = '', method } = this.crawl.done;
+    const url = `${this.crawl.ep}${id}${path}`;
+    return new Request(url, { method });
   }
 
   /**
-   *
-   * @param {string} id
-   * @param {Object} body
-   * @return {Request}
-   */
-  static startCrawl(id, body) {
-    const { start } = Endpoints.crawl;
-    return new Request(start.ep(id), {
-      method: start.method,
-      body: JSON.stringify(body)
-    });
-  }
-
-  /**
-   *
    * @param {string} id
    * @return {Request}
    */
-  static stopCrawl(id) {
-    const { stop } = Endpoints.crawl;
-    return new Request(stop.ep(id), {
-      method: stop.method
-    });
+  getCrawlURLs(id) {
+    const { path = '', method } = this.crawl.retrieveURLS;
+    const url = `${this.crawl.ep}${id}${path}`;
+    return new Request(url, { method });
   }
 
   /**
-   *
-   * @param {string} id
-   * @return {Request}
-   */
-  static isCrawlDone(id) {
-    const { done } = Endpoints.crawl;
-    return new Request(done.ep(id), {
-      method: done.method
-    });
-  }
-
-  /**
-   *
-   * @param {string} id
-   * @return {Request}
-   */
-  static getCawlUrls(id) {
-    const { retrieve } = Endpoints.crawl.urls;
-    return new Request(retrieve.ep(id), {
-      method: retrieve.method
-    });
-  }
-
-  /**
-   *
    * @param {string} id
    * @param {Array<string>} urls
+   * @return {{body: Object, request: Request}}
+   */
+  addCrawlURLs(id, urls) {
+    const { path = '', method } = this.crawl.addURLS;
+    const url = `${this.crawl.ep}${id}${path}`;
+    const body = { urls };
+    return {
+      body,
+      request: new Request(url, {
+        method,
+        body: JSON.stringify(body)
+      })
+    };
+  }
+
+  /**
+   * @param {string} id
    * @return {Request}
    */
-  static addCawlUrls(id, urls) {
-    const { retrieve } = Endpoints.crawl;
-    return new Request(retrieve.ep(id), {
-      method: retrieve.method,
-      body: JSON.stringify(urls)
-    });
+  removeCrawl(id) {
+    const { path = '', method } = this.crawl.remove;
+    const url = `${this.crawl.ep}${id}${path}`;
+    return new Request(url, { method });
+  }
+
+  /**
+   * @param {string} id
+   * @param {Object} [config]
+   * @return {{body: Object, request: Request}}
+   */
+  startCrawl(id, config) {
+    const { path = '', method, defaults = {} } = this.crawl.start;
+    const url = `${this.crawl.ep}${id}${path}`;
+    const body = {};
+    const startConfig = Object.assign(defaults, config);
+    body.browser = startConfig.browser;
+    body.behavior_timeout = startConfig.behaviorTimeout;
+    body.headless = startConfig.headless;
+    if (startConfig.screenShotTargetURI) {
+      body.screenshot_target_uri = startConfig.screenShotTargetURI;
+    }
+    return {
+      body,
+      request: new Request(url, {
+        method,
+        body: JSON.stringify(body)
+      })
+    };
+  }
+
+  /**
+   * @param {string} id
+   * @return {Request}
+   */
+  stopCrawl(id) {
+    const { path = '', method } = this.crawl.stop;
+    const url = `${this.crawl.ep}${id}${path}`;
+    return new Request(url, { method });
   }
 }
+
+export const EndpointRequests = new Endpoints(getEndpointConfig());

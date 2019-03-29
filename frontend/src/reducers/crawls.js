@@ -1,7 +1,7 @@
 import { List, Map, Record } from 'immutable';
-import { Crawls } from '../utils/keys';
+import { ActionTypes } from '../actions/crawls';
 
-export const Crawl = Record(
+export const CrawlRecord = Record(
   {
     crawl_type: '',
     num_browsers: 0,
@@ -12,11 +12,11 @@ export const Crawl = Record(
     running: false,
     status: ''
   },
-  'Crawl'
+  'CrawlRecord'
 );
 
 export function crawlsFetchedReducer(state = false, action) {
-  if (action.type === Crawls.gotAllInit) {
+  if (action.type === ActionTypes.gotAllInit) {
     return true;
   }
   return state;
@@ -27,25 +27,27 @@ export default function crawlsReducer(
   { type, payload, meta }
 ) {
   switch (type) {
-    case Crawls.gotAllInit:
-    case Crawls.gotAll:
+    case ActionTypes.deleteCrawl:
+      return state.delete(payload.id);
+    case ActionTypes.gotAllInit:
+    case ActionTypes.gotAll:
       return state.withMutations(mutable => {
         const { crawls } = payload;
         for (let i = 0; i < crawls.length; i++) {
           const crawl = crawls[i];
           const crec = mutable.get(crawl.id);
           if (!crec) {
-            mutable.set(crawl.id, Crawl(crawl));
+            mutable.set(crawl.id, CrawlRecord(crawl));
           } else {
             mutable.set(crawl.id, crec.merge(crawl));
           }
         }
         return mutable;
       });
-    case Crawls.create:
-    case Crawls.info:
+    case ActionTypes.create:
+    case ActionTypes.info:
       return state.update(payload.id, null, crawl =>
-        crawl == null ? Crawl(payload) : crawl.merge(payload)
+        crawl == null ? CrawlRecord(payload) : crawl.merge(payload)
       );
     default:
       return state;

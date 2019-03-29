@@ -321,6 +321,9 @@ class Crawl:
 
         :param urls: A list of URLs that define this crawls domain scope
         """
+        if len(urls) == 0:
+            return
+
         domains = {ujson_dumps({'domain': urlsplit(url).netloc}) for url in urls}
 
         if not domains:

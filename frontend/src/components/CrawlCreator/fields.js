@@ -1,17 +1,20 @@
-import React, { Component, Fragment } from 'react';
+import React, { Component } from 'react';
 import * as PropTypes from 'prop-types';
 import Button from 'react-bootstrap/Button';
 import Col from 'react-bootstrap/Col';
+import Row from 'react-bootstrap/Row';
+import Feedback from 'react-bootstrap/Feedback';
 import FormControl from 'react-bootstrap/FormControl';
 import FormGroup from 'react-bootstrap/FormGroup';
 import FormLabel from 'react-bootstrap/FormLabel';
 import ListGroup from 'react-bootstrap/ListGroup';
 import ListGroupItem from 'react-bootstrap/ListGroupItem';
-import Row from 'react-bootstrap/Row';
+import Field from 'redux-form/lib/immutable/Field';
+import urlRegx from 'url-regex';
 
 export function ScopeField({ input: { value, onChange } }) {
   return (
-    <FormGroup as={Col} sm='4'>
+    <FormGroup as={Col} sm='3'>
       <FormLabel htmlFor='crawlScope'>Crawl Type</FormLabel>
       <FormControl
         size='sm'
@@ -30,7 +33,7 @@ export function ScopeField({ input: { value, onChange } }) {
 
 export function NumBrowsersField({ input: { value, onChange } }) {
   return (
-    <FormGroup as={Col} sm='4'>
+    <FormGroup as={Col} sm='3'>
       <FormLabel htmlFor='numBrowsers'>Browsers</FormLabel>
       <FormControl
         size='sm'
@@ -46,7 +49,7 @@ export function NumBrowsersField({ input: { value, onChange } }) {
 
 export function NumTabsField({ input: { value, onChange } }) {
   return (
-    <FormGroup as={Col} sm='4'>
+    <FormGroup as={Col} sm='3'>
       <FormLabel htmlFor='numTabs'>Tabs</FormLabel>
       <FormControl
         size='sm'
@@ -60,33 +63,95 @@ export function NumTabsField({ input: { value, onChange } }) {
   );
 }
 
-class URLToBeCrawled extends Component {
+export function CrawlDepthField({ input: { value, onChange } }) {
+  return (
+    <FormGroup as={Col} sm='3'>
+      <FormLabel htmlFor='crawlDepth'>Depth</FormLabel>
+      <FormControl
+        size='sm'
+        id='crawlDepth'
+        as='input'
+        type='number'
+        value={value}
+        onChange={onChange}
+      />
+    </FormGroup>
+  );
+}
+
+const isURLRe = urlRegx({ exact: true, strict: false });
+
+const isURLTest = url => (isURLRe.test(url) ? null : 'Not a URL');
+
+class URLToCrawl extends Component {
   static propTypes = {
-    idx: PropTypes.number,
-    remove: PropTypes.func,
-    empty: PropTypes.bool,
-    url: PropTypes.string
+    idx: PropTypes.number.isRequired,
+    remove: PropTypes.func.isRequired
   };
 
-  remove = () => {
+  constructor(props) {
+    super(props);
+    this.renderURL = this.renderURL.bind(this);
+    this.remove = this.remove.bind(this);
+  }
+
+  className(inputValue, meta) {
+    const invalid = !!(meta && meta.touched && meta.error) || !inputValue;
+    return `form-control form-control-sm ${
+      invalid ? 'is-invalid' : 'is-valid'
+    }`;
+  }
+
+  renderURL({ input, meta }) {
+    const classes = `form-control form-control-sm ${
+      meta.valid ? 'is-valid' : 'is-invalid'
+    }`;
+    return (
+      <>
+        <input
+          className={classes}
+          type='url'
+          id={input.name}
+          value={input.value}
+          onChange={input.onChange}
+          onBlur={input.onBlur}
+          placeholder='Seed URL'
+        />
+        {!meta.valid && (
+          <Feedback as='span' type='invalid'>
+            {meta.error}
+          </Feedback>
+        )}
+      </>
+    );
+  }
+
+  remove() {
     this.props.remove(this.props.idx);
-  };
+  }
 
   render() {
-    if (this.props.empty) {
-      return <ListGroupItem as='li'>No URLs To Crawl</ListGroupItem>;
-    }
     return (
-      <ListGroupItem as='li'>
-        {this.props.url}
-        <Button
-          className='float-right'
-          size='sm'
-          variant='outline-danger'
-          onClick={this.remove}
-        >
-          X
-        </Button>
+      <ListGroupItem>
+        <Row>
+          <Col>
+            <Field
+              component={this.renderURL}
+              validate={isURLTest}
+              name={`urls.${this.props.idx}`}
+            />
+          </Col>
+          <Col sm='1'>
+            <Button
+              size='sm'
+              variant='outline-warning'
+              type='button'
+              onClick={this.remove}
+            >
+              Remove
+            </Button>
+          </Col>
+        </Row>
       </ListGroupItem>
     );
   }
@@ -95,34 +160,26 @@ class URLToBeCrawled extends Component {
 export class URLFields extends Component {
   constructor(props) {
     super(props);
+    this.renderURLs = this.renderURLs.bind(this);
     this.addURL = this.addURL.bind(this);
     this.removeURL = this.removeURL.bind(this);
-    this.inputRef = React.createRef();
   }
 
   addURL() {
-    const url = this.inputRef.current.value.trim();
-    if (url) {
-      this.props.fields.push(url);
-      this.inputRef.current.value = '';
-    }
+    this.props.fields.push('');
   }
 
   removeURL(idx) {
     this.props.fields.remove(idx);
   }
 
-  renderURLS() {
+  renderURLs() {
     const { fields } = this.props;
-    if (fields.length === 0) {
-      return <URLToBeCrawled key='no-urls-to-crawl' empty />;
-    }
     const urls = new Array(fields.length);
     for (let i = 0; i < fields.length; i++) {
       urls[i] = (
-        <URLToBeCrawled
-          key={`seed-url-${i}`}
-          url={fields.get(i)}
+        <URLToCrawl
+          key={`crawl-url-input-${i}`}
           idx={i}
           remove={this.removeURL}
         />
@@ -132,29 +189,18 @@ export class URLFields extends Component {
   }
 
   render() {
+    const haveURLS = this.props.fields.length >= 1;
     return (
-      <Fragment>
-        <Row>
-          <Col>
-            <FormControl
-              size='sm'
-              name='url'
-              as='input'
-              type='url'
-              placeholder='Seed URL'
-              ref={this.inputRef}
-            />
-          </Col>
-          <Col sm='2'>
-            <Button size='sm' variant='outline-secondary' onClick={this.addURL}>
-              Add Seed URL
-            </Button>
-          </Col>
-        </Row>
-        <ListGroup className='create-crawl-seedlist' as='ul'>
-          {this.renderURLS()}
+      <>
+        <div className='d-flex justify-content-center'>
+          <Button size='sm' variant='outline-secondary' onClick={this.addURL}>
+            Add Seed URL
+          </Button>
+        </div>
+        <ListGroup variant='flush' className='create-crawl-seedlist'>
+          {haveURLS && this.renderURLs()}
         </ListGroup>
-      </Fragment>
+      </>
     );
   }
 }
