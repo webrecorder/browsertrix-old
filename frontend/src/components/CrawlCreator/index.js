@@ -1,50 +1,59 @@
 import React from 'react';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import Field from 'redux-form/lib/immutable/Field';
-import FieldArray from 'redux-form/lib/immutable/FieldArray';
-import reduxForm from 'redux-form/lib/immutable/reduxForm';
-import {
-  NumBrowsersField,
-  NumTabsField,
-  ScopeField,
-  CrawlDepthField,
-  URLFields
-} from './fields';
+import * as PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { createCrawl } from '../../actions';
+import CrawlCreationForm from './CreationForm';
 
-function CrawlCreator(props) {
+function validate(values, props) {
+  if (!props.initialized) return;
+  const errors = {};
+  if (values.get('numBrowsers') <= 0) {
+    errors.numBrowsers =
+      'The number of browser to be used cannot be less than or equal to zero';
+  }
+  if (values.get('numTabs') <= 0) {
+    errors.numTabs =
+      'The number of tabs to be used cannot be less than or equal to zero';
+  }
+  if (values.get('depth') <= 0) {
+    errors.depth = 'The depth of crawl cannot be less than or equal to zero';
+  }
+  return errors;
+}
+
+function CrawlCreator({ message, createCrawl }) {
   return (
-    <Form
-      onSubmit={props.handleSubmit}
-      className='form-border'
-      autoComplete='on'
-    >
-      <Form.Row>
-        <Field name='crawlType' component={ScopeField} />
-        <Field name='numBrowsers' component={NumBrowsersField} />
-        <Field name='numTabs' component={NumTabsField} />
-        <Field name='depth' component={CrawlDepthField} />
-      </Form.Row>
-      <FieldArray required name='urls' component={URLFields} />
-      <Button
-        type='submit'
-        variant='outline-primary'
-        disabled={!props.valid || props.submitting}
-      >
-        Create Crawl
-      </Button>
-    </Form>
+    <>
+      <h1 className='display-4 uk-text-center'>{message}</h1>
+      <CrawlCreationForm
+        initialValues={{
+          crawlType: 'single-page',
+          numBrowsers: 1,
+          numTabs: 1,
+          depth: 1,
+          urls: []
+        }}
+        validate={validate}
+        onSubmit={createCrawl}
+      />
+    </>
   );
 }
 
-export default reduxForm({
-  form: 'CreateCrawl',
-  destroyOnUnmount: true,
-  initialValues: {
-    crawlType: 'single-page',
-    numBrowsers: 1,
-    numTabs: 1,
-    depth: 1,
-    urls: []
+CrawlCreator.propTypes = {
+  message: PropTypes.string.isRequired,
+  createCrawl: PropTypes.func.isRequired
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  createCrawl(crawlInfo) {
+    dispatch(createCrawl(crawlInfo.toJS()));
   }
-})(CrawlCreator);
+});
+
+const ConnectedCrawlCreator = connect(
+  null,
+  mapDispatchToProps
+)(CrawlCreator);
+
+export default ConnectedCrawlCreator;

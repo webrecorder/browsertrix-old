@@ -6,6 +6,8 @@ export const CrawlRecord = Record(
     crawl_type: '',
     num_browsers: 0,
     num_tabs: 0,
+    depth: 0,
+    seed_urls: List([]),
     id: '',
     browsers: List([]),
     browsers_done: List([]),
@@ -22,10 +24,27 @@ export function crawlsFetchedReducer(state = false, action) {
   return state;
 }
 
-export default function crawlsReducer(
-  state = Map({}),
-  { type, payload, meta }
-) {
+export function crawlIds(state = List([]), { type, payload, meta }) {
+  switch (type) {
+    case ActionTypes.deleteCrawl:
+      const idx = state.indexOf(payload.id);
+      return state.delete(idx);
+    case ActionTypes.gotAllInit:
+    case ActionTypes.gotAll:
+      return state.withMutations(mutable => {
+        const { crawls } = payload;
+        for (let i = 0; i < crawls.length; i++) {
+          mutable.push(crawls[i].id);
+        }
+        return mutable;
+      });
+    case ActionTypes.create:
+      return state.push(payload.id);
+  }
+  return state;
+}
+
+export function crawlsReducer(state = Map({}), { type, payload, meta }) {
   switch (type) {
     case ActionTypes.deleteCrawl:
       return state.delete(payload.id);
@@ -49,7 +68,6 @@ export default function crawlsReducer(
       return state.update(payload.id, null, crawl =>
         crawl == null ? CrawlRecord(payload) : crawl.merge(payload)
       );
-    default:
-      return state;
   }
+  return state;
 }

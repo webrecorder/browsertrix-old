@@ -1,81 +1,56 @@
 import React, { Component } from 'react';
 import * as PropTypes from 'prop-types';
-import Button from 'react-bootstrap/Button';
-import Col from 'react-bootstrap/Col';
-import Row from 'react-bootstrap/Row';
-import Feedback from 'react-bootstrap/Feedback';
-import FormControl from 'react-bootstrap/FormControl';
-import FormGroup from 'react-bootstrap/FormGroup';
-import FormLabel from 'react-bootstrap/FormLabel';
-import ListGroup from 'react-bootstrap/ListGroup';
-import ListGroupItem from 'react-bootstrap/ListGroupItem';
 import Field from 'redux-form/lib/immutable/Field';
 import urlRegx from 'url-regex';
 
-export function ScopeField({ input: { value, onChange } }) {
+export function ScopeField({ input }) {
   return (
-    <FormGroup as={Col} sm='3'>
-      <FormLabel htmlFor='crawlScope'>Crawl Type</FormLabel>
-      <FormControl
-        size='sm'
-        id='crawlScope'
-        value={value}
-        as='select'
-        onChange={onChange}
-      >
+    <div>
+      <label className='uk-form-label' htmlFor='crawlScope'>
+        Crawl Type
+      </label>
+      <select className='uk-select' id='crawlScope' {...input}>
         <option value='single-page'>Single Page</option>
         <option value='same-domain'>Same Domain</option>
         <option value='all-links'>All Pages</option>
-      </FormControl>
-    </FormGroup>
+      </select>
+    </div>
   );
 }
 
-export function NumBrowsersField({ input: { value, onChange } }) {
+export function NumBrowsersField({ input, meta }) {
+  const className = `uk-input ${meta.valid ? '' : 'uk-form-danger'}`;
   return (
-    <FormGroup as={Col} sm='3'>
-      <FormLabel htmlFor='numBrowsers'>Browsers</FormLabel>
-      <FormControl
-        size='sm'
-        id='numBrowsers'
-        as='input'
-        type='number'
-        value={value}
-        onChange={onChange}
-      />
-    </FormGroup>
+    <div>
+      <label htmlFor='numBrowsers'>Browsers</label>
+      <input className={className} id='numBrowsers' type='number' {...input} />
+    </div>
   );
 }
 
-export function NumTabsField({ input: { value, onChange } }) {
+export function NumTabsField({ input, meta }) {
+  const className = `uk-input ${meta.valid ? '' : 'uk-form-danger'}`;
   return (
-    <FormGroup as={Col} sm='3'>
-      <FormLabel htmlFor='numTabs'>Tabs</FormLabel>
-      <FormControl
-        size='sm'
-        id='numTabs'
-        as='input'
-        type='number'
-        value={value}
-        onChange={onChange}
-      />
-    </FormGroup>
+    <div>
+      <label htmlFor='numTabs'>Tabs</label>
+      <input className={className} id='numTabs' type='number' {...input} />
+    </div>
   );
 }
 
-export function CrawlDepthField({ input: { value, onChange } }) {
+export function CrawlDepthField({ input, meta }) {
+  const className = `uk-input ${meta.valid ? '' : 'uk-form-danger'}`;
   return (
-    <FormGroup as={Col} sm='3'>
-      <FormLabel htmlFor='crawlDepth'>Depth</FormLabel>
-      <FormControl
+    <div>
+      <label htmlFor='crawlDepth'>Depth</label>
+      <input
+        className={className}
         size='sm'
         id='crawlDepth'
-        as='input'
         type='number'
-        value={value}
-        onChange={onChange}
+        {...input}
       />
-    </FormGroup>
+    </div>
   );
 }
 
@@ -95,34 +70,18 @@ class URLToCrawl extends Component {
     this.remove = this.remove.bind(this);
   }
 
-  className(inputValue, meta) {
-    const invalid = !!(meta && meta.touched && meta.error) || !inputValue;
-    return `form-control form-control-sm ${
-      invalid ? 'is-invalid' : 'is-valid'
-    }`;
-  }
-
   renderURL({ input, meta }) {
-    const classes = `form-control form-control-sm ${
-      meta.valid ? 'is-valid' : 'is-invalid'
-    }`;
+    const className = `uk-input ${meta.valid ? '' : 'uk-form-danger'}`;
     return (
-      <>
-        <input
-          className={classes}
-          type='url'
-          id={input.name}
-          value={input.value}
-          onChange={input.onChange}
-          onBlur={input.onBlur}
-          placeholder='Seed URL'
-        />
-        {!meta.valid && (
-          <Feedback as='span' type='invalid'>
-            {meta.error}
-          </Feedback>
-        )}
-      </>
+      <input
+        className={className}
+        type={input.type}
+        id={input.name}
+        value={input.value}
+        onChange={input.onChange}
+        onBlur={input.onBlur}
+        placeholder='Seed URL'
+      />
     );
   }
 
@@ -132,27 +91,19 @@ class URLToCrawl extends Component {
 
   render() {
     return (
-      <ListGroupItem>
-        <Row>
-          <Col>
-            <Field
-              component={this.renderURL}
-              validate={isURLTest}
-              name={`urls.${this.props.idx}`}
-            />
-          </Col>
-          <Col sm='1'>
-            <Button
-              size='sm'
-              variant='outline-warning'
-              type='button'
-              onClick={this.remove}
-            >
-              Remove
-            </Button>
-          </Col>
-        </Row>
-      </ListGroupItem>
+      <div className='uk-inline uk-form-controls uk-width-1-1 uk-margin-small'>
+        <a
+          className='uk-form-icon uk-form-icon-flip'
+          onClick={this.remove}
+          data-uk-icon='icon: close'
+        />
+        <Field
+          component={this.renderURL}
+          validate={isURLTest}
+          type='url'
+          name={`urls.${this.props.idx}`}
+        />
+      </div>
     );
   }
 }
@@ -191,16 +142,20 @@ export class URLFields extends Component {
   render() {
     const haveURLS = this.props.fields.length >= 1;
     return (
-      <>
-        <div className='d-flex justify-content-center'>
-          <Button size='sm' variant='outline-secondary' onClick={this.addURL}>
+      <div
+        className='uk-grid uk-grid-large'
+        data-uk-grid=''
+        style={{ marginTop: 30 }}
+      >
+        <div>
+          <button className='uk-button uk-button-default' onClick={this.addURL}>
             Add Seed URL
-          </Button>
+          </button>
         </div>
-        <ListGroup variant='flush' className='create-crawl-seedlist'>
-          {haveURLS && this.renderURLs()}
-        </ListGroup>
-      </>
+        <div className='uk-width-expand uk-overflow-auto uk-height-medium'>
+          <ul className='uk-list'>{haveURLS && this.renderURLs()}</ul>
+        </div>
+      </div>
     );
   }
 }

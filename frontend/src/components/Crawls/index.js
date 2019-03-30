@@ -1,100 +1,60 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import { Map } from 'immutable';
-import {
-  createCrawl,
-  getAllCrawls,
-  getCrawlInfo,
-  removeCrawl
-} from '../../actions/crawls';
+import { List } from 'immutable';
+import { getAllCrawls } from '../../actions/crawls';
 import LoadingCrawls from './LoadingCrawls';
 import CrawlCreator from '../CrawlCreator';
-import ViewAllCrawls from './ViewAllCrawls';
+import Crawl from './Crawl';
 
 class Crawls extends Component {
   static propTypes = {
-    crawls: PropTypes.instanceOf(Map).isRequired,
+    crawlIds: PropTypes.instanceOf(List).isRequired,
     crawlsFetched: PropTypes.bool.isRequired,
-    init: PropTypes.func.isRequired,
-    crawlActions: PropTypes.shape({
-      createCrawl: PropTypes.func.isRequired,
-      getAllCrawls: PropTypes.func.isRequired,
-      getCrawlInfo: PropTypes.func.isRequired,
-      removeCrawl: PropTypes.func.isRequired
-    })
+    init: PropTypes.func.isRequired
   };
 
   componentDidMount() {
-    if (!this.props.crawls.get('fetched')) {
+    if (!this.props.crawlsFetched) {
       this.props.init();
     }
   }
 
-  // shouldComponentUpdate(nextProps, nextState, nextContext) {
-  //   return (
-  //     this.props.crawlsFetched !== nextProps.crawlsFetched ||
-  //     this.props.crawls !== nextProps.crawls
-  //   );
-  // }
-
-  createCrawl = values => {
-    this.props.crawlActions.createCrawl(values.toJS());
-  };
-
-  updateCrawlInfo = id => {
-    this.props.crawlActions.getCrawlInfo(id);
-  };
-
-  removeCrawl = id => {
-    this.props.crawlActions.removeCrawl(id);
-  };
-
   render() {
+    let component;
     if (!this.props.crawlsFetched) {
-      return <LoadingCrawls />;
-    } else if (this.props.crawls.size === 0) {
-      return (
-        <>
-          <h1 className='display-4'>There were no pre-existing crawls</h1>
-          <CrawlCreator onSubmit={this.createCrawl} />
-        </>
+      component = <LoadingCrawls />;
+    } else if (this.props.crawlIds.size === 0) {
+      component = (
+        <CrawlCreator message={'There are no pre-existing crawls!'} />
       );
+    } else {
+      const cids = this.props.crawlIds;
+      const crawls = new Array(cids.size);
+      for (let i = 0; i < cids.size; i++) {
+        crawls[i] = (
+          <Crawl
+            key={`crawl-${i}`}
+            crawlId={cids.get(i)}
+            crawlActions={this.props.crawlActions}
+          />
+        );
+      }
+      component = <ul className='uk-list'>{crawls}</ul>;
     }
-    return (
-      <>
-        <ViewAllCrawls
-          crawls={this.props.crawls}
-          crawlActions={this.props.crawlActions}
-        />
-      </>
-    );
+    return <div className='uk-container'>{component}</div>;
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   init() {
     dispatch(getAllCrawls(true));
-  },
-  crawlActions: {
-    createCrawl(crawlInfo) {
-      dispatch(createCrawl(crawlInfo));
-    },
-    getAllCrawls() {
-      dispatch(getAllCrawls());
-    },
-    getCrawlInfo(id) {
-      dispatch(getCrawlInfo(id));
-    },
-    removeCrawl(id) {
-      dispatch(removeCrawl(id));
-    }
   }
 });
 
 const mapStateToProps = (state, ownProps) => ({
-  crawls: state.get('crawls'),
-  crawlsFetched: state.get('crawlsFetched')
+  crawlIds: state.crawlIds,
+  crawlsFetched: state.crawlsFetched
 });
 
 const ConnectedCrawls = connect(

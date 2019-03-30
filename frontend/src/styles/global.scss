@@ -1,6 +1,16 @@
 @charset "UTF-8";
 @import "../../node_modules/react-toastify/scss/main";
-@import "../../node_modules/bootstrap/scss/bootstrap";
+@import "../../node_modules/uikit/src/scss/mixins-theme";
+@import "../../node_modules/uikit/src/scss/variables-theme";
+@import "../../node_modules/uikit/src/scss/uikit-theme";
+
+html {
+  & body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility
+  }
+}
 
 .form-border {
     position: relative;
@@ -17,4 +27,11 @@
     max-height: 300px;
     overflow: auto;
     margin-top: 1rem !important;
+}
+
+.route-container {
+  @extend .uk-section;
+  @extend .uk-section-default;
+  padding-top: 30px;
+
 }

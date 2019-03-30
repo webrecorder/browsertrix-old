@@ -87,7 +87,7 @@ class StartCrawlRequest(BaseModel):
     browser: Optional[str]
     user_params: Dict[Any, Any] = dict()
 
-    behavior_timeout: int = 0
+    behavior_run_time: int = 0
     headless: bool = False
     screenshot_target_uri: Optional[str] = None
 

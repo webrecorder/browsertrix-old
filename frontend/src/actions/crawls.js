@@ -43,9 +43,20 @@ export function getCrawlInfo(id) {
       });
     },
     async onResponse({ response }) {
+      const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to get the crawl info - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
       return {
         type: ActionTypes.info,
-        payload: await response.json()
+        payload: json
       };
     }
   });
@@ -65,6 +76,16 @@ export function createCrawl(newCrawlConfig) {
     },
     async onResponse({ dispatch, response }) {
       const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to create the crawl - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
       return {
         type: ActionTypes.create,
         payload: {
@@ -91,6 +112,16 @@ export function startCrawl(id, startConfig) {
     },
     async onResponse({ response }) {
       const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to start the crawl - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
       console.log(json);
       return {
         type: ActionTypes.start,
@@ -98,6 +129,35 @@ export function startCrawl(id, startConfig) {
           id,
           ...body
         }
+      };
+    }
+  });
+}
+
+export function stopCrawl(id) {
+  const request = EndpointRequests.stopCrawl(id);
+  return makeHTTPRequest(request, {
+    onError({ error }) {
+      toast(`Failed to remove the crawl - ${id}: ${error}`, {
+        type: toast.TYPE.ERROR
+      });
+    },
+    async onResponse({ dispatch, response }) {
+      const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to stop the crawl - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
+      console.log(json);
+      return {
+        type: ActionTypes.stop,
+        payload: { id }
       };
     }
   });
@@ -113,6 +173,16 @@ export function removeCrawl(id) {
     },
     async onResponse({ dispatch, response }) {
       const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to remove the crawl - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
       console.log(json);
       return {
         type: ActionTypes.deleteCrawl,

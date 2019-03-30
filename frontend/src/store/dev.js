@@ -3,7 +3,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import Immutable from 'immutable';
 import * as actionCreators from '../actions';
 import rootReducer from '../reducers';
-import middleWare from './middleware'
+import middleWare from './middleware';
 
 const composer = composeWithDevTools({
   actionCreators,
@@ -13,9 +13,5 @@ const composer = composeWithDevTools({
 });
 
 export default function configureStore() {
-  return createStore(
-    rootReducer,
-    Immutable.Map({}),
-    composer(middleWare),
-  );
+  return createStore(rootReducer, {}, composer(middleWare));
 }

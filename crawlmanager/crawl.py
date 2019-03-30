@@ -321,15 +321,17 @@ class Crawl:
 
         :param urls: A list of URLs that define this crawls domain scope
         """
-        if len(urls) == 0:
-            return
+        domains = set()
 
-        domains = {ujson_dumps({'domain': urlsplit(url).netloc}) for url in urls}
+        for url in urls:
+            domain = urlsplit(url).netloc
+            domains.add(domain)
 
         if not domains:
             return
 
-        await self.redis.sadd(self.scopes_key, *domains)
+        for domain in domains:
+            await self.redis.sadd(self.scopes_key, ujson_dumps({'domain': domain}))
 
     async def queue_urls(self, urls: List[str]) -> Dict[str, bool]:
         """Adds the supplied list of URLs to this crawls queue
@@ -340,19 +342,13 @@ class Crawl:
         """
         if len(urls) == 0:
             return {'success': True}
-        urls_to_q = []
-        # add to seen list to avoid dupes
-        urls_seen = []
 
         for url in urls:
-            urls_to_q.append(ujson_dumps({'url': url, 'depth': 0}))
-            urls_seen.append(url)
+            url_req = {'url': url, 'depth': 0}
+            await self.redis.rpush(self.frontier_q_key, ujson_dumps(url_req))
 
-        await aio_gather(
-            self.redis.rpush(self.frontier_q_key, *urls_to_q),
-            self.redis.sadd(self.seen_key, *urls_seen),
-            loop=self.loop,
-        )
+            # add to seen list to avoid dupes
+            await self.redis.sadd(self.seen_key, url)
 
         if self.model.crawl_type == 'same-domain':
             await self._init_domain_scopes(urls)
@@ -360,6 +356,8 @@ class Crawl:
         return {'success': True}
 
     async def update_info(self, info: Dict) -> None:
+        if self.model is None:
+            self.model = CrawlInfo(**info)
         await self.redis.hmset_dict(self.info_key, info)
 
     async def get_info(self) -> Dict:

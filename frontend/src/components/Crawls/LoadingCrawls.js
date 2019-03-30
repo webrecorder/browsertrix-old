@@ -1,15 +1,10 @@
 import React from 'react';
-import Spinner from 'react-bootstrap/Spinner';
 
 export default function LoadingCrawls() {
   return (
-    <div className='d-flex flex-column justify-content-center'>
-      <h1 className='display-5 align-self-center'>Retrieving Crawl Info</h1>
-      <Spinner
-        className='align-self-center'
-        animation='border'
-        variant='info'
-      />
+    <div className='uk-flex uk-flex-column uk-flex-middle'>
+      <h1 className='uk-heading-primary'>Retrieving Crawl Info</h1>
+      <span data-uk-spinner='ratio: 4.5' />
     </div>
   );
 }
