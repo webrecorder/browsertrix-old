@@ -11,6 +11,7 @@ from .schema import (
     CrawlInfosResponse,
     CreateCrawlRequest,
     CreateNewCrawlResponse,
+    FullCrawlInfoResponse,
     OperationSuccessResponse,
     QueueUrlsRequest,
     StartCrawlRequest,
@@ -57,6 +58,13 @@ async def get_crawl(crawl_id: str):
 async def get_crawl_urls(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.get_info_urls()
+
+
+@crawl_router.get(
+    '/{crawl_id}/info', response_model=FullCrawlInfoResponse, content_type=UJSONResponse
+)
+async def get_full_crawl_info(crawl_id: str):
+    return await crawl_man.get_full_crawl_info(crawl_id)
 
 
 @crawl_router.post(

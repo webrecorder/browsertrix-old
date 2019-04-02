@@ -9,6 +9,7 @@ export const ActionTypes = {
   create: Symbol('crawl-create'),
   urls: Symbol('crawl-get-urls'),
   addURLs: Symbol('crawl-add-urls'),
+  updateURLInfo: Symbol('crawl-update-url-info'),
   info: Symbol('crawl-get-info'),
   stop: Symbol('crawl-stop'),
   start: Symbol('crawl-start'),
@@ -103,6 +104,39 @@ export function addCrawlURLs(id, urls) {
   });
 }
 
+export function getCrawlURLs(id) {
+  const { request } = EndpointRequests.getCrawlURLs(id);
+  return makeHTTPRequest(request, {
+    onError({ error }) {
+      toast(`Failed to retrieve the crawls URLs - ${id}: ${error}`, {
+        type: toast.TYPE.ERROR
+      });
+    },
+    async onResponse({ response }) {
+      const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to retrieve the crawls URLs - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
+      return {
+        type: ActionTypes.updateURLInfo,
+        payload: Object.assign(
+          {
+            id
+          },
+          json
+        )
+      };
+    }
+  });
+}
+
 /**
  *
  * @param {Object} [newCrawlConfig]
@@ -127,13 +161,19 @@ export function createCrawl(newCrawlConfig) {
         );
         return;
       }
-      const result = Object.assign(
-        {
-          id: json.id
-        },
-        body,
-        newCrawlConfig.crawlRunInfo
-      );
+      const request = EndpointRequests.crawlInfo(json.id);
+      const infoResponse = await fetch(request);
+      const result = infoResponse.ok
+        ? await infoResponse.json()
+        : Object.assign(
+            {
+              id: json.id
+            },
+            body,
+            newCrawlConfig.crawlRunInfo
+          );
+
+      console.log('newly created crawl info', result);
       return {
         type: ActionTypes.create,
         payload: result
@@ -167,12 +207,14 @@ export function startCrawl(id, startConfig) {
         );
         return;
       }
+      const result = {
+        id,
+        ...body
+      };
+      console.log('started crawl info', result);
       return {
         type: ActionTypes.start,
-        payload: {
-          id,
-          ...body
-        }
+        payload: result
       };
     }
   });

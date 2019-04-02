@@ -144,6 +144,15 @@ class CrawlManager:
 
         return crawl
 
+    async def get_full_crawl_info(self, crawl_id: str) -> Dict:
+        crawl = await self.load_crawl(crawl_id)
+        info, urls = await aio_gather(
+            crawl.get_info(),
+            crawl.get_info_urls(),
+            loop=self.loop
+        )
+        return dict(**info, **urls, success=True)
+
     async def do_request(self, url_path: str, post_data: Optional[Dict] = None) -> Dict:
         """Makes an HTTP post request to the supplied URL/path
 
@@ -172,8 +181,12 @@ class CrawlManager:
 
             try:
                 crawl = Crawl(crawl_id, self)
-                info = await crawl.get_info()
-                all_infos.append(info)
+                info, urls = await aio_gather(
+                    crawl.get_info(),
+                    crawl.get_info_urls(),
+                    loop=self.loop
+                )
+                all_infos.append(dict(**info, **urls))
             except HTTPException:
                 continue
 
@@ -251,6 +264,7 @@ class Crawl:
         crawl = Crawl(crawl_id, manager)
         await crawl.update_info(info)
         if seed_urls is not None:
+            print(seed_urls)
             await crawl.queue_urls(seed_urls)
         return crawl
 

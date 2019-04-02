@@ -1,6 +1,7 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 import { createCrawl } from '../../actions';
 import CrawlCreationForm, { initialValues } from './CreationForm';
 
@@ -20,6 +21,7 @@ CrawlCreator.propTypes = {
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
   createCrawl(crawlInfo) {
+    ownProps.history.push('/');
     dispatch(createCrawl(crawlInfo.toJS()));
   }
 });
@@ -29,4 +31,4 @@ const ConnectedCrawlCreator = connect(
   mapDispatchToProps
 )(CrawlCreator);
 
-export default ConnectedCrawlCreator;
+export default withRouter(ConnectedCrawlCreator);

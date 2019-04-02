@@ -9,18 +9,18 @@
           ep: "/crawls",
           retrieve: { method: "GET" },
           create: {
-            defaults: { scope: "single-page", numBrowsers: 2, numTabs: 1 },
+            defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1 },
             method: "POST"
           }
         },
         crawl: {
           ep: "/crawl/",
-          info: { method: "GET" },
+          info: { method: "GET", path: '/info' },
           remove: { method: "DELETE" },
           start: {
             defaults: {
               browser: "chrome:67",
-              behaviorTimeout: 60,
+              behavior_run_time: 60,
               headless: false
             },
             method: "POST",

@@ -6,14 +6,37 @@ export class CrawlRecord extends Record({
   num_browsers: 0,
   num_tabs: 0,
   depth: 0,
-  seed_urls: [],
+  scopes: [],
+  queue: [],
+  pending: [],
+  seen: [],
   id: '',
   browser: '',
+  browsers: [],
+  browsersDone: [],
   running: false,
-  status: ''
+  status: 'new',
+  behavior_run_time: 60
 }) {
-  updateURLS(urls) {
-    return this.updateIn(['seed_urls'], seed_urls => seed_urls.concat(urls));
+  updateBrowsers(browsers) {
+    const existingBrowsers = this.browsers;
+    return this.set('browsers', existingBrowsers.concat(browsers));
+  }
+
+  crawlRunning(browsers) {
+    const existingBrowsers = this.browsers;
+    return this.merge({
+      browsers: existingBrowsers.concat(browsers),
+      running: true
+    });
+  }
+
+  startCrawlConfig() {
+    return {
+      browser: this.browser,
+      behavior_run_time: this.behavior_run_time,
+      headless: this.headless
+    };
   }
 }
 
@@ -46,11 +69,16 @@ export function crawlIds(state = List([]), { type, payload, meta }) {
 
 export function crawlsReducer(state = Map({}), { type, payload, meta }) {
   switch (type) {
+    case ActionTypes.start:
+      if (!state.has(payload.id)) return state;
+      return state.updateIn([payload.id], crawl =>
+        crawl.crawlRunning(payload.browsers)
+      );
     case ActionTypes.deleteCrawl:
       return state.delete(payload.id);
     case ActionTypes.addURLs:
       if (!state.has(payload.id)) return state;
-      return state.updateIn([id], crawl => crawl.updateURLS(payload.urls));
+      return state.updateIn([payload.id], crawl => crawl.merge(payload));
     case ActionTypes.gotAllInit:
     case ActionTypes.gotAll:
       return state.withMutations(mutable => {
@@ -58,20 +86,23 @@ export function crawlsReducer(state = Map({}), { type, payload, meta }) {
         for (let i = 0; i < crawls.length; i++) {
           const rawCrawl = crawls[i];
           const crec = mutable.get(rawCrawl.id);
+          console.log(rawCrawl);
           if (!crec) {
             mutable.set(rawCrawl.id, new CrawlRecord(rawCrawl));
           } else {
-            mutable.set(rawCrawl.id, crec.merge(rawCrawl));
+            mutable.set(rawCrawl.id, crec.mergeDeep(rawCrawl));
           }
         }
         return mutable;
       });
     case ActionTypes.create:
-      payload.seed_urls = List(payload.seed_urls);
       return state.set(payload.id, new CrawlRecord(payload));
+    case ActionTypes.updateURLInfo:
+      if (!state.has(payload.id)) return state;
+      return state.updateIn([payload.id], crawl => crawl.mergeDeep(payload));
     case ActionTypes.info:
       if (!state.has(payload.id)) return state;
-      return state.updateIn([payload.id], crawl => crawl.merge(payload));
+      return state.updateIn([payload.id], crawl => crawl.mergeDeep(payload));
   }
   return state;
 }

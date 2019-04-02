@@ -49,7 +49,6 @@ nav {
 }
 
 
-
 .form-border {
   position: relative;
   color: #212529;
@@ -72,4 +71,9 @@ nav {
   @extend .uk-section-default;
   padding-top: 30px;
 
+}
+
+.removeCrawlFromListIcon {
+  cursor: pointer;
+  color: red;
 }

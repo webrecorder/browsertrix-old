@@ -13,12 +13,12 @@ function getEndpointConfig() {
     },
     crawl: {
       ep: 'http://localhost:8000/crawl/',
-      info: { method: 'GET' },
+      info: { path: '/info', method: 'GET' },
       remove: { method: 'DELETE' },
       start: {
         defaults: {
           browser: 'chrome:67',
-          behaviorTimeout: 60,
+          behavior_run_time: 60,
           headless: false
         },
         method: 'POST',

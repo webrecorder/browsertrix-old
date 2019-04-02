@@ -11,6 +11,7 @@ __all__ = [
     'CrawlInfosResponse',
     'CreateCrawlRequest',
     'CreateNewCrawlResponse',
+    'FullCrawlInfoResponse',
     'OperationSuccessResponse',
     'QueueUrlsRequest',
     'StartCrawlRequest',
@@ -75,8 +76,17 @@ class OperationSuccessResponse(BaseModel):
     success: bool
 
 
+class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):
+    success: bool
+
+
+class CrawlFullInfosResponse(OperationSuccessResponse):
+    crawls: List[CrawlInfoResponse]
+
+
 class CreateNewCrawlResponse(OperationSuccessResponse):
     id: str
+    status: str = 'new'
 
 
 class QueueUrlsRequest(BaseModel):

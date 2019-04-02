@@ -1,31 +1,26 @@
 import React from 'react';
 import * as PropTypes from 'prop-types';
-import { Link } from 'react-router-dom';
 import { List } from 'immutable';
+import CrawlLi from './CrawlLi';
 
-export default function SelectCrawls({ crawlIds }) {
+export default function SelectCrawls({ crawlIds, removeCrawl }) {
   const crawls = new Array(crawlIds.size);
   for (let i = 0; i < crawlIds.size; i++) {
     const id = crawlIds.get(i);
     crawls[i] = (
-      <div key={`crawl-${i}-${id}`}>
-        <h1>
-          <Link className='uk-button uk-button-text' to={`/crawl/${id}`}>
-            Crawl Id - {id}
-          </Link>
-        </h1>
-      </div>
+      <CrawlLi
+        key={`crawl-${i}-${id}`}
+        removeCrawl={removeCrawl}
+        crawlId={id}
+      />
     );
   }
   return (
     <>
       <h1 className='uk-text-center'>Select Crawl To View</h1>
       <div className='uk-container uk-container-small'>
-        <div
-          className='uk-grid uk-child-width-1-3 uk-flex-center'
-          data-uk-grid=''
-        >
-          {crawls}
+        <div className='uk-flex uk-flex-center'>
+          <ul className='uk-list uk-list-divider'>{crawls}</ul>
         </div>
       </div>
     </>
@@ -33,5 +28,6 @@ export default function SelectCrawls({ crawlIds }) {
 }
 
 SelectCrawls.propTypes = {
-  crawlIds: PropTypes.instanceOf(List).isRequired
+  crawlIds: PropTypes.instanceOf(List).isRequired,
+  removeCrawl: PropTypes.func.isRequired
 };

@@ -92,33 +92,35 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
         </div>
       </FormSection>
       <FormSection name='crawlRunInfo'>
-        <div
-          className='uk-grid uk-child-width-1-3 uk-margin-top'
-          data-uk-grid=''
-        >
-          <Field
-            name='browser'
-            label='Which Browser'
-            component={CrawlConfigSelectField}
+        <>
+          <div
+            className='uk-grid uk-child-width-1-3 uk-margin-top'
+            data-uk-grid=''
           >
-            <option value='chrome:67'>Chrome 67</option>
-          </Field>
-          <Field
-            name='headless'
-            label='Headless'
-            component={CrawlConfigSelectField}
-          >
-            <option value={false}>No</option>
-            <option value={true}>Yes</option>
-          </Field>
-          <Field
-            name='behavior_run_time'
-            type='number'
-            label='How Long Should Behaviors Run (Seconds)'
-            component={CrawlConfigInputField}
-          />
-        </div>
-        <FieldArray name='seed_urls' component={URLFields} />
+            <Field
+              name='browser'
+              label='Which Browser'
+              component={CrawlConfigSelectField}
+            >
+              <option value='chrome:67'>Chrome 67</option>
+            </Field>
+            <Field
+              name='headless'
+              label='Headless'
+              component={CrawlConfigSelectField}
+            >
+              <option value={false}>No</option>
+              <option value={true}>Yes</option>
+            </Field>
+            <Field
+              name='behavior_run_time'
+              type='number'
+              label='How Long Should Behaviors Run (Seconds)'
+              component={CrawlConfigInputField}
+            />
+          </div>
+          <FieldArray name='seed_urls' component={URLFields} />
+        </>
       </FormSection>
     </form>
   );
