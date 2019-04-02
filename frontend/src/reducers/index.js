@@ -1,9 +1,8 @@
 import { combineReducers } from 'redux-immutable';
-import { combineReducers as oCR } from 'redux';
 import { reducer as reduxFormReducer } from 'redux-form/immutable';
-import { crawlsReducer, crawlsFetchedReducer, crawlIds } from './crawls';
+import { crawlIds, crawlsFetchedReducer, crawlsReducer } from './crawls';
 
-const rootReducer = oCR({
+const rootReducer = combineReducers({
   crawlIds,
   crawls: crawlsReducer,
   crawlsFetched: crawlsFetchedReducer,

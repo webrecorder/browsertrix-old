@@ -13,5 +13,5 @@ const composer = composeWithDevTools({
 });
 
 export default function configureStore() {
-  return createStore(rootReducer, {}, composer(middleWare));
+  return createStore(rootReducer, Immutable.Map({}), composer(middleWare));
 }

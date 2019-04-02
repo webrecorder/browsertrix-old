@@ -6,6 +6,7 @@
   "dependencies": {
     "@hot-loader/react-dom": "16.8.6",
     "immutable": "^4.0.0-rc.12",
+    "plur": "^3.0.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
@@ -36,9 +37,10 @@
     "babel-eslint": "^10.0.1",
     "babel-loader": "^8.0.5",
     "babel-plugin-add-module-exports": "^1.0.0",
+    "babel-plugin-transform-react-remove-prop-types": "^0.4.24",
     "babel-preset-env": "^1.7.0",
     "css-loader": "^2.1.1",
-    "eslint": "^5.15.3",
+    "eslint": "^5.16.0",
     "eslint-config-prettier": "^4.1.0",
     "eslint-plugin-prettier": "^3.0.1",
     "eslint-plugin-react": "^7.12.4",
@@ -49,7 +51,7 @@
     "html-webpack-plugin": "^3.2.0",
     "node-sass": "^4.11.0",
     "prettier": "^1.16.4",
-    "react-hot-loader": "^4.8.0",
+    "react-hot-loader": "^4.8.2",
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "url-loader": "^1.1.2",
@@ -59,6 +61,7 @@
     "webpack-hot-middleware": "^2.24.3"
   },
   "scripts": {
-    "develop": "node ./webpack/development-server.js"
+    "develop": "node ./webpack/development-server.js",
+    "build-prod": "NODE_ENV=production webpack --config ./webpack/webpack.config.js"
   }
 }

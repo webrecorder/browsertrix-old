@@ -2,7 +2,7 @@ const path = require('path');
 const createServer = require('fastify');
 const webpack = require('webpack');
 const HMR = require('fastify-webpack-hmr');
-const config = require('./webpack.config.dev');
+const config = require('./webpack.config');
 
 const fastify = createServer({
   logger: false
@@ -23,7 +23,7 @@ fastify
   });
 
 async function run() {
-  const listeningOn = await fastify.listen(8000);
+  const listeningOn = await fastify.listen(8001);
   console.log(
     `Dev server listening on\n${
       listeningOn.startsWith('http://127.0.0.1')

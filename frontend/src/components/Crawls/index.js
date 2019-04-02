@@ -4,8 +4,8 @@ import * as PropTypes from 'prop-types';
 import { List } from 'immutable';
 import { getAllCrawls } from '../../actions/crawls';
 import LoadingCrawls from './LoadingCrawls';
+import SelectCrawl from './SelectCrawl';
 import CrawlCreator from '../CrawlCreator';
-import Crawl from './Crawl';
 
 class Crawls extends Component {
   static propTypes = {
@@ -29,18 +29,7 @@ class Crawls extends Component {
         <CrawlCreator message={'There are no pre-existing crawls!'} />
       );
     } else {
-      const cids = this.props.crawlIds;
-      const crawls = new Array(cids.size);
-      for (let i = 0; i < cids.size; i++) {
-        crawls[i] = (
-          <Crawl
-            key={`crawl-${i}`}
-            crawlId={cids.get(i)}
-            crawlActions={this.props.crawlActions}
-          />
-        );
-      }
-      component = <ul className='uk-list'>{crawls}</ul>;
+      component = <SelectCrawl crawlIds={this.props.crawlIds} />;
     }
     return <div className='uk-container'>{component}</div>;
   }
@@ -53,8 +42,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 });
 
 const mapStateToProps = (state, ownProps) => ({
-  crawlIds: state.crawlIds,
-  crawlsFetched: state.crawlsFetched
+  crawlIds: state.get('crawlIds'),
+  crawlsFetched: state.get('crawlsFetched')
 });
 
 const ConnectedCrawls = connect(

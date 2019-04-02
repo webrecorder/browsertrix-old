@@ -4,15 +4,15 @@ function getEndpointConfig() {
   }
   return {
     crawls: {
-      ep: 'http://localhost:8001/crawls',
+      ep: 'http://localhost:8000/crawls',
       retrieve: { method: 'GET' },
       create: {
-        defaults: { scope: 'single-page', numBrowsers: 2, numTabs: 1 },
+        defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1 },
         method: 'POST'
       }
     },
     crawl: {
-      ep: 'http://localhost:8001/crawl/',
+      ep: 'http://localhost:8000/crawl/',
       info: { method: 'GET' },
       remove: { method: 'DELETE' },
       start: {
@@ -44,17 +44,11 @@ class Endpoints {
    */
   createNewCrawl(newCrawlConfig) {
     const { defaults = {}, method } = this.crawls.create;
-    const newCrawl = Object.assign(defaults, newCrawlConfig);
+    const body = Object.assign(defaults, newCrawlConfig.crawlInfo);
 
-    const body = {
-      crawl_type: newCrawl.crawlType,
-      num_browsers: newCrawl.numBrowsers,
-      num_tabs: newCrawl.numTabs
-    };
-
-    if (Array.isArray(newCrawl.urls)) body.seed_urls = newCrawl.urls;
-    if (newCrawl.depth) body.depth = newCrawl.depth;
-
+    if (Array.isArray(newCrawlConfig.crawlRunInfo.seed_urls)) {
+      body.seed_urls = newCrawlConfig.crawlRunInfo.seed_urls;
+    }
     return {
       body,
       request: new Request(this.crawls.ep, {
@@ -138,14 +132,7 @@ class Endpoints {
   startCrawl(id, config) {
     const { path = '', method, defaults = {} } = this.crawl.start;
     const url = `${this.crawl.ep}${id}${path}`;
-    const body = {};
-    const startConfig = Object.assign(defaults, config);
-    body.browser = startConfig.browser;
-    body.behavior_timeout = startConfig.behaviorTimeout;
-    body.headless = startConfig.headless;
-    if (startConfig.screenShotTargetURI) {
-      body.screenshot_target_uri = startConfig.screenShotTargetURI;
-    }
+    const body = Object.assign(defaults, config);
     return {
       body,
       request: new Request(url, {

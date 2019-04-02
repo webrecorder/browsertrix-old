@@ -4,6 +4,7 @@ import { Route, Switch } from 'react-router-dom';
 import Header from '../components/Header';
 import Crawls from '../components/Crawls';
 import CrawlCreator from '../components/CrawlCreator';
+import Crawl from '../components/Crawl';
 
 function AllCrawls(props) {
   return <Crawls {...props} />;
@@ -17,6 +18,10 @@ function CreateCrawl(props) {
   );
 }
 
+function viewCrawl(props) {
+  return <Crawl {...props} />;
+}
+
 function App() {
   return (
     <>
@@ -25,6 +30,7 @@ function App() {
         <Switch>
           <Route exact path='/' render={AllCrawls} />
           <Route exact path='/createCrawl' render={CreateCrawl} />
+          <Route exact path='/crawl/:crawlid' render={viewCrawl} />
         </Switch>
       </div>
     </>

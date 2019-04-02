@@ -2,6 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 const rootPath = path.join(__dirname, '..');
+const staticPath = path.join(path.join(rootPath, '..'), 'static');
 const srcPath = path.join(rootPath, 'src');
 const entryPath = path.join(srcPath, 'root.js');
 const hotConf =
@@ -10,30 +11,70 @@ const hotConf =
 const mode = process.env.NODE_ENV || 'development';
 const production = mode === 'production';
 
+const plugins = [
+  new webpack.NamedModulesPlugin(),
+  new webpack.IgnorePlugin({
+    contextRegExp: /moment$/
+  }),
+  new webpack.DefinePlugin({
+    'process.env.NODE_ENV': JSON.stringify(mode),
+    __DEV__: JSON.stringify(!production)
+  }),
+  new webpack.NoEmitOnErrorsPlugin()
+];
+
+const jsLoader = {
+  loader: 'babel-loader',
+  options: {
+    cacheDirectory: true,
+    babelrc: false,
+    presets: [
+      '@babel/preset-react',
+      [
+        '@babel/preset-env',
+        {
+          loose: true,
+          debug: false,
+          modules: false,
+          useBuiltIns: false,
+          targets: {
+            chrome: '70',
+            firefox: '66'
+          }
+        }
+      ]
+    ],
+    plugins: [['@babel/plugin-proposal-class-properties', { loose: true }]]
+  }
+};
+
+if (mode === 'development') {
+  plugins.push(new webpack.HotModuleReplacementPlugin());
+  jsLoader.options.plugins.unshift('react-hot-loader/babel');
+} else {
+  jsLoader.options.plugins.push([
+    'transform-react-remove-prop-types',
+    {
+      ignoreFilenames: ['node_modules']
+    }
+  ]);
+}
+
 module.exports = {
-  mode: 'development',
+  mode: mode,
   context: rootPath,
-  entry: [entryPath, hotConf],
+  entry: production ? entryPath : [entryPath, hotConf],
   output: {
-    path: path.join(rootPath, 'public'),
+    path: production ? staticPath : path.join(rootPath, 'public'),
     filename: 'app.js',
     publicPath: '/'
-    // devtoolModuleFilenameTemplate: info =>
-    //   path.resolve(info.absoluteResourcePath).replace(/\\/g, '/')
   },
   module: {
     rules: [
       {
         test: /\.jsx?$/,
         exclude: /node_modules/,
-        use: [
-          {
-            loader: 'babel-loader',
-            options: {
-              cacheDirectory: true
-            }
-          }
-        ]
+        use: [jsLoader]
       },
       {
         test: /\.s[ac]ss$/,
@@ -75,16 +116,5 @@ module.exports = {
       'react-dom': require.resolve('@hot-loader/react-dom')
     }
   },
-  plugins: [
-    new webpack.NamedModulesPlugin(),
-    new webpack.IgnorePlugin({
-      contextRegExp: /moment$/
-    }),
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(mode),
-      __DEV__: JSON.stringify(!production)
-    }),
-    new webpack.HotModuleReplacementPlugin(),
-    new webpack.NoEmitOnErrorsPlugin()
-  ]
+  plugins
 };

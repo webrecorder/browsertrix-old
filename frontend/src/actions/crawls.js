@@ -26,6 +26,16 @@ export function getAllCrawls(init = false) {
       });
     },
     async onResponse({ response }) {
+      if (!response.ok) {
+        toast(
+          `Failed to retrieve info about all crawls: Details 
+        HTTP ${response.status}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
       return {
         type: init ? ActionTypes.gotAllInit : ActionTypes.gotAll,
         payload: await response.json()
@@ -62,6 +72,37 @@ export function getCrawlInfo(id) {
   });
 }
 
+export function addCrawlURLs(id, urls) {
+  const { request } = EndpointRequests.addCrawlURLs(id, urls);
+  return makeHTTPRequest(request, {
+    onError({ error }) {
+      toast(`Failed to add the urls to the crawl - ${id}: ${error}`, {
+        type: toast.TYPE.ERROR
+      });
+    },
+    async onResponse({ response }) {
+      const json = await response.json();
+      if (!response.ok) {
+        toast(
+          `Failed to add urls to the crawl - ${id}: Details 
+        ${json.detail}`,
+          {
+            type: toast.TYPE.ERROR
+          }
+        );
+        return;
+      }
+      return {
+        type: ActionTypes.addURLs,
+        payload: {
+          id,
+          urls
+        }
+      };
+    }
+  });
+}
+
 /**
  *
  * @param {Object} [newCrawlConfig]
@@ -78,7 +119,7 @@ export function createCrawl(newCrawlConfig) {
       const json = await response.json();
       if (!response.ok) {
         toast(
-          `Failed to create the crawl - ${id}: Details 
+          `Failed to create the crawl - ${json.id}: Details 
         ${json.detail}`,
           {
             type: toast.TYPE.ERROR
@@ -86,12 +127,16 @@ export function createCrawl(newCrawlConfig) {
         );
         return;
       }
+      const result = Object.assign(
+        {
+          id: json.id
+        },
+        body,
+        newCrawlConfig.crawlRunInfo
+      );
       return {
         type: ActionTypes.create,
-        payload: {
-          id: json.id,
-          ...body
-        }
+        payload: result
       };
     }
   });
@@ -122,7 +167,6 @@ export function startCrawl(id, startConfig) {
         );
         return;
       }
-      console.log(json);
       return {
         type: ActionTypes.start,
         payload: {
@@ -154,7 +198,6 @@ export function stopCrawl(id) {
         );
         return;
       }
-      console.log(json);
       return {
         type: ActionTypes.stop,
         payload: { id }
@@ -183,7 +226,6 @@ export function removeCrawl(id) {
         );
         return;
       }
-      console.log(json);
       return {
         type: ActionTypes.deleteCrawl,
         payload: { id }
