@@ -11,7 +11,7 @@ export class CrawlRecord extends Record({
   pending: [],
   seen: [],
   id: '',
-  browser: '',
+  browser: 'chrome:67',
   browsers: [],
   browsersDone: [],
   running: false,

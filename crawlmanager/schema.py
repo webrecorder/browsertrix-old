@@ -94,7 +94,7 @@ class QueueUrlsRequest(BaseModel):
 
 
 class StartCrawlRequest(BaseModel):
-    browser: Optional[str]
+    browser: Optional[str] = 'chrome:67'
     user_params: Dict[Any, Any] = dict()
 
     behavior_run_time: int = 0
