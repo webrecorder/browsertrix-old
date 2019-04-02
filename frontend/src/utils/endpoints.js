@@ -132,7 +132,7 @@ class Endpoints {
   startCrawl(id, config) {
     const { path = '', method, defaults = {} } = this.crawl.start;
     const url = `${this.crawl.ep}${id}${path}`;
-    const body = Object.assign(defaults, config);
+    const body = Object.assign(config, defaults);
     return {
       body,
       request: new Request(url, {

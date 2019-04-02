@@ -13,11 +13,7 @@ export default class Control extends Component {
 
   startCrawl() {
     const { crawl } = this.props;
-    this.props.startCrawl({
-      browser: crawl.browser,
-      behavior_run_time: crawl.behavior_run_time,
-      headless: crawl.headless
-    });
+    this.props.startCrawl(crawl.startCrawlConfig());
   }
 
   constructor(props) {

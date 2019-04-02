@@ -18,7 +18,7 @@ from .schema import (
     StartCrawlResponse,
 )
 
-app = FastAPI()
+app = FastAPI(debug=True)
 crawl_man = CrawlManager()
 crawl_router = APIRouter()
 
@@ -71,6 +71,7 @@ async def get_full_crawl_info(crawl_id: str):
     '/{crawl_id}/start', response_model=StartCrawlResponse, content_type=UJSONResponse
 )
 async def start_crawl(crawl_id: str, start_request: StartCrawlRequest):
+    print(start_request)
     crawl = await crawl_man.load_crawl(crawl_id)
     return await crawl.start(start_request)
 

@@ -420,6 +420,7 @@ class Crawl:
         :return: An dictionary that includes an indication if this operation
         was successful and a list of browsers in the crawl
         """
+        print('start')
         if self.model.status == 'running':
             raise HTTPException(400, detail='already running')
 
