@@ -45,7 +45,7 @@ class TestCrawlAPI:
 
     def test_crawl_create(self):
         res = self.client.post(
-            '/crawls', json={'num_tabs': 2, 'scope_type': 'all-links'}
+            '/crawls', json={'num_tabs': 2, 'crawl_type': 'all-links'}
         )
 
         res = res.json()
@@ -61,16 +61,16 @@ class TestCrawlAPI:
     def test_get_crawl(self):
         res = self.client.get(f'/crawl/{self.crawl_id}')
 
-        res = res.json()
+        json = res.json()
 
-        assert res['id'] == self.crawl_id
-        assert res['num_browsers'] == 2
-        assert res['num_tabs'] == 2
-        assert res['scope_type'] == 'all-links'
-        assert res['status'] == 'new'
-        assert res['crawl_depth'] == 1
+        assert json['id'] == self.crawl_id
+        assert json['num_browsers'] == 2
+        assert json['num_tabs'] == 2
+        assert json['crawl_type'] == 'all-links'
+        assert json['status'] == 'new'
+        assert json['depth'] == 1
 
-        assert len(res) == 8
+        assert len(json) == 8
 
     def test_get_crawl_details(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
@@ -90,7 +90,7 @@ class TestCrawlAPI:
 
     def test_crawl_same_domain_scopes(self):
         res = self.client.post(
-            '/crawls', json={'num_tabs': 2, 'scope_type': 'same-domain'}
+            '/crawls', json={'num_tabs': 2, 'crawl_type': 'same-domain'}
         )
         assert res.json()['success'] == True
 
@@ -120,7 +120,7 @@ class TestCrawlAPI:
         }
 
         assert (
-            set((crawl['id'], crawl['scope_type']) for crawl in res['crawls'])
+            set((crawl['id'], crawl['crawl_type']) for crawl in res['crawls'])
             == expected_crawls
         )
 
@@ -129,7 +129,7 @@ class TestCrawlAPI:
 
         assert res.status_code == 404
 
-        assert res.json() == {'detail': 'not_found'}
+        assert res.json() == {'detail': 'not found'}
 
     def test_invalid_request_body(self):
         res = self.client.put(f'/crawl/x-another-invalid/urls', json={})
@@ -143,7 +143,7 @@ class TestCrawlAPI:
 
         assert res.status_code == 404
 
-        assert res.json() == {'detail': 'not_found'}
+        assert res.json() == {'detail': 'not found'}
 
     @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_start_crawl(self):
@@ -158,7 +158,7 @@ class TestCrawlAPI:
             'browser': 'chrome:67',
             'screenshot_target_uri': 'file://test',
             'user_params': {'some': 'value', 'some_int': 7},
-            'behavior_timeout': 30,
+            'behavior_run_time': 30,
         }
 
         res = self.client.post(f'/crawl/{self.crawl_id}/start', json=params)
@@ -205,9 +205,9 @@ class TestCrawlAPI:
     @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):
         res = self.client.post(f'/crawl/{self.crawl_id}/stop')
-        res = res.json()
+        json = res.json()
 
-        assert res['success']
+        assert json['success']
 
         # stop calls
         assert set(shepherd_api_urls['stop']) == {
@@ -220,9 +220,9 @@ class TestCrawlAPI:
 
         res = self.client.get(f'/crawl/{self.crawl_id}')
 
-        res = res.json()
+        json = res.json()
 
-        assert res['status'] == 'stopped'
+        assert json['status'] == 'stopped'
 
     def test_delete_crawl(self):
         res = self.client.delete(f'/crawl/{self.crawl_id}')
@@ -237,4 +237,4 @@ class TestCrawlAPI:
 
         res = self.client.delete(f'/crawl/{self.crawl_id_2}')
 
-        assert res.json()['detail'] == 'not_found'
+        assert res.json()['detail'] == 'not found'

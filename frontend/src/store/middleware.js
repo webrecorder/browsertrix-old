@@ -1,7 +1,7 @@
 import { applyMiddleware } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import promiseMiddleware from 'redux-promise';
-import { HTTPRequests } from '../utils/keys';
+import { FetchStates } from '../actions/httpRequests';
 
 function getRequestTracker() {
   if (typeof window !== 'undefined') {
@@ -20,7 +20,7 @@ function isURLTracked(url) {
 
 function trackURL(url) {
   const requests = getRequestTracker();
-  return requests[url] != null;
+  requests[url] = true;
 }
 
 function untrackURL(url) {
@@ -30,15 +30,17 @@ function untrackURL(url) {
 
 function createRequestMiddleware() {
   return store => next => action => {
-    console.log(action);
-    if (!HTTPRequests.actions.has(action.type)) return next(action);
     if (action.meta && action.meta.httpRequest) {
-      if (!action.meta.httpRequest.done) {
-        console.log('not done');
-        if (isURLTracked(action.meta.httpRequest.url)) return;
-        trackURL(action.meta.httpRequest.url);
-      } else {
-        untrackURL(action.meta.httpRequest.url);
+      const httpRequest = action.meta.httpRequest;
+      switch (httpRequest.state) {
+        case FetchStates.preflight:
+          if (isURLTracked(action.meta.httpRequest.url)) return;
+          trackURL(action.meta.httpRequest.url);
+          break;
+        case FetchStates.done:
+        case FetchStates.error:
+          untrackURL(action.meta.httpRequest.url);
+          break;
       }
     }
     return next(action);

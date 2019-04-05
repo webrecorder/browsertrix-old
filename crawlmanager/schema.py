@@ -1,6 +1,7 @@
+import math
 from typing import Any, Dict, List, Optional, Set
 
-from pydantic import BaseModel, Schema
+from pydantic import BaseModel, Schema, UrlStr
 
 __all__ = [
     'CrawlDoneResponse',
@@ -10,6 +11,7 @@ __all__ = [
     'CrawlInfosResponse',
     'CreateCrawlRequest',
     'CreateNewCrawlResponse',
+    'FullCrawlInfoResponse',
     'OperationSuccessResponse',
     'QueueUrlsRequest',
     'StartCrawlRequest',
@@ -20,22 +22,28 @@ __all__ = [
 OptionalList = Optional[List[str]]
 OptionalSet = Optional[Set[str]]
 
+UrlStr.max_length = math.inf
+UrlStr.relative = True
 
-class CreateCrawlRequest(BaseModel):
-    scope_type: str = Schema(
+
+class BaseCreateCrawl(BaseModel):
+    crawl_type: str = Schema(
         'single-page', description='What type of crawl should be launched'
     )
     num_browsers: int = Schema(
         2, description='How many browsers should be used for the crawl'
     )
     num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
+    depth: Optional[int] = None
 
 
-class CrawlInfoResponse(CreateCrawlRequest):
+class CreateCrawlRequest(BaseCreateCrawl):
+    seed_urls: List[UrlStr] = []
+
+
+class CrawlInfoResponse(BaseCreateCrawl):
     id: str
     status: str = 'new'
-    crawl_depth: int = 0
-
     browsers: OptionalList
     browsers_done: OptionalList
 
@@ -51,10 +59,10 @@ class CrawlInfo(BaseModel):
 
     id: str
     status: str
-    scope_type: str
+    crawl_type: str
     num_browsers: int
     num_tabs: int
-    crawl_depth: int
+    depth: int
 
 
 class CrawlInfoUrlsResponse(BaseModel):
@@ -68,8 +76,17 @@ class OperationSuccessResponse(BaseModel):
     success: bool
 
 
+class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):
+    success: bool
+
+
+class CrawlFullInfosResponse(OperationSuccessResponse):
+    crawls: List[CrawlInfoResponse]
+
+
 class CreateNewCrawlResponse(OperationSuccessResponse):
     id: str
+    status: str = 'new'
 
 
 class QueueUrlsRequest(BaseModel):
@@ -77,10 +94,10 @@ class QueueUrlsRequest(BaseModel):
 
 
 class StartCrawlRequest(BaseModel):
-    browser: Optional[str]
+    browser: Optional[str] = 'chrome:67'
     user_params: Dict[Any, Any] = dict()
 
-    behavior_timeout: int = 0
+    behavior_run_time: int = 0
     headless: bool = False
     screenshot_target_uri: Optional[str] = None
 

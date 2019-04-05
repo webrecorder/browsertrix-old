@@ -14,7 +14,7 @@ services:
             - pywb
 
         ports:
-            - 8001:8000
+            - 8000:8000
 
         volumes:
             - ./:/app/
@@ -48,7 +48,7 @@ services:
 
             - PROXY_HOST=pywb
             - PROXY_PORT=8080
- 
+
         depends_on:
             - redis
 

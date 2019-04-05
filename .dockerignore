@@ -236,5 +236,4 @@ pytest.ini
 README.md
 mypy.ini
 .flake8
-frontend/.cache
-frontend/public
+frontend

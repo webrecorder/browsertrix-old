@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>UI</title>
+    <script>
+      window.__crawlmanEndpoints = {
+        crawls: {
+          ep: "/crawls",
+          retrieve: { method: "GET" },
+          create: {
+            defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1 },
+            method: "POST"
+          }
+        },
+        crawl: {
+          ep: "/crawl/",
+          info: { method: "GET", path: '/info' },
+          remove: { method: "DELETE" },
+          start: {
+            defaults: {
+              browser: "chrome:67",
+              behavior_run_time: 60,
+              headless: false
+            },
+            method: "POST",
+            path: "/start"
+          },
+          stop: { method: "POST", path: "/stop" },
+          done: { method: "GET", path: "/done" },
+          retrieveURLS: { method: "GET", path: "/urls" },
+          addURLS: { method: "POST", path: "/urls" }
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <div id="mount"></div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

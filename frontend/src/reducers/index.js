@@ -1,6 +1,12 @@
 import { combineReducers } from 'redux-immutable';
-import crawls from './crawls';
+import { reducer as reduxFormReducer } from 'redux-form/immutable';
+import { crawlIds, crawlsFetchedReducer, crawlsReducer } from './crawls';
 
-const rootReducer = combineReducers({ crawls });
+const rootReducer = combineReducers({
+  crawlIds,
+  crawls: crawlsReducer,
+  crawlsFetched: crawlsFetchedReducer,
+  form: reduxFormReducer
+});
 
 export default rootReducer;

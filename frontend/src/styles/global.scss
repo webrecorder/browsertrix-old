@@ -1,2 +1,79 @@
-@import "../../node_modules/bootstrap/scss/bootstrap";
+@charset "UTF-8";
 
+@import "../../node_modules/uikit/src/scss/variables-theme";
+@import "../../node_modules/uikit/src/scss/mixins-theme";
+
+@mixin hook-base-body() {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+@import "../../node_modules/uikit/src/scss/uikit-theme";
+@import "../../node_modules/react-toastify/scss/main";
+
+html {
+  overflow-y: scroll;
+}
+
+body {
+  overflow: hidden;
+}
+
+nav {
+  border-bottom: 1px solid #e8e6ea;
+  transition: background-color 250ms ease;
+  background-color: rgba(255, 255, 255, 1) !important;
+
+  .uk-navbar-center {
+    transition: max-height 1.5s ease;
+    max-height: 90px;
+  }
+
+
+  &.uk-active {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background-color: rgba(255, 255, 255, 0.75) !important;
+    z-index: 2;
+    @extend .uk-box-shadow-small;
+
+    .uk-navbar-center {
+      max-height: 60px;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 1) !important;
+    }
+  }
+}
+
+
+.form-border {
+  position: relative;
+  color: #212529;
+  padding: 1rem;
+  margin-right: 0;
+  margin-left: 0;
+  border: .2rem solid #ececec;
+  border-radius: 8px;
+}
+
+.create-crawl-seedlist {
+  height: 300px;
+  max-height: 300px;
+  overflow: auto;
+  margin-top: 1rem !important;
+}
+
+.route-container {
+  @extend .uk-section;
+  @extend .uk-section-default;
+  padding-top: 30px;
+
+}
+
+.removeCrawlFromListIcon {
+  cursor: pointer;
+  color: red;
+}
