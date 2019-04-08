@@ -221,6 +221,18 @@ export class URLFields extends Component {
             </button>
           </div>
         </div>
+        {this.props.meta.error && (
+          <div
+            className='uk-flex uk-flex-middle uk-flex-center'
+            style={{ color: '#f0506e' }}
+          >
+            <span
+              className='uk-margin-small-right uk-icon'
+              data-uk-icon='warning'
+            />
+            Seed URLs Required
+          </div>
+        )}
         <BulkURLInput addURL={this.addURL} />
         <div className='uk-width-expand uk-overflow-auto uk-height-medium'>
           <ul className='uk-list'>{haveURLS && this.renderURLs()}</ul>

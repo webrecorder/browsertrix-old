@@ -75,7 +75,7 @@ export default class Info extends Component {
               <td>{crawl.status || 'new'}</td>
               <td>{crawl.num_browsers}</td>
               <td>{crawl.num_tabs}</td>
-              <td>{crawl.depth}</td>
+              <td>{crawl.crawl_depth}</td>
             </tr>
           </tbody>
         </table>
