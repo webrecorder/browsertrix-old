@@ -44,7 +44,7 @@ class Endpoints {
    */
   createNewCrawl(newCrawlConfig) {
     const { defaults = {}, method } = this.crawls.create;
-    const body = Object.assign(defaults, newCrawlConfig.crawlInfo);
+    const body = Object.assign({}, defaults, newCrawlConfig.crawlInfo);
 
     if (Array.isArray(newCrawlConfig.crawlRunInfo.seed_urls)) {
       body.seed_urls = newCrawlConfig.crawlRunInfo.seed_urls;
@@ -132,7 +132,7 @@ class Endpoints {
   startCrawl(id, config) {
     const { path = '', method, defaults = {} } = this.crawl.start;
     const url = `${this.crawl.ep}${id}${path}`;
-    const body = Object.assign(config, defaults);
+    const body = Object.assign({}, defaults, config);
     return {
       body,
       request: new Request(url, {

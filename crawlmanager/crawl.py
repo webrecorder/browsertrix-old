@@ -106,7 +106,7 @@ class CrawlManager:
         """
         crawl_id = self.new_crawl_id()
 
-        crawl_depth = create_request.depth
+        crawl_depth = create_request.crawl_depth
         if crawl_depth is None:
             if create_request.crawl_type == 'all-links':
                 crawl_depth = 1
@@ -122,7 +122,7 @@ class CrawlManager:
             # 'owner': collection.my_id,
             'crawl_type': create_request.crawl_type,
             'status': 'new',
-            'depth': crawl_depth,
+            'crawl_depth': crawl_depth,
         }
 
         await Crawl.create(self, crawl_id, data, create_request.seed_urls)
@@ -147,9 +147,7 @@ class CrawlManager:
     async def get_full_crawl_info(self, crawl_id: str) -> Dict:
         crawl = await self.load_crawl(crawl_id)
         info, urls = await aio_gather(
-            crawl.get_info(),
-            crawl.get_info_urls(),
-            loop=self.loop
+            crawl.get_info(), crawl.get_info_urls(), loop=self.loop
         )
         return dict(**info, **urls, success=True)
 
@@ -181,12 +179,8 @@ class CrawlManager:
 
             try:
                 crawl = Crawl(crawl_id, self)
-                info, urls = await aio_gather(
-                    crawl.get_info(),
-                    crawl.get_info_urls(),
-                    loop=self.loop
-                )
-                all_infos.append(dict(**info, **urls))
+                info = await crawl.get_info()
+                all_infos.append(info)
             except HTTPException:
                 continue
 
@@ -264,7 +258,6 @@ class Crawl:
         crawl = Crawl(crawl_id, manager)
         await crawl.update_info(info)
         if seed_urls is not None:
-            print(seed_urls)
             await crawl.queue_urls(seed_urls)
         return crawl
 
@@ -420,7 +413,6 @@ class Crawl:
         :return: An dictionary that includes an indication if this operation
         was successful and a list of browsers in the crawl
         """
-        print('start')
         if self.model.status == 'running':
             raise HTTPException(400, detail='already running')
 

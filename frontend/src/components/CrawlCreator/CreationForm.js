@@ -26,8 +26,8 @@ export function validate(values, props) {
       errors.crawlInfo.num_tabs =
         'The number of tabs to be used cannot be less than or equal to zero';
     }
-    if (values.get('depth') <= 0) {
-      errors.crawlInfo.depth =
+    if (values.get('crawl_depth') <= 0) {
+      errors.crawlInfo.crawl_depth =
         'The depth of crawl cannot be less than or equal to zero';
     }
   }
@@ -45,6 +45,11 @@ export function validate(values, props) {
     }
   }
   return errors;
+}
+
+function seedURLsRequired(value, allValues, props) {
+  if (!value) return 'Required';
+  if (value.size === 0) return 'Required';
 }
 
 function CrawlCreationForm({ handleSubmit, valid, submitting }) {
@@ -72,7 +77,7 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
             <option value='all-links'>All Pages</option>
           </Field>
           <Field
-            name='depth'
+            name='crawl_depth'
             type='number'
             label='Crawl Depth'
             component={CrawlConfigInputField}
@@ -119,7 +124,11 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
               component={CrawlConfigInputField}
             />
           </div>
-          <FieldArray name='seed_urls' component={URLFields} />
+          <FieldArray
+            name='seed_urls'
+            component={URLFields}
+            validate={seedURLsRequired}
+          />
         </>
       </FormSection>
     </form>
@@ -131,7 +140,7 @@ export const initialValues = {
     crawl_type: 'single-page',
     num_browsers: 1,
     num_tabs: 1,
-    depth: 1
+    crawl_depth: 1
   },
   crawlRunInfo: {
     headless: false,

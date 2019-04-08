@@ -3,9 +3,9 @@ import { ActionTypes } from '../actions/crawls';
 
 export class CrawlRecord extends Record({
   crawl_type: '',
+  crawl_depth: 0,
   num_browsers: 0,
   num_tabs: 0,
-  depth: 0,
   scopes: [],
   queue: [],
   pending: [],
@@ -86,7 +86,6 @@ export function crawlsReducer(state = Map({}), { type, payload, meta }) {
         for (let i = 0; i < crawls.length; i++) {
           const rawCrawl = crawls[i];
           const crec = mutable.get(rawCrawl.id);
-          console.log(rawCrawl);
           if (!crec) {
             mutable.set(rawCrawl.id, new CrawlRecord(rawCrawl));
           } else {

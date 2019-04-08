@@ -30,11 +30,11 @@ class BaseCreateCrawl(BaseModel):
     crawl_type: str = Schema(
         'single-page', description='What type of crawl should be launched'
     )
+    crawl_depth: Optional[int] = None
     num_browsers: int = Schema(
         2, description='How many browsers should be used for the crawl'
     )
     num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
-    depth: Optional[int] = None
 
 
 class CreateCrawlRequest(BaseCreateCrawl):
@@ -60,9 +60,9 @@ class CrawlInfo(BaseModel):
     id: str
     status: str
     crawl_type: str
+    crawl_depth: int
     num_browsers: int
     num_tabs: int
-    depth: int
 
 
 class CrawlInfoUrlsResponse(BaseModel):

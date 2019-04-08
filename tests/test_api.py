@@ -68,7 +68,7 @@ class TestCrawlAPI:
         assert json['num_tabs'] == 2
         assert json['crawl_type'] == 'all-links'
         assert json['status'] == 'new'
-        assert json['depth'] == 1
+        assert json['crawl_depth'] == 1
 
         assert len(json) == 8
 
