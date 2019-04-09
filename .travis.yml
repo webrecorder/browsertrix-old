@@ -10,20 +10,6 @@ dist: xenial
 
 sudo: required
 
-services:
-  - docker
-
-env:
-  - DOCKER_COMPOSE_VERSION=1.23.2
-
-before_install:
-  - docker pull oldwebtoday/chrome:67
-  - docker pull webrecorder/autobrowser
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
-
 jobs:
   include:
     - stage: local tests
@@ -33,6 +19,21 @@ jobs:
         - py.test ./tests/test_api.py
 
     - stage: docker integration tests
+
+      services:
+        - docker
+
+      env:
+        - DOCKER_COMPOSE_VERSION=1.23.2
+
+      before_install:
+        - docker pull oldwebtoday/chrome:67
+        - docker pull webrecorder/autobrowser
+        - sudo rm /usr/local/bin/docker-compose
+        - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+        - chmod +x docker-compose
+        - sudo mv docker-compose /usr/local/bin
+
       script:
         - bash ./tests/bootstrap-compose.sh
         - pip install -U -r test-docker-requirements.txt
