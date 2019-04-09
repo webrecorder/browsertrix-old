@@ -4,7 +4,7 @@ services:
     crawlman:
         image: webrecorder/crawlman
         build:
-            context: .
+            context: ../
         environment:
             - REDIS_URL=redis://redis/0
             - DEFAULT_POOL=auto-pool
@@ -16,16 +16,11 @@ services:
         ports:
             - 8000:8000
 
-        volumes:
-            - ./:/app/
 
     pywb:
         image: webrecorder/pywb
 
-        command: wayback --live --proxy coll --proxy-record -a --auto-interval 10
-
-        environment:
-            - INIT_COLLECTION=coll
+        command: wayback --proxy coll
 
         volumes:
             - ./webarchive:/webarchive
@@ -34,14 +29,14 @@ services:
             - browsers
 
         ports:
-            - 8180:8080
+            - 8181:8080
 
     shepherd:
         image: oldwebtoday/shepherd:1.1.0-dev
 
         environment:
-            - BROWSER_NET=crawlmanager_browsers
-            - MAIN_NET=crawlmanager_default
+            - BROWSER_NET=tests_browsers
+            - MAIN_NET=tests_default
 
             - PROXY_HOST=pywb
             - PROXY_PORT=8080
@@ -51,10 +46,7 @@ services:
 
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            - ./flocks:/app/flocks
-
-        ports:
-            - 9020:9020
+            - ../flocks:/app/flocks
 
     redis:
         image: redis:3.2.4
