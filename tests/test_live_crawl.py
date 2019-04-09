@@ -56,7 +56,7 @@ class TestCrawls(object):
     def test_sleep_wait(self, crawl):
         start_time = time.time()
         sleep_time = 5
-        max_time = crawl.get('max_timeout', 600)
+        max_time = crawl.get('max_timeout', 600) + 30
         done = False
         while True:
             res = requests.get(self.api_host + f'/crawl/{self.crawl_id}/done')

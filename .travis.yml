@@ -38,6 +38,6 @@ jobs:
       script:
         - bash ./tests/bootstrap-compose.sh
         - pip install -U -r test-docker-requirements.txt
-        - py.test --headless --maxfail 1 ./tests/test_live_crawl.py
+        - py.test --headless ./tests/test_live_crawl.py
         - docker-compose logs
 
