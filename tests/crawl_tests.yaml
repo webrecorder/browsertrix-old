@@ -3,7 +3,7 @@
 crawls:
   - name: social-media-behaviors
     spec:
-      scope_type: single-page
+      crawl_type: single-page
       num_browsers: 1
       num_tabs: 2
 
@@ -17,7 +17,7 @@ crawls:
 
   - name: all-links-single-page
     spec:
-      scope_type: all-links
+      crawl_type: all-links
       num_browsers: 2
 
     urls:
@@ -30,7 +30,7 @@ crawls:
    
   - name: multi-browser-test
     spec:
-      scope_type: single-page
+      crawl_type: single-page
       num_browsers: 2
 
     urls:

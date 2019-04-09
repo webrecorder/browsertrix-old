@@ -21,6 +21,11 @@ def pytest_addoption(parser):
     default_file = os.path.join(os.path.dirname(__file__), "crawl_tests.yaml")
     parser.addoption("--crawl-file", action="store", default=default_file)
     parser.addoption("--run-only", action="store", default="")
+    parser.addoption("--headless", action="store_true", default=False)
+
+@pytest.fixture
+def headless(request):
+    return request.config.getoption("--headless")
 
 
 def pytest_generate_tests(metafunc):

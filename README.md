@@ -10,8 +10,7 @@ crawlmanager
 
 To use crawlmanager, run:
 ```bash
-poetry install
-# or "pip install -r reqs/requirements.txt -r reqs/dev-requirements.txt"
+python setup.py install
 ```
 
 

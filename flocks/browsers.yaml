@@ -1,0 +1,43 @@
+name: browsers
+auto_remove: false
+
+volumes:
+  tmpdir: '/tmp/.X11-unix'
+
+containers:
+  - name: xserver
+    image: oldwebtoday/vnc-webrtc-audio
+    ports:
+      vnc_port: 6080
+      cmd_port: 6082
+      ice_tcp_port: 10235
+      ice_udp_port: '10235/udp'
+
+    environment:
+      IDLE_TIMEOUT: '${IDLE_TIMEOUT}'
+
+  - name: browser
+    image: oldwebtoday/base-browser
+    set_user_params: true
+    external_network: '${BROWSER_NET}'
+
+    environment:
+      DISPLAY: ':99'
+      PULSE_SERVER: '/tmp/.X11-unix/pulse-socket'
+
+      PROXY_HOST: 'pywb'
+      PROXY_PORT: '8080'
+      PROXY_CA_URL: 'http://wsgiprox/download/pem'
+      PROXY_CA_FILE: '/tmp/proxy-ca.pem'
+
+  - name: autobrowser
+    image: webrecorder/autobrowser
+
+    external_network: '${MAIN_NET}'
+
+    environment:
+      BROWSER_HOST: 'browser'
+      REDIS_URL: 'redis://redis:6379/0'
+      TAB_TYPE: 'CrawlerTab'
+
+

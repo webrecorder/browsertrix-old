@@ -16,7 +16,7 @@ class TestCrawls(object):
         for crawl_id in cls.all_crawl_ids:
             res = requests.delete(cls.api_host + '/crawl/' + crawl_id)
             res = res.json()
-            assert res.get('success') or res.get('detail') == 'not_found'
+            assert res.get('success') or res.get('detail') == 'not found'
 
     def test_crawl_create(self, crawl):
         res = requests.post(self.api_host + '/crawls', json=crawl['spec'])
@@ -32,10 +32,11 @@ class TestCrawls(object):
         res = requests.put(self.api_host + f'/crawl/{self.crawl_id}/urls', json=urls)
         assert res.json()['success']
 
-    def test_start_crawl(self, crawl):
+    def test_start_crawl(self, crawl, headless):
         params = {
             'browser': crawl.get('browser', 'chrome:67'),
-            'behavior_timeout': crawl.get('behavior_timeout', 60)
+            'behavior_timeout': crawl.get('behavior_timeout', 60),
+            'headless': headless
         }
 
         res = requests.post(self.api_host + f'/crawl/{self.crawl_id}/start', json=params)
@@ -46,9 +47,10 @@ class TestCrawls(object):
 
         TestCrawls.browsers = res['browsers']
 
-    def test_load_browsers(self, crawl):
-        for reqid in self.browsers:
-            webbrowser.open(f'http://localhost:9020/attach/{reqid}')
+    def test_load_browsers(self, crawl, headless):
+        if not headless:
+            for reqid in self.browsers:
+                webbrowser.open(f'http://localhost:9020/attach/{reqid}')
 
     def test_sleep_wait(self, crawl):
         start_time = time.time()

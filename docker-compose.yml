@@ -22,13 +22,13 @@ services:
     pywb:
         image: webrecorder/pywb
 
-        command: wayback --live --proxy coll --proxy-record -a --auto-interval 10
+        command: ${PYWB_COMMAND_LINE}
 
         environment:
             - INIT_COLLECTION=coll
 
-        #volumes:
-        #    - ./webarchive:/webarchive
+        volumes:
+            - ./webarchive:/webarchive
 
         networks:
             - browsers
@@ -37,13 +37,10 @@ services:
             - 8180:8080
 
     shepherd:
-        image: oldwebtoday/browser-shepherd
+        image: oldwebtoday/shepherd:1.1.0-dev
 
         environment:
-            - REDIS_BROWSER_URL=redis://redis/0
-            - IDLE_TIMEOUT=60
             - BROWSER_NET=crawlmanager_browsers
-            - WEBRTC_HOST_IP=127.0.0.1
             - MAIN_NET=crawlmanager_default
 
             - PROXY_HOST=pywb
@@ -54,7 +51,7 @@ services:
 
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
-            #- ./flocks:/app/flocks
+            - ./flocks:/app/flocks
 
         ports:
             - 9020:9020

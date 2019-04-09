@@ -1,0 +1,34 @@
+language: python
+
+python:
+  - "3.7"
+
+os:
+  - linux
+
+sudo: required
+
+services:
+  - docker
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.23.2
+
+before_install:
+  - docker pull oldwebtoday/chrome:67
+  - docker pull webrecorder/autobrowser
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
+install:
+  - python setup.py install
+  - pip install -r test-requirements.txt
+
+script:
+  - pip install pytest mock
+  - py.test -vv ./tests/test_api.py
+  - bash ./tests/bootstrap-compose.sh
+  - py.test --headless -vv ./tests/test_live_crawl.py
+

@@ -193,7 +193,7 @@ class CrawlManager:
         :return: The response from shepherd
         """
         response = await self.do_request(
-            f'/request_flock/{self.flock}?pool={self.pool}', opts
+            f'/flock/request/{self.flock}?pool={self.pool}', opts
         )
         return response
 
@@ -205,7 +205,7 @@ class CrawlManager:
         :return: The response from shepherd
         """
         response = await self.do_request(
-            f'/start_flock/{reqid}', {'environ': {'REQ_ID': reqid}}
+            f'/flock/start/{reqid}', {'environ': {'REQ_ID': reqid}}
         )
         return response
 
@@ -216,7 +216,7 @@ class CrawlManager:
         :param reqid: The request id of the flock to be stopped
         :return: The response from shepherd
         """
-        response = await self.do_request(f'/stop_flock/{reqid}')
+        response = await self.do_request(f'/flock/stop/{reqid}')
         return response
 
 
@@ -430,7 +430,7 @@ class Crawl:
             environ['SCREENSHOT_TARGET_URI'] = start_request.screenshot_target_uri
             environ['SCREENSHOT_FORMAT'] = 'png'
 
-        deferred = {'autodriver': False}
+        deferred = {'autobrowser': False}
         if start_request.headless:
             deferred['xserver'] = True
 
