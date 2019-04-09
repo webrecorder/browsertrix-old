@@ -179,7 +179,7 @@ class CrawlManager:
         """
         all_infos = []
 
-        sync for key in self.redis.iscan(match=self.scan_key):
+        async for key in self.redis.iscan(match=self.scan_key):
             _, crawl_id, _2 = key.split(':', 2)
 
             try:
