@@ -26,7 +26,7 @@ before_install:
 
 install:
   - python setup.py install
-  - pip install -r test-local-requirements.txt
+  - pip install -U -r test-local-requirements.txt
   - bash ./tests/bootstrap-compose.sh
 
 script:

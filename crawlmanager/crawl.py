@@ -11,6 +11,9 @@ from aioredis import Redis
 from starlette.exceptions import HTTPException
 from ujson import dumps as ujson_dumps
 
+import logging
+logger = logging.getLogger('uvicorn')
+
 from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest
 from .utils import env, init_redis
 
@@ -162,11 +165,11 @@ class CrawlManager:
             url = self.browser_api_url + url_path
             async with self.session.post(url, json=post_data) as res:
                 res = await res.json()
-                print(res)
+                logger.debug(str(res))
                 return res
         except Exception as e:
-            print(e)
             text = str(e)
+            logger.debug(text)
             raise HTTPException(400, text)
 
     async def get_all_crawls(self) -> Dict[str, List[Dict]]:
@@ -176,7 +179,7 @@ class CrawlManager:
         """
         all_infos = []
 
-        async for key in self.redis.iscan(match=self.scan_key):
+        sync for key in self.redis.iscan(match=self.scan_key):
             _, crawl_id, _2 = key.split(':', 2)
 
             try:
