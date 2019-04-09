@@ -22,7 +22,7 @@ class TestCrawls(object):
         res = requests.post(self.api_host + '/crawls', json=crawl['spec'])
 
         res = res.json()
-        assert res['success'], res
+        assert res.get('success'), res
         TestCrawls.crawl_id = res['id']
         TestCrawls.all_crawl_ids.append(res['id'])
 
@@ -31,7 +31,7 @@ class TestCrawls(object):
 
         res = requests.put(self.api_host + f'/crawl/{self.crawl_id}/urls', json=urls)
         res = res.json()
-        assert res['success'], res
+        assert res.get('success'), res
 
     def test_start_crawl(self, crawl, headless):
         params = {
@@ -43,7 +43,7 @@ class TestCrawls(object):
         res = requests.post(self.api_host + f'/crawl/{self.crawl_id}/start', json=params)
         res = res.json()
 
-        assert res['success'], res
+        assert res.get('success'), res
         assert len(res['browsers']) == crawl['spec'].get('num_browsers', 1)
 
         TestCrawls.browsers = res['browsers']
@@ -87,7 +87,7 @@ class TestCrawls(object):
     def test_delete(self, crawl):
         res = requests.delete(self.api_host + '/crawl/' + self.crawl_id)
         res = res.json()
-        assert res['success'], res
+        assert res.get('success'), res
         TestCrawls.crawl_id = None
 
     def test_replay(self, crawl):
