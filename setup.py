@@ -7,6 +7,11 @@ import glob
 
 __version__ = '0.1.0-dev0'
 
+def load_requirements(filename):
+    with open(filename, 'rt') as fh:
+        requirements = fh.read().rstrip().split('\n')
+    return requirements
+
 
 setup(
     name='crawlmanager',
@@ -21,27 +26,12 @@ setup(
     provides=[
         'crawlmanager',
         ],
-    install_requires=[
-        'aiodns',
-        'aiofiles',
-        'aiohttp',
-        'better_exceptions',
-        'fastapi',
-        'aioredis',
-        'pyyaml',
-        'uvloop',
-        'ujson',
-        ],
+    install_requires=load_requirements('requirements.txt'),
     zip_safe=True,
     entry_points="""
     """,
     test_suite='',
-    tests_require=[
-        'pytest',
-        'mock',
-        'requests',
-        'fakeredis',
-    ],
+    tests_require=load_requirements('test-local-requirements.txt'),
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Web Environment',

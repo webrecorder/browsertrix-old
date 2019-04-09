@@ -26,11 +26,11 @@ before_install:
 
 install:
   - python setup.py install
-  - pip install -r test-requirements.txt
+  - pip install -r test-local-requirements.txt
+  - bash ./tests/bootstrap-compose.sh
 
 script:
-  - py.test -vv ./tests/test_api.py
-  - bash ./tests/bootstrap-compose.sh
-  - py.test --headless --maxfail 1 -vv ./tests/test_live_crawl.py
+  - py.test ./tests/test_api.py
+  - py.test --headless --maxfail 1 ./tests/test_live_crawl.py
   - docker-compose logs
 

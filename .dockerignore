@@ -229,7 +229,7 @@ venv.bak/
 localCompose
 pip-wheel-metadata
 scripts
-tests
+#tests
 poetry.lock
 pyproject.toml
 pytest.ini
