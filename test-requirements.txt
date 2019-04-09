@@ -2,4 +2,6 @@ pytest
 mock
 requests
 fakeredis
-better_exceptions
+pyyaml
+starlette
+ujson

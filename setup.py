@@ -23,9 +23,11 @@ setup(
         ],
     install_requires=[
         'aiodns',
+        'aiofiles',
+        'aiohttp',
+        'better_exceptions',
         'fastapi',
         'aioredis',
-        'aiohttp',
         'pyyaml',
         'uvloop',
         'ujson',
@@ -39,7 +41,6 @@ setup(
         'mock',
         'requests',
         'fakeredis',
-        'better_exceptions',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',

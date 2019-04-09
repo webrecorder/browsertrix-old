@@ -2,14 +2,11 @@ import os
 from os import environ
 
 import pytest
-import uvloop
 import yaml
 from mock import patch as mock_patch
 from starlette.testclient import TestClient
 
 from .utils import init_fake_redis
-
-uvloop.install()
 
 environ.update({"TESTING": "true"})
 
