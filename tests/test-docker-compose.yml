@@ -5,6 +5,10 @@ services:
         image: webrecorder/crawlman
         build:
             context: ../
+
+        # add debug logging
+        command: uvicorn --reload --host 0.0.0.0 --port 8000 crawlmanager.api:app --log-level debug
+
         environment:
             - REDIS_URL=redis://redis/0
             - DEFAULT_POOL=auto-pool
@@ -20,14 +24,17 @@ services:
     pywb:
         image: webrecorder/pywb
 
+        # replay proxy mode!
         command: wayback --proxy coll
 
+        # local test dir
         volumes:
-            - ./webarchive:/webarchive
+            - ./test-webarchive:/webarchive
 
         networks:
             - browsers
 
+        # use 8181 port for test only
         ports:
             - 8181:8080
 
@@ -47,6 +54,8 @@ services:
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
             - ../flocks:/app/flocks
+
+        # no public ports for shepherd needed
 
     redis:
         image: redis:3.2.4

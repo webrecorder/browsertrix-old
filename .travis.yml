@@ -28,7 +28,7 @@ jobs:
 
       before_install:
         - docker pull oldwebtoday/base-browser
-        - docker pull oldwebtoday/chrome:67
+        - docker pull oldwebtoday/chrome:73
         - docker pull webrecorder/autobrowser
         - sudo rm /usr/local/bin/docker-compose
         - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
@@ -36,8 +36,9 @@ jobs:
         - sudo mv docker-compose /usr/local/bin
 
       script:
-        - bash ./tests/bootstrap-compose.sh
+        - bash ./tests/start-test-compose.sh
         - pip install -U -r test-docker-requirements.txt
         - py.test --headless ./tests/test_live_crawl.py
         - docker-compose logs
+        - bash ./tests/stop-test-compose.sh
 

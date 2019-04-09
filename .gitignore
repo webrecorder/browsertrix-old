@@ -223,4 +223,6 @@ typings/
 .yarn-integrity
 
 *.tar.gz
+**/test-webarchive/
 **/webarchive/
+

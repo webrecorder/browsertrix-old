@@ -6,6 +6,7 @@ import time
 class TestCrawls(object):
     crawl_id = None
     api_host = 'http://localhost:8000'
+    default_browser = 'chrome:73'
     seen = []
     browsers = []
 
@@ -35,7 +36,7 @@ class TestCrawls(object):
 
     def test_start_crawl(self, crawl, headless):
         params = {
-            'browser': crawl.get('browser', 'chrome:67'),
+            'browser': crawl.get('browser', self.default_browser),
             'behavior_timeout': crawl.get('behavior_timeout', 60),
             'headless': headless
         }
@@ -65,6 +66,7 @@ class TestCrawls(object):
                 break
 
             if time.time() - start_time > max_time:
+                print('Waiting for crawl done')
                 break
 
             time.sleep(sleep_time)
