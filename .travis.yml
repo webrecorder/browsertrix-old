@@ -24,13 +24,18 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
 
-install:
-  - python setup.py install
-  - pip install -U -r test-local-requirements.txt
-  - bash ./tests/bootstrap-compose.sh
+jobs:
+  include:
+    - stage: local tests
+      script:
+        - python setup.py install
+        - pip install -U -r test-local-requirements.txt
+        - py.test ./tests/test_api.py
 
-script:
-  - py.test ./tests/test_api.py
-  - py.test --headless --maxfail 1 ./tests/test_live_crawl.py
-  - docker-compose logs
+    - stage: docker integration tests
+      script:
+        - bash ./tests/bootstrap-compose.sh
+        - pip install -U -r test-docker-requirements.txt
+        - py.test --headless --maxfail 1 ./tests/test_live_crawl.py
+        - docker-compose logs
 
