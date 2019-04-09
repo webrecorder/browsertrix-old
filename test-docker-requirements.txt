@@ -3,5 +3,6 @@ mock
 requests
 fakeredis
 pyyaml
+six
 starlette
 ujson

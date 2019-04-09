@@ -161,7 +161,9 @@ class CrawlManager:
         try:
             url = self.browser_api_url + url_path
             async with self.session.post(url, json=post_data) as res:
-                return await res.json()
+                res = await res.json()
+                print(res)
+                return res
         except Exception as e:
             print(e)
             text = str(e)

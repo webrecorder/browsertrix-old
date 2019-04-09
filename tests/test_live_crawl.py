@@ -22,7 +22,7 @@ class TestCrawls(object):
         res = requests.post(self.api_host + '/crawls', json=crawl['spec'])
 
         res = res.json()
-        assert res['success']
+        assert res['success'], res
         TestCrawls.crawl_id = res['id']
         TestCrawls.all_crawl_ids.append(res['id'])
 
