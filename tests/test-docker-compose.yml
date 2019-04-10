@@ -55,7 +55,8 @@ services:
             - /var/run/docker.sock:/var/run/docker.sock
             - ../flocks:/app/flocks
 
-        # no public ports for shepherd needed
+        ports:
+            - 9323:9020
 
     redis:
         image: redis:3.2.4

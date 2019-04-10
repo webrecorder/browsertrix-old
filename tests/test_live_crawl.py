@@ -52,7 +52,7 @@ class TestCrawls(object):
     def test_load_browsers(self, crawl, headless):
         if not headless:
             for reqid in self.browsers:
-                webbrowser.open(f'http://localhost:9020/attach/{reqid}')
+                webbrowser.open(f'http://localhost:9323/attach/{reqid}')
 
     def test_sleep_wait(self, crawl):
         start_time = time.time()
