@@ -437,6 +437,7 @@ class Crawl:
 
         deferred = {'autobrowser': False}
         if start_request.headless:
+            environ['DISPLAY'] = ''
             deferred['xserver'] = True
 
         opts = dict(
