@@ -1,10 +1,13 @@
 aiodns
 aiofiles
 aiohttp
-better_exceptions
-fastapi
 aioredis
+better_exceptions
+cchardet
+fastapi
+pydantic
 pyyaml
+starlette
 ujson
 uvloop
 uvicorn
