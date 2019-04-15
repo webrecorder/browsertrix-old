@@ -109,20 +109,19 @@ class CrawlManager:
         """
         crawl_id = self.new_crawl_id()
 
-        crawl_depth = create_request.crawl_depth
-        if crawl_depth is None:
-            if create_request.crawl_type == 'all-links':
-                crawl_depth = 1
-            elif create_request.crawl_type == 'same-domain':
-                crawl_depth = self.same_domain_depth
-            else:
-                crawl_depth = 0
+        if create_request.crawl_type == 'all-links':
+            crawl_depth = 1
+        elif create_request.crawl_type == 'same-domain':
+            crawl_depth = self.same_domain_depth
+        elif create_request.crawl_type == 'custom':
+            crawl_depth = create_request.crawl_depth
+        else:
+            crawl_depth = 0
 
         data = {
             'id': crawl_id,
             'num_browsers': create_request.num_browsers,
             'num_tabs': create_request.num_tabs,
-            # 'owner': collection.my_id,
             'crawl_type': create_request.crawl_type,
             'status': 'new',
             'crawl_depth': crawl_depth,
@@ -183,7 +182,8 @@ class CrawlManager:
             _, crawl_id, _2 = key.split(':', 2)
 
             try:
-                crawl = Crawl(crawl_id, self)
+                #crawl = Crawl(crawl_id, self)
+                crawl = await self.load_crawl(crawl_id)
                 info = await crawl.get_info()
                 all_infos.append(info)
             except HTTPException:
@@ -377,6 +377,8 @@ class Crawl:
 
         :return: The crawl information
         """
+        await self.is_done()
+
         data, browsers, browsers_done = await aio_gather(
             self.redis.hgetall(self.info_key),
             self.redis.smembers(self.browser_key),
@@ -385,7 +387,7 @@ class Crawl:
         )
 
         data['browsers'] = list(browsers)
-        data['browsersDone'] = list(browsers_done)
+        data['browsers_done'] = list(browsers_done)
 
         return data
 

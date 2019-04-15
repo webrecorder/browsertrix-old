@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import * as PropTypes from 'prop-types';
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 import { getAllCrawls, removeCrawl } from '../../actions/crawls';
 import LoadingCrawls from './LoadingCrawls';
 import SelectCrawl from './SelectCrawl';
@@ -9,7 +9,7 @@ import CrawlCreator from '../CrawlCreator';
 
 class Crawls extends Component {
   static propTypes = {
-    crawlIds: PropTypes.instanceOf(List).isRequired,
+    crawls: PropTypes.instanceOf(Map).isRequired,
     crawlsFetched: PropTypes.bool.isRequired,
     init: PropTypes.func.isRequired,
     removeCrawl: PropTypes.func.isRequired
@@ -25,13 +25,13 @@ class Crawls extends Component {
     let component;
     if (!this.props.crawlsFetched) {
       component = <LoadingCrawls />;
-    } else if (this.props.crawlIds.size === 0) {
+    } else if (this.props.crawls.size === 0) {
       component = <CrawlCreator message={'There are no pre-existing crawls'} />;
     } else {
       component = (
         <SelectCrawl
           removeCrawl={this.props.removeCrawl}
-          crawlIds={this.props.crawlIds}
+          crawls={this.props.crawls}
         />
       );
     }
@@ -49,7 +49,7 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 });
 
 const mapStateToProps = (state, ownProps) => ({
-  crawlIds: state.get('crawlIds'),
+  crawls: state.get('crawls'),
   crawlsFetched: state.get('crawlsFetched')
 });
 

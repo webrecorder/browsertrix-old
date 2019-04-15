@@ -73,8 +73,9 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
             component={CrawlConfigSelectField}
           >
             <option value='single-page'>Single Page</option>
-            <option value='same-domain'>Same Domain</option>
-            <option value='all-links'>All Pages</option>
+            <option value='same-domain'>Same Domain Links</option>
+            <option value='all-links'>All Links on Page</option>
+            <option value='custom'>Custom Depth</option>
           </Field>
           <Field
             name='crawl_depth'
