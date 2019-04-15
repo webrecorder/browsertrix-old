@@ -1,0 +1,7 @@
+pytest
+mock
+requests
+fakeredis
+pyyaml
+six
+starlette

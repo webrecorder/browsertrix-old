@@ -11,6 +11,9 @@ from aioredis import Redis
 from starlette.exceptions import HTTPException
 from ujson import dumps as ujson_dumps
 
+import logging
+logger = logging.getLogger('uvicorn')
+
 from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest
 from .utils import env, init_redis
 
@@ -161,10 +164,12 @@ class CrawlManager:
         try:
             url = self.browser_api_url + url_path
             async with self.session.post(url, json=post_data) as res:
-                return await res.json()
+                res = await res.json()
+                logger.debug(str(res))
+                return res
         except Exception as e:
-            print(e)
             text = str(e)
+            logger.debug(text)
             raise HTTPException(400, text)
 
     async def get_all_crawls(self) -> Dict[str, List[Dict]]:
@@ -193,7 +198,7 @@ class CrawlManager:
         :return: The response from shepherd
         """
         response = await self.do_request(
-            f'/request_flock/{self.flock}?pool={self.pool}', opts
+            f'/flock/request/{self.flock}?pool={self.pool}', opts
         )
         return response
 
@@ -205,7 +210,7 @@ class CrawlManager:
         :return: The response from shepherd
         """
         response = await self.do_request(
-            f'/start_flock/{reqid}', {'environ': {'REQ_ID': reqid}}
+            f'/flock/start/{reqid}', {'environ': {'REQ_ID': reqid}}
         )
         return response
 
@@ -216,7 +221,7 @@ class CrawlManager:
         :param reqid: The request id of the flock to be stopped
         :return: The response from shepherd
         """
-        response = await self.do_request(f'/stop_flock/{reqid}')
+        response = await self.do_request(f'/flock/stop/{reqid}')
         return response
 
 
@@ -430,8 +435,9 @@ class Crawl:
             environ['SCREENSHOT_TARGET_URI'] = start_request.screenshot_target_uri
             environ['SCREENSHOT_FORMAT'] = 'png'
 
-        deferred = {'autodriver': False}
+        deferred = {'autobrowser': False}
         if start_request.headless:
+            environ['DISPLAY'] = ''
             deferred['xserver'] = True
 
         opts = dict(

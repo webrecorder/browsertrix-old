@@ -19,18 +19,21 @@ async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
 
     type_ = None
     resp = None
-    if 'request_flock' in url_path:
+    if 'flock/request' in url_path:
         type_ = 'request'
         reqid_counter += 1
         resp = {'reqid': 'ID_' + str(reqid_counter)}
 
-    elif 'start_flock' in url_path:
+    elif 'flock/start' in url_path:
         type_ = 'start'
         resp = {'success': True}
 
-    elif 'stop_flock' in url_path:
+    elif 'flock/stop' in url_path:
         type_ = 'stop'
         resp = {'success': True}
+
+    else:
+        assert False, 'Unknown API call'
 
     shepherd_api_urls[type_].append(url_path)
     shepherd_api_post_datas[type_].append(post_data)
@@ -171,11 +174,11 @@ class TestCrawlAPI:
 
         # shepherd api urls
         assert shepherd_api_urls['request'] == [
-            '/request_flock/browsers?pool=',
-            '/request_flock/browsers?pool=',
+            '/flock/request/browsers?pool=',
+            '/flock/request/browsers?pool=',
         ]
 
-        assert set(shepherd_api_urls['start']) == {'/start_flock/ID_1', '/start_flock/ID_2'}
+        assert set(shepherd_api_urls['start']) == {'/flock/start/ID_1', '/flock/start/ID_2'}
 
         # shepherd api post data
         for data in shepherd_api_post_datas['request']:
@@ -184,7 +187,7 @@ class TestCrawlAPI:
                 'xserver': 'oldwebtoday/vnc-webrtc-audio',
             }
 
-            assert data['deferred'] == {'autodriver': False}
+            assert data['deferred'] == {'autobrowser': False}
 
             assert data['environ']['SCREENSHOT_TARGET_URI'] == 'file://test'
 
@@ -211,8 +214,8 @@ class TestCrawlAPI:
 
         # stop calls
         assert set(shepherd_api_urls['stop']) == {
-            '/stop_flock/ID_1',
-            '/stop_flock/ID_2',
+            '/flock/stop/ID_1',
+            '/flock/stop/ID_2',
         }
 
         # no post data for stop

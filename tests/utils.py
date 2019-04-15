@@ -1,5 +1,5 @@
 from typing import Any, Callable, Dict, List, Optional, Set
-from ujson import loads as ujson_loads
+import json
 
 import fakeredis
 
@@ -14,19 +14,15 @@ PropSelector = Callable[[Dict], Any]
 
 
 def convert_list_str_to_list(
-    list_str: List[str], prop_selector: Optional[PropSelector] = None
+    list_str: List[str], prop_selector: Optional[PropSelector] = lambda x: x
 ) -> List[Any]:
-    if prop_selector is None:
-        return list(map(ujson_loads, list_str))
-    return list(map(lambda x: prop_selector(ujson_loads(x)), list_str))
+    return [prop_selector(json.loads(x)) for x in list_str]
 
 
 def convert_list_str_to_set(
-    list_str: List[str], prop_selector: Optional[PropSelector] = None
+    list_str: List[str], prop_selector: Optional[PropSelector] = lambda x: x
 ) -> Set[Any]:
-    if prop_selector is None:
-        return set(map(ujson_loads, list_str))
-    return set(map(lambda x: prop_selector(ujson_loads(x)), list_str))
+    return set(prop_selector(json.loads(x)) for x in list_str)
 
 
 class AwaitFakeRedis:

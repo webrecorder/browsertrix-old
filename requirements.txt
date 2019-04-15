@@ -2,15 +2,10 @@ aiodns
 aiofiles
 aiohttp
 aioredis
-async-timeout
 better_exceptions
 cchardet
 fastapi
-jinja2
-pydantic
-python-multipart
 pyyaml
-starlette
 ujson
-uvicorn
 uvloop
+uvicorn
