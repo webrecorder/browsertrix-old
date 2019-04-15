@@ -1,0 +1,12 @@
+default_pool: auto-pool
+
+pools:
+  - name: auto-pool
+    type: persist
+    duration: 300
+    max_size: 2
+    expire_check: 10
+    grace_time: 10
+    stop_on_pause: false
+
+

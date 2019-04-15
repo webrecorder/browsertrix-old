@@ -54,6 +54,7 @@ services:
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
             - ../flocks:/app/flocks
+            - ./test_pool_config.yaml:/app/pool_config.yaml
 
         ports:
             - 9323:9020
