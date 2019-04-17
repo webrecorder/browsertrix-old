@@ -76,8 +76,10 @@ class TestCrawlAPI:
         assert json['status'] == 'new'
         assert json['crawl_depth'] == 1
         assert json['start_time'] == 0
+        assert json['coll'] == 'live'
+        assert json['mode'] == 'record'
 
-        assert len(json) == 10
+        assert len(json) == 12
 
     def test_get_crawl_details(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
@@ -219,7 +221,7 @@ class TestCrawlAPI:
         assert json['status'] == 'running'
         assert json['start_time'] > 0
 
-        assert len(json) == 10
+        assert len(json) == 12
 
     @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):

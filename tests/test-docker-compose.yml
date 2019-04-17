@@ -22,21 +22,25 @@ services:
 
 
     pywb:
-        image: webrecorder/pywb
+        build: ../pywb
 
-        # replay proxy mode!
-        command: wayback --proxy coll
-
+        environment:
+            - REDIS_URL=redis://redis/0
         # local test dir
         volumes:
             - ./test-webarchive:/webarchive
 
         networks:
+            - default
             - browsers
 
         # use 8181 port for test only
         ports:
             - 8181:8080
+
+        depends_on:
+            - redis
+
 
     shepherd:
         image: oldwebtoday/shepherd:1.1.0-dev

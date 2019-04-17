@@ -122,6 +122,8 @@ class CrawlManager:
 
         data = {
             'id': crawl_id,
+            'coll': create_request.coll,
+            'mode': create_request.mode,
             'name': create_request.name,
             'num_browsers': create_request.num_browsers,
             'num_tabs': create_request.num_tabs,
@@ -440,6 +442,8 @@ class Crawl:
         browser = start_request.browser or self.manager.default_browser
 
         start_request.user_params['auto_id'] = self.crawl_id
+        start_request.user_params['mode'] = self.model.mode
+        start_request.user_params['coll'] = self.model.coll
 
         environ = self.manager.container_environ.copy()
         environ['AUTO_ID'] = self.crawl_id

@@ -1,0 +1,12 @@
+
+proxy:
+  coll: coll
+  recording: true
+
+recorder: live
+
+autoindex: 30
+
+collections:
+  live: $live
+  

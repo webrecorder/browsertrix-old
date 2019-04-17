@@ -6,6 +6,9 @@ crawls:
     num_browsers: 1
     num_tabs: 2
 
+    coll: coll
+    mode: replay
+
     seed_urls:
       - https://twitter.com/webrecorder_io
       - https://instagram.com/rhizomedotorg
@@ -21,6 +24,9 @@ crawls:
   - name: all-links-single-page
     crawl_type: all-links
     num_browsers: 2
+
+    coll: coll
+    mode: replay
 
     seed_urls:
       - https://www.iana.org/domains/reserved
@@ -39,6 +45,9 @@ crawls:
   - name: multi-browser-test
     crawl_type: single-page
     num_browsers: 2
+
+    coll: coll
+    mode: replay
 
     seed_urls:
       - https://rhizome.org/

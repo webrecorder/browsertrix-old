@@ -20,21 +20,24 @@ services:
             - ./:/app/
 
     pywb:
-        image: webrecorder/pywb
-
-        command: wayback --live --proxy coll --proxy-record -a --auto-interval 10
+        build: ./pywb/
 
         environment:
             - INIT_COLLECTION=coll
+            - REDIS_URL=redis://redis/0
 
         volumes:
             - ./webarchive:/webarchive
 
         networks:
+            - default
             - browsers
 
         ports:
             - 8180:8080
+
+        depends_on:
+            - redis
 
     shepherd:
         image: oldwebtoday/shepherd:1.1.0-dev
