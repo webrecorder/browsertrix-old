@@ -48,7 +48,9 @@ class TestCrawlAPI:
 
     def test_crawl_create(self):
         res = self.client.post(
-            '/crawls', json={'num_tabs': 2, 'crawl_type': 'all-links'}
+            '/crawls', json={'num_tabs': 2,
+                             'crawl_type': 'all-links',
+                             'name': 'First Crawl!'}
         )
 
         res = res.json()
@@ -67,13 +69,15 @@ class TestCrawlAPI:
         json = res.json()
 
         assert json['id'] == self.crawl_id
+        assert json['name'] == 'First Crawl!'
         assert json['num_browsers'] == 2
         assert json['num_tabs'] == 2
         assert json['crawl_type'] == 'all-links'
         assert json['status'] == 'new'
         assert json['crawl_depth'] == 1
+        assert json['start_time'] == 0
 
-        assert len(json) == 8
+        assert len(json) == 10
 
     def test_get_crawl_details(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
@@ -205,6 +209,18 @@ class TestCrawlAPI:
 
         assert res['done'] == False
 
+    def test_get_crawl_running(self):
+        res = self.client.get(f'/crawl/{self.crawl_id}')
+
+        json = res.json()
+
+        assert json['id'] == self.crawl_id
+        assert json['name'] == 'First Crawl!'
+        assert json['status'] == 'running'
+        assert json['start_time'] > 0
+
+        assert len(json) == 10
+
     @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):
         res = self.client.post(f'/crawl/{self.crawl_id}/stop')
@@ -227,6 +243,7 @@ class TestCrawlAPI:
 
         assert json['status'] == 'stopped'
 
+    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_delete_crawl(self):
         res = self.client.delete(f'/crawl/{self.crawl_id}')
 
@@ -241,3 +258,67 @@ class TestCrawlAPI:
         res = self.client.delete(f'/crawl/{self.crawl_id_2}')
 
         assert res.json()['detail'] == 'not found'
+
+    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    def test_create_and_start(self):
+        res = self.client.post(
+            '/crawls', json={'num_tabs': 2,
+                             'crawl_type': 'all-links',
+                             'name': 'Second Crawl Auto Start!',
+                             'num_browsers': 3,
+                             'seed_urls':
+                                [
+                                  'https://example.com/',
+                                  'https://iana.org/'
+                                ],
+                             'start':
+                                {
+                                  'browser': 'chrome:67',
+                                  'screenshot_target_uri': 'file://test',
+                                  'user_params': {'some': 'value', 'some_int': 7},
+                                  'behavior_run_time': 30,
+                                }
+                             }
+
+        )
+
+        json = res.json()
+        assert 'success' in json
+        assert len(json['browsers']) == 3
+        assert json['status'] == 'running'
+
+        TestCrawlAPI.crawl_id = json['id']
+
+    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    def test_stop_and_delete_second_crawl(self):
+        res = self.client.post(f'/crawl/{self.crawl_id}/stop')
+        json = res.json()
+
+        assert json['success']
+
+        # stop calls
+        assert set(shepherd_api_urls['stop']) == {
+            '/flock/stop/ID_1',
+            '/flock/stop/ID_2',
+            '/flock/stop/ID_3',
+            '/flock/stop/ID_4',
+            '/flock/stop/ID_5',
+        }
+
+        # no post data for stop
+        assert shepherd_api_post_datas['stop'] == [None, None, None, None, None]
+
+        res = self.client.get(f'/crawl/{self.crawl_id}')
+
+        json = res.json()
+
+        assert json['status'] == 'stopped'
+
+        res = self.client.delete(f'/crawl/{self.crawl_id}')
+
+        assert res.json()['success'] == True
+
+        assert fakeredis.FakeStrictRedis().keys('a:*') == []
+
+
+

@@ -35,15 +35,35 @@ class BaseCreateCrawl(BaseModel):
         2, description='How many browsers should be used for the crawl'
     )
     num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
+    name: Optional[str] = Schema('', description='User friendly name for the crawl')
+
+
+class StartCrawlRequest(BaseModel):
+    browser: Optional[str] = 'chrome:67'
+    user_params: Dict[Any, Any] = dict()
+
+    behavior_run_time: int = 0
+    headless: bool = False
+    screenshot_target_uri: Optional[str] = None
+
+
+class OperationSuccessResponse(BaseModel):
+    success: bool
+
+
+class StartCrawlResponse(OperationSuccessResponse):
+    browsers: List[str]
 
 
 class CreateCrawlRequest(BaseCreateCrawl):
+    start: Optional[StartCrawlRequest]
     seed_urls: List[UrlStr] = []
 
 
 class CrawlInfoResponse(BaseCreateCrawl):
     id: str
     status: str = 'new'
+    start_time: int = 0
     browsers: OptionalList
     browsers_done: OptionalList
 
@@ -58,11 +78,13 @@ class CrawlInfo(BaseModel):
     """
 
     id: str
+    name: str
     status: str
     crawl_type: str
     crawl_depth: int
     num_browsers: int
     num_tabs: int
+    start_time: int = 0
 
 
 class CrawlInfoUrlsResponse(BaseModel):
@@ -70,10 +92,6 @@ class CrawlInfoUrlsResponse(BaseModel):
     queue: OptionalList
     pending: OptionalList
     seen: OptionalSet
-
-
-class OperationSuccessResponse(BaseModel):
-    success: bool
 
 
 class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):
@@ -87,23 +105,11 @@ class CrawlFullInfosResponse(OperationSuccessResponse):
 class CreateNewCrawlResponse(OperationSuccessResponse):
     id: str
     status: str = 'new'
+    browsers: Optional[List[str]]
 
 
 class QueueUrlsRequest(BaseModel):
     urls: List[str]
-
-
-class StartCrawlRequest(BaseModel):
-    browser: Optional[str] = 'chrome:67'
-    user_params: Dict[Any, Any] = dict()
-
-    behavior_run_time: int = 0
-    headless: bool = False
-    screenshot_target_uri: Optional[str] = None
-
-
-class StartCrawlResponse(OperationSuccessResponse):
-    browsers: List[str]
 
 
 class CrawlDoneResponse(BaseModel):

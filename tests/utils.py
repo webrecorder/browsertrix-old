@@ -32,6 +32,9 @@ class AwaitFakeRedis:
     def __init__(self):
         self.redis = fakeredis.FakeStrictRedis(decode_responses=True)
 
+    def close(self):
+        self.redis.close()
+
     def __getattr__(self, name):
         async def func(*args, **kwargs):
             return getattr(self.redis, name)(*args, **kwargs)

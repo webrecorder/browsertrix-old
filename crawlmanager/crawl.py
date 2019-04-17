@@ -14,6 +14,8 @@ from ujson import dumps as ujson_dumps
 import logging
 logger = logging.getLogger('uvicorn')
 
+import time
+
 from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest
 from .utils import env, init_redis
 
@@ -120,16 +122,28 @@ class CrawlManager:
 
         data = {
             'id': crawl_id,
+            'name': create_request.name,
             'num_browsers': create_request.num_browsers,
             'num_tabs': create_request.num_tabs,
             'crawl_type': create_request.crawl_type,
             'status': 'new',
             'crawl_depth': crawl_depth,
+            'start_time': 0
         }
 
-        await Crawl.create(self, crawl_id, data, create_request.seed_urls)
+        crawl = await Crawl.create(self, crawl_id, data, create_request.seed_urls)
 
-        return {'success': True, 'id': crawl_id}
+        # optionally start crawl right away!
+        if not create_request.start:
+            return {'success': True,
+                    'id': crawl_id,
+                    'status': 'new'}
+
+        res = await crawl.start(create_request.start)
+        res['id'] = crawl_id
+        if res.get('success'):
+            res['status'] = 'running'
+        return res
 
     async def load_crawl(self, crawl_id: str) -> Crawl:
         """Returns the crawl information for the supplied crawl id
@@ -453,6 +467,8 @@ class Crawl:
         )
 
         errors = []
+
+        await self.redis.hset(self.info_key, 'start_time', int(time.time()))
 
         for _ in range(self.model.num_browsers):
             res = await self.manager.request_flock(opts)

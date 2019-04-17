@@ -2,40 +2,53 @@
 
 crawls:
   - name: social-media-behaviors
-    spec:
-      crawl_type: single-page
-      num_browsers: 1
-      num_tabs: 2
+    crawl_type: single-page
+    num_browsers: 1
+    num_tabs: 2
 
-    urls:
+    seed_urls:
       - https://twitter.com/webrecorder_io
       - https://instagram.com/rhizomedotorg
 
-    max_timeout: 120
+    start:
+      behavior_timeout: 20
+      browser: chrome:73
 
-    behavior_timeout: 20
+    # params for test only
+    test_params:
+      max_timeout: 120
 
   - name: all-links-single-page
-    spec:
-      crawl_type: all-links
-      num_browsers: 2
+    crawl_type: all-links
+    num_browsers: 2
 
-    urls:
+    seed_urls:
       - https://www.iana.org/domains/reserved
 
-    max_timeout: 600
+    start:
+      behavior_timeout: 60
+      browser: chrome:73
 
-    # expected size of seen list
-    expected_seen: 51
+    # params for test only
+    test_params:
+      max_timeout: 600
+
+      # expected size of seen list
+      expected_seen: 51
    
   - name: multi-browser-test
-    spec:
-      crawl_type: single-page
-      num_browsers: 2
+    crawl_type: single-page
+    num_browsers: 2
 
-    urls:
+    seed_urls:
       - https://rhizome.org/
       - https://youtube.com/watch?v=aT-Up5Y4uRI
 
-    max_timeout: 300
+    start:
+      behavior_timeout: 60
+      browser: chrome:73
+
+    # params for test only
+    test_params:
+      max_timeout: 300
 

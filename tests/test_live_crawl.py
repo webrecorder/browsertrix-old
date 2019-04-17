@@ -19,34 +19,21 @@ class TestCrawls(object):
             res = res.json()
             assert res.get('success') or res.get('detail') == 'not found'
 
-    def test_crawl_create(self, crawl):
-        res = requests.post(self.api_host + '/crawls', json=crawl['spec'])
+    def test_crawl_create_and_start(self, crawl, headless):
+        crawl['start']['headless'] = headless
+        if 'browser' not in crawl['start']:
+            crawl['start']['browser'] = self.default_browser
 
+        print(crawl)
+        res = requests.post(self.api_host + '/crawls', json=crawl)
         res = res.json()
+
+        print(res)
         assert res.get('success'), res
+        assert len(res['browsers']) == crawl.get('num_browsers', 1)
+
         TestCrawls.crawl_id = res['id']
         TestCrawls.all_crawl_ids.append(res['id'])
-
-    def test_crawl_queue_urls(self, crawl):
-        urls = {'urls': crawl['urls']}
-
-        res = requests.put(self.api_host + f'/crawl/{self.crawl_id}/urls', json=urls)
-        res = res.json()
-        assert res.get('success'), res
-
-    def test_start_crawl(self, crawl, headless):
-        params = {
-            'browser': crawl.get('browser', self.default_browser),
-            'behavior_timeout': crawl.get('behavior_timeout', 60),
-            'headless': headless
-        }
-
-        res = requests.post(self.api_host + f'/crawl/{self.crawl_id}/start', json=params)
-        res = res.json()
-
-        assert res.get('success'), res
-        assert len(res['browsers']) == crawl['spec'].get('num_browsers', 1)
-
         TestCrawls.browsers = res['browsers']
 
     def test_load_browsers(self, crawl, headless):
@@ -80,7 +67,7 @@ class TestCrawls(object):
         assert len(res['queue']) == 0
         assert len(res['pending']) == 0
 
-        assert len(res['seen']) >= len(crawl['urls'])
+        assert len(res['seen']) >= len(crawl['seed_urls'])
         if crawl.get('expected_seen'):
             assert len(res['seen']) == crawl.get('expected_seen')
 
