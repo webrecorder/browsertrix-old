@@ -1,6 +1,6 @@
 import math
 from typing import Any, Dict, List, Optional, Set
-
+from enum import Enum
 from pydantic import BaseModel, Schema, UrlStr
 
 __all__ = [
@@ -26,9 +26,16 @@ UrlStr.max_length = math.inf
 UrlStr.relative = True
 
 
+class CrawlType(str, Enum):
+    single_page = 'single-page'
+    all_links = 'all-links'
+    same_domain = 'same-domain'
+    custom = 'custom'
+
+
 class BaseCreateCrawl(BaseModel):
-    crawl_type: str = Schema(
-        'single-page', description='What type of crawl should be launched'
+    crawl_type: CrawlType = Schema(
+        CrawlType.single_page, description='What type of crawl should be launched'
     )
     crawl_depth: Optional[int] = None
     num_browsers: int = Schema(

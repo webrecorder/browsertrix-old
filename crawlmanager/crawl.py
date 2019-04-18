@@ -16,7 +16,7 @@ logger = logging.getLogger('uvicorn')
 
 import time
 
-from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest
+from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest, CrawlType
 from .utils import env, init_redis
 
 __all__ = ['Crawl', 'CrawlManager']
@@ -111,14 +111,14 @@ class CrawlManager:
         """
         crawl_id = self.new_crawl_id()
 
-        if create_request.crawl_type == 'all-links':
+        if create_request.crawl_type == CrawlType.all_links:
             crawl_depth = 1
-        elif create_request.crawl_type == 'same-domain':
+        elif create_request.crawl_type == CrawlType.same_domain:
             crawl_depth = self.same_domain_depth
-        elif create_request.crawl_type == 'custom':
-            crawl_depth = create_request.crawl_depth
-        else:
+        elif create_request.crawl_type == CrawlType.single_page:
             crawl_depth = 0
+        elif create_request.crawl_type == CrawlType.custom:
+            crawl_depth = create_request.crawl_depth
 
         data = {
             'id': crawl_id,
@@ -127,7 +127,7 @@ class CrawlManager:
             'name': create_request.name,
             'num_browsers': create_request.num_browsers,
             'num_tabs': create_request.num_tabs,
-            'crawl_type': create_request.crawl_type,
+            'crawl_type': create_request.crawl_type.value,
             'status': 'new',
             'crawl_depth': crawl_depth,
             'start_time': 0
@@ -159,7 +159,6 @@ class CrawlManager:
             raise HTTPException(404, detail='not found')
 
         crawl.model = CrawlInfo(**data)
-
         return crawl
 
     async def get_full_crawl_info(self, crawl_id: str) -> Dict:
@@ -205,6 +204,7 @@ class CrawlManager:
             except HTTPException:
                 continue
 
+        logger.info(str(all_infos))
         return {'crawls': all_infos}
 
     async def request_flock(self, opts: Dict) -> Dict:
