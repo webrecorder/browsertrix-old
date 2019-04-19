@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-dirs="crawlmanager/ crawlmanager_cli/"
+dirs="browsertrix/ browsertrix_cli/"
 
 case "$1" in
     "types"*)

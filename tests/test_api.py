@@ -41,7 +41,7 @@ async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
 
 
 # ============================================================================
-@pytest.mark.usefixtures('crawlmanager_use_fake_redis', 'api_test_client')
+@pytest.mark.usefixtures('browsertrix_use_fake_redis', 'api_test_client')
 class TestCrawlAPI:
     crawl_id = None
     crawl_id_2 = None
@@ -159,7 +159,7 @@ class TestCrawlAPI:
 
         assert res.json() == {'detail': 'not found'}
 
-    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_start_crawl(self):
 
         global shepherd_api_urls
@@ -233,7 +233,7 @@ class TestCrawlAPI:
 
         assert len(json) == 17
 
-    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):
         res = self.client.post(f'/crawl/{self.crawl_id}/stop')
         json = res.json()
@@ -255,7 +255,7 @@ class TestCrawlAPI:
 
         assert json['status'] == 'stopped'
 
-    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_delete_crawl(self):
         res = self.client.delete(f'/crawl/{self.crawl_id}')
 
@@ -271,7 +271,7 @@ class TestCrawlAPI:
 
         assert res.json()['detail'] == 'not found'
 
-    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_create_and_start(self):
         res = self.client.post(
             '/crawls', json={'num_tabs': 2,
@@ -318,7 +318,7 @@ class TestCrawlAPI:
             data = shepherd_api_post_datas['request'][-1]
             assert data['deferred'] == {'autobrowser': False, 'xserver': True}
 
-    @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
+    @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_and_delete_second_crawl(self):
         res = self.client.post(f'/crawl/{self.crawl_id}/stop')
         json = res.json()

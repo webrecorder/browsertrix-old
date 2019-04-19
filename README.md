@@ -1,19 +1,22 @@
-crawlmanager
+Browsertrix
 =============================
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+
+[![Build Status](https://travis-ci.org/webrecorder/browsertrix.svg?branch=master)](https://travis-ci.org/webrecorder/browsertrix)
+
 
 ## Getting Started
 
 ## Running
 
-crawlmanager is designed to run with Docker and Docker Compose.
+browsertrix is designed to run with Docker and Docker Compose.
 To run, launch:
 
 ```bash
 docker-compose build; docker-compuse up -d
 ```
 
-To access the crawlmanager frontend, load `http://localhost:8000/`
+To access the browsertrix frontend, load `http://localhost:8000/`
 
 ## Testing
 

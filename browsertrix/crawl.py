@@ -13,7 +13,7 @@ from ujson import dumps as ujson_dumps
 
 import logging
 
-logger = logging.getLogger('crawlmanager')
+logger = logging.getLogger('browsertrix')
 
 import time
 

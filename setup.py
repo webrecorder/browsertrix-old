@@ -14,24 +14,24 @@ def load_requirements(filename):
 
 
 setup(
-    name='crawlmanager-cli',
+    name='browsertrix-cli',
     version=__version__,
     author='John Berlin, Ilya Kreymer',
     author_email='john.berlin@rhizome.org, ikreymer@gmail.com',
     license='Apache 2.0',
     #packages=find_packages(exclude=['test']),
-    packages=['crawlmanager_cli'],
-    url='https://github.com/webrecorder/crawlmanager',
+    packages=['browsertrix_cli'],
+    url='https://github.com/webrecorder/browsertrix',
     description='Browsertrix CLI: Commandline interface for Webrecorder crawling system',
     long_description=open('README.md').read(),
     provides=[
-        'crawlmanager_cli',
+        'browsertrix_cli',
         ],
     install_requires=load_requirements('cli-requirements.txt'),
     zip_safe=True,
     entry_points="""
         [console_scripts]
-        browsertrix=crawlmanager_cli.main:cli
+        browsertrix=browsertrix_cli.main:cli
     """,
     test_suite='',
     tests_require=load_requirements('test-local-requirements.txt'),
