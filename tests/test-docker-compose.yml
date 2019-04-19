@@ -7,7 +7,7 @@ services:
             context: ../
 
         # add debug logging
-        command: uvicorn --reload --host 0.0.0.0 --port 8000 crawlmanager.api:app --log-level debug
+        command: uvicorn --reload --host 0.0.0.0 --port 8000 browsertrix.api:app --log-level debug
 
         environment:
             - REDIS_URL=redis://redis/0

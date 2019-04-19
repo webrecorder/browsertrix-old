@@ -62,7 +62,7 @@ def init_crawl_data(filename, run_only):
 
 @pytest.fixture(scope="class")
 def api_test_client(request):
-    from crawlmanager.api import app
+    from browsertrix.api import app
 
     with TestClient(app) as tc:
         request.cls.client = tc
@@ -70,6 +70,6 @@ def api_test_client(request):
 
 
 @pytest.fixture(scope="class")
-def crawlmanager_use_fake_redis(request):
-    with mock_patch("crawlmanager.utils.init_redis", init_fake_redis):
+def browsertrix_use_fake_redis(request):
+    with mock_patch("browsertrix.utils.init_redis", init_fake_redis):
         yield

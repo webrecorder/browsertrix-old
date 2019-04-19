@@ -1,8 +1,8 @@
 version: '3.5'
 
 services:
-    crawlman:
-        image: webrecorder/crawlman
+    browsertrix:
+        image: webrecorder/browsertrix
         build:
             context: .
         environment:
@@ -44,8 +44,8 @@ services:
         image: oldwebtoday/shepherd:1.1.0-dev
 
         environment:
-            - BROWSER_NET=crawlmanager_browsers
-            - MAIN_NET=crawlmanager_default
+            - BROWSER_NET=browsertrix_browsers
+            - MAIN_NET=browsertrix_default
 
             - PROXY_HOST=pywb
             - PROXY_PORT=8080

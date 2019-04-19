@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-black -S -v crawlmanager crawlmanager_cli
+black -S -v browsertrix browsertrix_cli
