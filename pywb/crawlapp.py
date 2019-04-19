@@ -1,16 +1,21 @@
 from gevent.monkey import patch_all; patch_all()
 
 from pywb.apps.frontendapp import FrontEndApp
+from pywb.apps.wbrequestresponse import WbResponse
+
 from warcio.timeutils import http_date_to_datetime, timestamp_now
 
 from pywb.manager.manager import main as manager_main
 
 from tempfile import SpooledTemporaryFile
+from werkzeug.routing import Map, Rule
+from urllib.parse import parse_qs
 
 import os
 import redis
 import logging
 import traceback
+import requests
 
 
 # ============================================================================
@@ -23,6 +28,8 @@ class CrawlProxyApp(FrontEndApp):
                                                 decode_responses=True)
 
         self.collections_checked = set()
+
+        self.screenshot_recorder_path = self.recorder_path + '&put_record=resource&url={url}'
 
     def ensure_coll_exists(self, coll):
         if coll == 'live':
@@ -61,8 +68,35 @@ class CrawlProxyApp(FrontEndApp):
         except Exception as e:
             traceback.print_exc()
 
-        print(proxy_prefix + url)
         return proxy_prefix + url
+
+    def _init_routes(self):
+        super(CrawlProxyApp, self)._init_routes()
+        self.url_map.add(Rule('/screenshot/<coll>', endpoint=self.put_screenshot,
+                         methods=['PUT']))
+
+    def put_screenshot(self, environ, coll):
+        self.ensure_coll_exists(coll)
+
+        headers = {'Content-Type': environ.get('CONTENT_TYPE', 'text/plain')}
+
+        query_data = parse_qs(environ.get('QUERY_STRING'))
+
+        url = query_data.get('target_uri', [])
+        if url:
+            url = url[0]
+
+        if not url:
+            return WbResponse.json_response({'error': 'no target_uri'})
+
+        put_url = self.screenshot_recorder_path.format(url=url, coll=coll)
+
+        res = requests.put(put_url,
+                           headers=headers,
+                           data=environ['wsgi.input'])
+
+        res = res.json()
+        return WbResponse.json_response(res)
 
 
 #=============================================================================

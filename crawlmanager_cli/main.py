@@ -18,7 +18,12 @@ columns = [('id', 'CRAWL ID', 12),
            ('name', 'NAME', 12),
            ('start_time', 'STARTED', 12),
            ('status', 'STATUS', 7),
-           ('crawl_type', 'TYPE', 12),
+           ('crawl_type', 'CRAWL TYPE', 12),
+           ('coll', 'COLL', 4),
+           ('mode', 'MODE', 8),
+           ('num_queue', 'TO CRAWL', 8),
+           ('num_pending', 'PENDING', 8),
+           ('num_seen', 'SEEN', 8),
            ('num_browsers', 'BROWSERS', 9),
            ('num_tabs', 'TABS', 3),
           ]
@@ -166,7 +171,7 @@ def list_crawls():
 
 @click.option('--browser', default='chrome:73',
               help='Browser Docker image to use for crawling')
-@click.option('--headless', type=bool,
+@click.option('--headless', type=bool, is_flag=True,
               help='Use headless mode. Browsers can not be opened for watching the crawl')
 @click.option('--behavior-time', default=None, type=int,
               help='Max duration to run each in-page behavior')
@@ -207,8 +212,17 @@ def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch
             print('Crawl {0}: {1}'.format(msg, res['id']))
             print('Status: {0}'.format(res['status']))
 
-        if start and watch:
-            open_browsers(res['browsers'], [], res['id'])
+        if watch:
+            if not start:
+                if not quiet_mode:
+                    print("Can't watch, crawl not started")
+
+            elif headless:
+                if not quiet_mode:
+                    print("Can't watch, crawl is running in headless mode")
+
+            else:
+                open_browsers(res['browsers'], [], res['id'], headless)
 
 
 # ============================================================================
@@ -217,7 +231,7 @@ def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch
 
 @click.option('--browser', default='chrome:73',
               help='Browser Docker image to use for crawling')
-@click.option('--headless', default=False, type=bool,
+@click.option('--headless', default=False, type=bool, is_flag=True,
               help='Use headless mode. Browsers can not be opened for watching the crawl')
 @click.option('--behavior-time', default=300, type=int,
               help='Max duration to run each in-page behavior')
@@ -269,7 +283,7 @@ def watch_crawl(crawl_id):
 
         if res.get('headless'):
             if not quiet_mode:
-                print("Can not view browsers as crawl is running in headless mode")
+                print("Can not watch, crawl is running in headless mode")
                 continue
 
         if res.get('status') != 'running':
@@ -285,7 +299,8 @@ def watch_crawl(crawl_id):
                 print('No Browsers')
                 continue
 
-        open_browsers(browsers, done_browsers, id_)
+        open_browsers(browsers, browsers_done, id_)
+
 
 # ============================================================================
 @cli.command(name='stop', help='Stop one or more existing crawls (and optionally remove)')

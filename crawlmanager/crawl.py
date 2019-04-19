@@ -54,7 +54,7 @@ class CrawlManager:
         self.container_environ: Dict[str, str] = {
             'URL': 'about:blank',
             'REDIS_URL': env('REDIS_URL', default=DEFAULT_REDIS_URL),
-            'WAIT_FOR_Q': '5',
+            'WAIT_FOR_Q': '10',
             'TAB_TYPE': 'CrawlerTab',
             'VNC_PASS': 'pass',
             'IDLE_TIMEOUT': '',
@@ -123,6 +123,7 @@ class CrawlManager:
         data = {
             'id': crawl_id,
             'coll': create_request.coll,
+            'screenshot_coll': create_request.screenshot_coll or '',
             'mode': create_request.mode,
             'name': create_request.name,
             'num_browsers': create_request.num_browsers,
@@ -164,7 +165,7 @@ class CrawlManager:
     async def get_full_crawl_info(self, crawl_id: str) -> Dict:
         crawl = await self.load_crawl(crawl_id)
         info, urls = await aio_gather(
-            crawl.get_info(), crawl.get_info_urls(), loop=self.loop
+            crawl.get_info(count_urls=False), crawl.get_info_urls(), loop=self.loop
         )
         return dict(**info, **urls, success=True)
 
@@ -388,9 +389,10 @@ class Crawl:
             self.model = CrawlInfo(**info)
         await self.redis.hmset_dict(self.info_key, info)
 
-    async def get_info(self) -> Dict:
+    async def get_info(self, count_urls=True) -> Dict:
         """Returns this crawls information
 
+        :param count_urls: If true, include count of frontier queue, pending set, seen set
         :return: The crawl information
         """
         await self.is_done()
@@ -404,6 +406,19 @@ class Crawl:
 
         data['browsers'] = list(browsers)
         data['browsers_done'] = list(browsers_done)
+
+        # do a count of the url keys
+        if count_urls:
+            num_queue, num_pending, num_seen = await aio_gather(
+                self.redis.llen(self.frontier_q_key),
+                self.redis.scard(self.pending_q_key),
+                self.redis.scard(self.seen_key),
+                loop=self.loop,
+            )
+
+            data['num_queue'] = num_queue
+            data['num_pending'] = num_pending
+            data['num_seen'] = num_seen
 
         return data
 
@@ -455,6 +470,10 @@ class Crawl:
             environ['SCREENSHOT_TARGET_URI'] = start_request.screenshot_target_uri
             environ['SCREENSHOT_FORMAT'] = 'png'
 
+        screenshot_api = environ['SCREENSHOT_API_URL']
+        if self.model.screenshot_coll and screenshot_api:
+            environ['SCREENSHOT_API_URL'] = screenshot_api.format(coll=self.model.screenshot_coll)
+
         deferred = {'autobrowser': False}
         if start_request.headless:
             environ['DISPLAY'] = ''
@@ -472,7 +491,11 @@ class Crawl:
 
         errors = []
 
-        await self.redis.hset(self.info_key, 'start_time', int(time.time()))
+        update = {'start_time': int(time.time()),
+                  'headless': '1' if start_request.headless else '0'
+                 }
+
+        await self.redis.hmset_dict(self.info_key, update)
 
         for _ in range(self.model.num_browsers):
             res = await self.manager.request_flock(opts)

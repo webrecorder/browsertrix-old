@@ -78,8 +78,13 @@ class TestCrawlAPI:
         assert json['start_time'] == 0
         assert json['coll'] == 'live'
         assert json['mode'] == 'record'
+        assert json['num_queue'] == 2
+        assert json['num_seen'] == 2
+        assert json['num_pending'] == 0
+        assert json['headless'] == False
+        assert json['screenshot_coll'] == ''
 
-        assert len(json) == 12
+        assert len(json) == 17
 
     def test_get_crawl_details(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
@@ -168,6 +173,7 @@ class TestCrawlAPI:
             'screenshot_target_uri': 'file://test',
             'user_params': {'some': 'value', 'some_int': 7},
             'behavior_run_time': 30,
+            'headless': False,
         }
 
         res = self.client.post(f'/crawl/{self.crawl_id}/start', json=params)
@@ -211,7 +217,7 @@ class TestCrawlAPI:
 
         assert res['done'] == False
 
-    def test_get_crawl_running(self):
+    def test_get_crawl_start_running(self):
         res = self.client.get(f'/crawl/{self.crawl_id}')
 
         json = res.json()
@@ -220,8 +226,12 @@ class TestCrawlAPI:
         assert json['name'] == 'First Crawl!'
         assert json['status'] == 'running'
         assert json['start_time'] > 0
+        assert json['headless'] == False
+        assert json['num_queue'] == 2
+        assert json['num_seen'] == 2
+        assert json['num_pending'] == 0
 
-        assert len(json) == 12
+        assert len(json) == 17
 
     @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):
@@ -268,6 +278,8 @@ class TestCrawlAPI:
                              'crawl_type': 'all-links',
                              'name': 'Second Crawl Auto Start!',
                              'num_browsers': 3,
+                             'coll': 'custom',
+                             'screenshot_coll': 'screen-coll',
                              'seed_urls':
                                 [
                                   'https://example.com/',
@@ -279,6 +291,7 @@ class TestCrawlAPI:
                                   'screenshot_target_uri': 'file://test',
                                   'user_params': {'some': 'value', 'some_int': 7},
                                   'behavior_run_time': 30,
+                                  'headless': True,
                                 }
                              }
 
@@ -290,6 +303,20 @@ class TestCrawlAPI:
         assert json['status'] == 'running'
 
         TestCrawlAPI.crawl_id = json['id']
+
+    def test_second_crawl_info(self):
+        res = self.client.get(f'/crawl/{self.crawl_id}')
+        json = res.json()
+        assert json['coll'] == 'custom'
+        assert json['screenshot_coll'] == 'screen-coll'
+        assert json['headless'] == True
+
+        assert len(shepherd_api_post_datas['request']) == 5
+
+        # assert last 3 shepherd api requests were headless
+        for data in shepherd_api_post_datas['request'][-3:]:
+            data = shepherd_api_post_datas['request'][-1]
+            assert data['deferred'] == {'autobrowser': False, 'xserver': True}
 
     @patch('crawlmanager.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_and_delete_second_crawl(self):

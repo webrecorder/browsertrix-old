@@ -45,6 +45,7 @@ class BaseCreateCrawl(BaseModel):
     name: Optional[str] = Schema('', description='User friendly name for the crawl')
     coll: Optional[str] = Schema('live', description='Default Collection')
     mode: Optional[str] = Schema('record',  description='Default Mode')
+    screenshot_coll: Optional[str] = Schema('', description='Collection to store screenshots, if any')
 
 
 class StartCrawlRequest(BaseModel):
@@ -75,6 +76,10 @@ class CrawlInfoResponse(BaseCreateCrawl):
     start_time: int = 0
     browsers: OptionalList
     browsers_done: OptionalList
+    headless: bool = False
+    num_queue: int = 0
+    num_seen: int = 0
+    num_pending: int = 0
 
 
 class CrawlInfosResponse(BaseModel):
@@ -89,6 +94,7 @@ class CrawlInfo(BaseModel):
     id: str
     name: str
     coll: str
+    screenshot_coll: str
     mode: str
     status: str
     crawl_type: str
@@ -96,6 +102,7 @@ class CrawlInfo(BaseModel):
     num_browsers: int
     num_tabs: int
     start_time: int = 0
+    headless: bool = False
 
 
 class CrawlInfoUrlsResponse(BaseModel):
@@ -107,10 +114,6 @@ class CrawlInfoUrlsResponse(BaseModel):
 
 class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):
     success: bool
-
-
-class CrawlFullInfosResponse(OperationSuccessResponse):
-    crawls: List[CrawlInfoResponse]
 
 
 class CreateNewCrawlResponse(OperationSuccessResponse):

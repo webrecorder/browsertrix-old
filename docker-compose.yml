@@ -8,6 +8,7 @@ services:
         environment:
             - REDIS_URL=redis://redis/0
             - DEFAULT_POOL=auto-pool
+            - SCREENSHOT_API_URL=http://pywb:8080/screenshot/{coll}
 
         depends_on:
             - redis
