@@ -5,8 +5,6 @@ import yaml
 import webbrowser
 import datetime
 
-from pprint import pprint
-
 
 sesh = None
 quiet_mode = False
@@ -14,32 +12,46 @@ quiet_mode = False
 server_prefix = None
 view_browsers_prefix = None
 
-columns = [('id', 'CRAWL ID', 12),
-           ('name', 'NAME', 12),
-           ('start_time', 'STARTED', 12),
-           ('status', 'STATUS', 7),
-           ('crawl_type', 'CRAWL TYPE', 12),
-           ('coll', 'COLL', 4),
-           ('mode', 'MODE', 8),
-           ('num_queue', 'TO CRAWL', 8),
-           ('num_pending', 'PENDING', 8),
-           ('num_seen', 'SEEN', 8),
-           ('num_browsers', 'BROWSERS', 9),
-           ('num_tabs', 'TABS', 3),
-          ]
+columns = [
+    ('id', 'CRAWL ID', 12),
+    ('name', 'NAME', 12),
+    ('start_time', 'STARTED', 12),
+    ('status', 'STATUS', 7),
+    ('crawl_type', 'CRAWL TYPE', 12),
+    ('coll', 'COLL', 4),
+    ('mode', 'MODE', 8),
+    ('num_queue', 'TO CRAWL', 8),
+    ('num_pending', 'PENDING', 8),
+    ('num_seen', 'SEEN', 8),
+    ('num_browsers', 'BROWSERS', 9),
+    ('num_tabs', 'TABS', 3),
+]
 
 
 # ============================================================================
 @click.group()
-@click.option('--server', metavar='<URL>', type=str,
-              default='http://localhost:8000',
-              help='The Browsertrix server url')
-@click.option('--view-browsers-url', metavar='<URL>', type=str,
-              default='http://localhost:9020/attach/',
-              help='The Shepherd url prefix for attaching to running browser')
-@click.option('-q', '--quiet', is_flag=True, default=False, type=bool,
-              help='quiet mode: print only crawl ids if success')
-
+@click.option(
+    '--server',
+    metavar='<URL>',
+    type=str,
+    default='http://localhost:8000',
+    help='The Browsertrix server url',
+)
+@click.option(
+    '--view-browsers-url',
+    metavar='<URL>',
+    type=str,
+    default='http://localhost:9020/attach/',
+    help='The Shepherd url prefix for attaching to running browser',
+)
+@click.option(
+    '-q',
+    '--quiet',
+    is_flag=True,
+    default=False,
+    type=bool,
+    help='quiet mode: print only crawl ids if success',
+)
 def cli(server, quiet, view_browsers_url):
     global server_prefix
     server_prefix = server
@@ -81,7 +93,11 @@ def sesh_get(url):
         res = sesh.get(server_prefix + url)
         return ensure_success(res)
     except requests.exceptions.ConnectionError:
-        print('Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(server_prefix))
+        print(
+            'Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(
+                server_prefix
+            )
+        )
         sys.exit(2)
 
 
@@ -91,7 +107,11 @@ def sesh_post(url, json=None):
         res = sesh.post(server_prefix + url, json=json)
         return ensure_success(res)
     except requests.exceptions.ConnectionError:
-        print('Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(server_prefix))
+        print(
+            'Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(
+                server_prefix
+            )
+        )
         sys.exit(2)
 
 
@@ -101,7 +121,11 @@ def sesh_delete(url):
         res = sesh.delete(server_prefix + url)
         return ensure_success(res, exit=False)
     except requests.exceptions.ConnectionError:
-        print('Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(server_prefix))
+        print(
+            'Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(
+                server_prefix
+            )
+        )
         sys.exit(2)
 
 
@@ -118,7 +142,7 @@ def format_elapsed(timestr):
         text = datetime.datetime.fromtimestamp(int(timestr))
         elapsed = datetime.datetime.now() - text
         return str(elapsed).split('.', 1)[0] + ' ago'
-    except Exception as e:
+    except Exception:
         return timestr
 
 
@@ -155,7 +179,7 @@ def list_crawls():
 
     format_str = '{value: <{size}}  '
 
-    for id_, text, size in columns:
+    for _, text, size in columns:
         sys.stdout.write(format_str.format(value=text, size=size))
     print()
 
@@ -171,20 +195,36 @@ def list_crawls():
 
 
 # ============================================================================
-@cli.command(name='create', help='Create (and optionally start) new crawl from yaml crawl spec')
-@click.option('--start/--no-start', default=True,
-              help="Start/Don't start crawl immediately after creation")
-
-@click.option('--browser', default='chrome:73',
-              help='Browser Docker image to use for crawling')
-@click.option('--headless', type=bool, is_flag=True,
-              help='Use headless mode. Browsers can not be opened for watching the crawl')
-@click.option('--behavior-time', default=None, type=int,
-              help='Max duration to run each in-page behavior')
-
-@click.option('--watch', is_flag=True, default=False, type=bool,
-              help='Watch all started browsers in a local browser (only if starting crawl)')
-
+@cli.command(
+    name='create', help='Create (and optionally start) new crawl from yaml crawl spec'
+)
+@click.option(
+    '--start/--no-start',
+    default=True,
+    help="Start/Don't start crawl immediately after creation",
+)
+@click.option(
+    '--browser', default='chrome:73', help='Browser Docker image to use for crawling'
+)
+@click.option(
+    '--headless',
+    type=bool,
+    is_flag=True,
+    help='Use headless mode. Browsers can not be opened for watching the crawl',
+)
+@click.option(
+    '--behavior-time',
+    default=None,
+    type=int,
+    help='Max duration to run each in-page behavior',
+)
+@click.option(
+    '--watch',
+    is_flag=True,
+    default=False,
+    type=bool,
+    help='Watch all started browsers in a local browser (only if starting crawl)',
+)
 @click.argument('crawl_spec_file', type=click.File('rt'))
 def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch):
     """ Create a new crawl!
@@ -200,13 +240,13 @@ def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch
     root = yaml.load(crawl_spec_file, Loader=yaml.Loader)
 
     for crawl_spec in root['crawls']:
-        if start == None:
-            start = ('start' in crawl_spec)
+        if start is None:
+            start = 'start' in crawl_spec
 
-        if start == False:
+        if not start:
             crawl_spec.pop('start', '')
             msg = 'Created'
-        elif start == True:
+        else:
             if 'start' not in crawl_spec:
                 crawl_spec['start'] = {'browser': browser}
 
@@ -242,14 +282,22 @@ def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch
 # ============================================================================
 @cli.command(name='start', help='Start an existing crawl')
 @click.argument('crawl_id', nargs=-1)
-
-@click.option('--browser', default='chrome:73',
-              help='Browser Docker image to use for crawling')
-@click.option('--headless', default=False, type=bool, is_flag=True,
-              help='Use headless mode. Browsers can not be opened for watching the crawl')
-@click.option('--behavior-time', default=300, type=int,
-              help='Max duration (in seconds) to run each in-page behavior')
-
+@click.option(
+    '--browser', default='chrome:73', help='Browser Docker image to use for crawling'
+)
+@click.option(
+    '--headless',
+    default=False,
+    type=bool,
+    is_flag=True,
+    help='Use headless mode. Browsers can not be opened for watching the crawl',
+)
+@click.option(
+    '--behavior-time',
+    default=300,
+    type=int,
+    help='Max duration (in seconds) to run each in-page behavior',
+)
 def start_crawl(crawl_id, browser, headless, behavior_time):
     """ Start an existing crawl
 
@@ -258,10 +306,7 @@ def start_crawl(crawl_id, browser, headless, behavior_time):
         :param headless: Use headless mode. Browsers can not be opened for watching the crawl
         :param behavior_time: Max duration (in seconds) to run each in-page behavior
     """
-    params = {'browser': browser,
-              'headless': headless,
-              'behavior_time': behavior_time
-             }
+    params = {'browser': browser, 'headless': headless, 'behavior_time': behavior_time}
 
     for id_ in crawl_id:
         res = sesh_post('/crawl/{0}/start'.format(id_), json=params)
@@ -275,8 +320,11 @@ def start_crawl(crawl_id, browser, headless, behavior_time):
 # ============================================================================
 @cli.command(name='info', help='Get info on an existing crawl(s)')
 @click.argument('crawl_id', nargs=-1)
-@click.option('--urls/--no-urls', default=False,
-              help='Get detailed info on crawl, listing all urls')
+@click.option(
+    '--urls/--no-urls',
+    default=False,
+    help='Get detailed info on crawl, listing all urls',
+)
 def get_info(crawl_id, urls):
     """ Get info on existing crawl(s)
 
@@ -291,12 +339,15 @@ def get_info(crawl_id, urls):
 
         print(yaml.dump(res))
 
+
 # ============================================================================
-@cli.command(name='watch',
-             help='Open active crawl browsers in local browser for watching crawl progress')
+@cli.command(
+    name='watch',
+    help='Watch crawling browsers in local browser',
+)
 @click.argument('crawl_id', nargs=-1)
 def watch_crawl(crawl_id):
-    """ Open active crawl browsers in local browser for watching crawl progress
+    """ Watch crawling browsers in local browser
 
         :param crawl_id: list of crawl ids to watch
     """
@@ -325,10 +376,17 @@ def watch_crawl(crawl_id):
 
 
 # ============================================================================
-@cli.command(name='stop', help='Stop one or more existing crawls (and optionally remove)')
+@cli.command(
+    name='stop', help='Stop one or more existing crawls (and optionally remove)'
+)
 @click.argument('crawl_id', nargs=-1)
-@click.option('--remove', type=bool, default=False, is_flag=True,
-              help='Crawl should be removed, not just stopped')
+@click.option(
+    '--remove',
+    type=bool,
+    default=False,
+    is_flag=True,
+    help='Crawl should be removed, not just stopped',
+)
 def stop_crawl(crawl_id, remove=False):
     """ Stop one or more existing crawls (and optionally remove)
 
@@ -340,6 +398,10 @@ def stop_crawl(crawl_id, remove=False):
             res = sesh_delete('/crawl/{0}'.format(id_))
         else:
             res = sesh_post('/crawl/{0}/stop'.format(id_))
+
+        if not res.get('success'):
+            print('Error stopping: ' + res)
+            return
 
         if quiet_mode:
             print(id_)
@@ -368,4 +430,3 @@ def remove_all():
 # ============================================================================
 if __name__ == '__main__':
     cli()
-

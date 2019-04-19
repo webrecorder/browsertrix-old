@@ -12,7 +12,8 @@ from starlette.exceptions import HTTPException
 from ujson import dumps as ujson_dumps
 
 import logging
-logger = logging.getLogger('uvicorn')
+
+logger = logging.getLogger('crawlmanager')
 
 import time
 
@@ -63,6 +64,7 @@ class CrawlManager:
         }
 
         self.default_browser = None
+        logger.setLevel(logging.INFO)
 
     async def startup(self) -> None:
         """Initialize the crawler manager's redis connection and
@@ -131,16 +133,14 @@ class CrawlManager:
             'crawl_type': create_request.crawl_type.value,
             'status': 'new',
             'crawl_depth': crawl_depth,
-            'start_time': 0
+            'start_time': 0,
         }
 
         crawl = await Crawl.create(self, crawl_id, data, create_request.seed_urls)
 
         # optionally start crawl right away!
         if not create_request.start:
-            return {'success': True,
-                    'id': crawl_id,
-                    'status': 'new'}
+            return {'success': True, 'id': crawl_id, 'status': 'new'}
 
         res = await crawl.start(create_request.start)
         res['id'] = crawl_id
@@ -198,14 +198,13 @@ class CrawlManager:
             _, crawl_id, _2 = key.split(':', 2)
 
             try:
-                #crawl = Crawl(crawl_id, self)
+                # crawl = Crawl(crawl_id, self)
                 crawl = await self.load_crawl(crawl_id)
                 info = await crawl.get_info()
                 all_infos.append(info)
             except HTTPException:
                 continue
 
-        logger.info(str(all_infos))
         return {'crawls': all_infos}
 
     async def request_flock(self, opts: Dict) -> Dict:
@@ -472,7 +471,9 @@ class Crawl:
 
         screenshot_api = environ['SCREENSHOT_API_URL']
         if self.model.screenshot_coll and screenshot_api:
-            environ['SCREENSHOT_API_URL'] = screenshot_api.format(coll=self.model.screenshot_coll)
+            environ['SCREENSHOT_API_URL'] = screenshot_api.format(
+                coll=self.model.screenshot_coll
+            )
 
         deferred = {'autobrowser': False}
         if start_request.headless:
@@ -491,9 +492,10 @@ class Crawl:
 
         errors = []
 
-        update = {'start_time': int(time.time()),
-                  'headless': '1' if start_request.headless else '0'
-                 }
+        update = {
+            'start_time': int(time.time()),
+            'headless': '1' if start_request.headless else '0',
+        }
 
         await self.redis.hmset_dict(self.info_key, update)
 

@@ -9,6 +9,7 @@ __all__ = [
     'CrawlInfoResponse',
     'CrawlInfoUrlsResponse',
     'CrawlInfosResponse',
+    'CrawlType',
     'CreateCrawlRequest',
     'CreateNewCrawlResponse',
     'FullCrawlInfoResponse',
@@ -44,8 +45,10 @@ class BaseCreateCrawl(BaseModel):
     num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
     name: Optional[str] = Schema('', description='User friendly name for the crawl')
     coll: Optional[str] = Schema('live', description='Default Collection')
-    mode: Optional[str] = Schema('record',  description='Default Mode')
-    screenshot_coll: Optional[str] = Schema('', description='Collection to store screenshots, if any')
+    mode: Optional[str] = Schema('record', description='Default Mode')
+    screenshot_coll: Optional[str] = Schema(
+        '', description='Collection to store screenshots, if any'
+    )
 
 
 class StartCrawlRequest(BaseModel):
