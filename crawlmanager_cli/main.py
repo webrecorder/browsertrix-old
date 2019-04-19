@@ -59,8 +59,9 @@ def ensure_success(res, exit=True):
     """ Ensure API response is successful
         print error and exit if not
 
-        :res: Response from requests
-        :exit: Exit on any error
+        :param res: Response from requests
+        :param exit: Exit on any error
+        :return: parsed JSON response as dict
     """
     if res.status_code == 200:
         json = res.json()
@@ -106,6 +107,11 @@ def sesh_delete(url):
 
 # ============================================================================
 def format_elapsed(timestr):
+    """ Format given time as elapsed from now
+
+    :param timestr: Time in seconds as str or int
+    :return: string text for time elapsed since timestr
+    """
     try:
         if timestr == 0:
             return '-'
@@ -182,6 +188,14 @@ def list_crawls():
 @click.argument('crawl_spec_file', type=click.File('rt'))
 def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch):
     """ Create a new crawl!
+
+        :param crawl_spec_file: YAML file with one or more crawls in 'crawls' key
+        :param start: If true, start crawl immediately after creation
+        :param browser: Browser Docker image to use for crawling
+        :param headless: Use headless mode. Browsers can not be opened for watching the crawl
+        :param behavior_time: Max duration (in seconds) to run each in-page behavior
+        :param watch: Watch all started browsers in a local browser (only if starting crawl)
+
     """
     root = yaml.load(crawl_spec_file, Loader=yaml.Loader)
 
@@ -234,12 +248,15 @@ def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch
 @click.option('--headless', default=False, type=bool, is_flag=True,
               help='Use headless mode. Browsers can not be opened for watching the crawl')
 @click.option('--behavior-time', default=300, type=int,
-              help='Max duration to run each in-page behavior')
+              help='Max duration (in seconds) to run each in-page behavior')
 
 def start_crawl(crawl_id, browser, headless, behavior_time):
     """ Start an existing crawl
 
-        :crawl_id: list of crawl ids to start
+        :param crawl_id: list of crawl ids to start
+        :param browser: Browser Docker image to use for crawling
+        :param headless: Use headless mode. Browsers can not be opened for watching the crawl
+        :param behavior_time: Max duration (in seconds) to run each in-page behavior
     """
     params = {'browser': browser,
               'headless': headless,
@@ -258,15 +275,20 @@ def start_crawl(crawl_id, browser, headless, behavior_time):
 # ============================================================================
 @cli.command(name='info', help='Get info on an existing crawl(s)')
 @click.argument('crawl_id', nargs=-1)
-def get_info(crawl_id):
+@click.option('--urls/--no-urls', default=False,
+              help='Get detailed info on crawl, listing all urls')
+def get_info(crawl_id, urls):
     """ Get info on existing crawl(s)
 
-        :crawl_id: list of crawl ids to get info on
+        :param crawl_id: list of crawl ids to get info on
+        :param urls: Get detailed info on crawl, listing all urls
     """
     for id_ in crawl_id:
-        res = sesh_get('/crawl/{0}'.format(id_))
+        if urls:
+            res = sesh_get('/crawl/{0}/info'.format(id_))
+        else:
+            res = sesh_get('/crawl/{0}'.format(id_))
 
-        #pprint(res.json())
         print(yaml.dump(res))
 
 # ============================================================================
@@ -276,7 +298,7 @@ def get_info(crawl_id):
 def watch_crawl(crawl_id):
     """ Open active crawl browsers in local browser for watching crawl progress
 
-        :crawl_id: list of crawl ids to watch
+        :param crawl_id: list of crawl ids to watch
     """
     for id_ in crawl_id:
         res = sesh_get('/crawl/{0}'.format(id_))
@@ -305,11 +327,13 @@ def watch_crawl(crawl_id):
 # ============================================================================
 @cli.command(name='stop', help='Stop one or more existing crawls (and optionally remove)')
 @click.argument('crawl_id', nargs=-1)
-@click.option('--remove', type=bool, default=False, is_flag=True)
+@click.option('--remove', type=bool, default=False, is_flag=True,
+              help='Crawl should be removed, not just stopped')
 def stop_crawl(crawl_id, remove=False):
     """ Stop one or more existing crawls (and optionally remove)
 
-        :crawl_id: list of crawl ids to stop
+        :param crawl_id: list of crawl ids to stop
+        :param remove: Crawl should be removed, not just stopped
     """
     for id_ in crawl_id:
         if remove:
