@@ -276,7 +276,7 @@ def create_crawl(crawl_spec_file, start, browser, headless, behavior_time, watch
                     print("Can't watch, crawl is running in headless mode")
 
             else:
-                open_browsers(res['browsers'], [], res['id'], headless)
+                open_browsers(res['browsers'], [], res['id'])
 
 
 # ============================================================================
@@ -341,10 +341,7 @@ def get_info(crawl_id, urls):
 
 
 # ============================================================================
-@cli.command(
-    name='watch',
-    help='Watch crawling browsers in local browser',
-)
+@cli.command(name='watch', help='Watch crawling browsers in local browser')
 @click.argument('crawl_id', nargs=-1)
 def watch_crawl(crawl_id):
     """ Watch crawling browsers in local browser
