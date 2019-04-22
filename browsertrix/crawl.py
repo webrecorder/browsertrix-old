@@ -17,7 +17,9 @@ logger = logging.getLogger('browsertrix')
 
 import time
 
-from .schema import CrawlInfo, CreateCrawlRequest, StartCrawlRequest, CrawlType
+from .schema import CrawlInfo, CreateCrawlRequest, CrawlType
+from .schema import CacheMode, CaptureMode
+
 from .utils import env, init_redis
 
 __all__ = ['Crawl', 'CrawlManager']
@@ -57,6 +59,7 @@ class CrawlManager:
             'REDIS_URL': env('REDIS_URL', default=DEFAULT_REDIS_URL),
             'WAIT_FOR_Q': '10',
             'TAB_TYPE': 'CrawlerTab',
+            'CRAWL_NO_NETCACHE': '0',
             'VNC_PASS': 'pass',
             'IDLE_TIMEOUT': '',
             'BEHAVIOR_API_URL': 'http://behaviors:3030',
@@ -103,50 +106,18 @@ class CrawlManager:
         return uuid.uuid4().hex[-12:]
 
     async def create_new(
-        self, create_request: CreateCrawlRequest
+        self, crawl_request: CreateCrawlRequest
     ) -> Dict[str, Union[bool, str]]:
         """Creates a new crawl
 
-        :param create_request: The body of the api request
+        :param crawl_request: The body of the api request
         for the /crawls endpoint
         :return: A dictionary indicating success and the id of the new crawl
         """
         crawl_id = self.new_crawl_id()
 
-        if create_request.crawl_type == CrawlType.all_links:
-            crawl_depth = 1
-        elif create_request.crawl_type == CrawlType.same_domain:
-            crawl_depth = self.same_domain_depth
-        elif create_request.crawl_type == CrawlType.single_page:
-            crawl_depth = 0
-        elif create_request.crawl_type == CrawlType.custom:
-            crawl_depth = create_request.crawl_depth
-
-        data = {
-            'id': crawl_id,
-            'coll': create_request.coll,
-            'screenshot_coll': create_request.screenshot_coll or '',
-            'mode': create_request.mode,
-            'name': create_request.name,
-            'num_browsers': create_request.num_browsers,
-            'num_tabs': create_request.num_tabs,
-            'crawl_type': create_request.crawl_type.value,
-            'status': 'new',
-            'crawl_depth': crawl_depth,
-            'start_time': 0,
-        }
-
-        crawl = await Crawl.create(self, crawl_id, data, create_request.seed_urls)
-
-        # optionally start crawl right away!
-        if not create_request.start:
-            return {'success': True, 'id': crawl_id, 'status': 'new'}
-
-        res = await crawl.start(create_request.start)
-        res['id'] = crawl_id
-        if res.get('success'):
-            res['status'] = 'running'
-        return res
+        crawl = Crawl(crawl_id, self)
+        return await crawl.init_crawl(crawl_request)
 
     async def load_crawl(self, crawl_id: str) -> Crawl:
         """Returns the crawl information for the supplied crawl id
@@ -260,28 +231,6 @@ class Crawl:
         'seen_key',
     ]
 
-    @classmethod
-    async def create(
-        cls,
-        manager: CrawlManager,
-        crawl_id: str,
-        info: Dict,
-        seed_urls: Optional[List[str]] = None,
-    ) -> Crawl:
-        """Creates a new crawl and returns it
-
-        :param manager: The crawl manager instance
-        :param crawl_id: The id for the new crawl
-        :param info: The crawl info object created from the CreateCrawlRequest
-        :param seed_urls: Optional list of URLs to be queued for this crawl
-        :return: The newly created or updated crawl
-        """
-        crawl = Crawl(crawl_id, manager)
-        await crawl.update_info(info)
-        if seed_urls is not None:
-            await crawl.queue_urls(seed_urls)
-        return crawl
-
     def __init__(
         self, crawl_id: str, manager: CrawlManager, model: Optional[CrawlInfo] = None
     ) -> None:
@@ -378,15 +327,10 @@ class Crawl:
             # add to seen list to avoid dupes
             await self.redis.sadd(self.seen_key, url)
 
-        if self.model.crawl_type == 'same-domain':
+        if self.model.crawl_type == CrawlType.SAME_DOMAIN:
             await self._init_domain_scopes(urls)
 
         return {'success': True}
-
-    async def update_info(self, info: Dict) -> None:
-        if self.model is None:
-            self.model = CrawlInfo(**info)
-        await self.redis.hmset_dict(self.info_key, info)
 
     async def get_info(self, count_urls=True) -> Dict:
         """Returns this crawls information
@@ -443,30 +387,97 @@ class Crawl:
 
         return data
 
-    async def start(self, start_request: StartCrawlRequest) -> Dict:
-        """Starts the crawl
-
-        :param start_request: Information about the crawl to be started
-        :return: An dictionary that includes an indication if this operation
-        was successful and a list of browsers in the crawl
-        """
+    async def start(self):
         if self.model.status == 'running':
             raise HTTPException(400, detail='already running')
 
-        browser = start_request.browser or self.manager.default_browser
+        browsers = list(await self.redis.smembers(self.browser_key))
+        errors = []
 
-        start_request.user_params['auto_id'] = self.crawl_id
-        start_request.user_params['mode'] = self.model.mode
-        start_request.user_params['coll'] = self.model.coll
+        for reqid in browsers:
+            res = await self.manager.start_flock(reqid)
+
+            if 'error' in res:
+                errors.append(res['error'])
+
+        if errors:
+            raise HTTPException(400, detail=errors)
+
+        await self.redis.hset(self.info_key, 'status', 'running')
+        await self.redis.hset(self.info_key, 'start_time', int(time.time()))
+
+        return {
+            'success': True,
+            'browsers': browsers,
+            'status': 'running',
+            'id': self.crawl_id,
+        }
+
+    async def init_crawl(self, crawl_request: CreateCrawlRequest) -> Dict:
+        """Initialize the crawl (and optionally start)
+
+        :param crawl_request: Information about the crawl to be started
+        :return: An dictionary that includes an indication if this operation
+        was successful and a list of browsers in the crawl
+        """
+
+        # init base crawl data
+        if crawl_request.crawl_type == CrawlType.ALL_LINKS:
+            crawl_depth = 1
+        elif crawl_request.crawl_type == CrawlType.SAME_DOMAIN:
+            crawl_depth = self.manager.same_domain_depth
+        elif crawl_request.crawl_type == CrawlType.SINGLE_PAGE:
+            crawl_depth = 0
+        elif crawl_request.crawl_type == CrawlType.CUSTOM:
+            crawl_depth = crawl_request.crawl_depth
+
+            for scope in crawl_request.scopes:
+                await self.redis.sadd(self.scopes_key, ujson_dumps(scope))
+
+        data = {
+            'id': self.crawl_id,
+            'coll': crawl_request.coll,
+            'screenshot_coll': crawl_request.screenshot_coll or '',
+            'mode': crawl_request.mode.value,
+            'name': crawl_request.name,
+            'num_browsers': crawl_request.num_browsers,
+            'num_tabs': crawl_request.num_tabs,
+            'crawl_type': crawl_request.crawl_type.value,
+            'status': 'new',
+            'crawl_depth': crawl_depth,
+            'start_time': int(time.time()) if crawl_request.start else 0,
+            'headless': '1' if crawl_request.headless else '0',
+            'cache': crawl_request.cache.value,
+        }
+
+        self.model = CrawlInfo(**data)
+        await self.redis.hmset_dict(self.info_key, data)
+
+        # init seeds
+        if crawl_request.seed_urls is not None:
+            await self.queue_urls(crawl_request.seed_urls)
+
+        # init browser user params and environ
+        browser = crawl_request.browser or self.manager.default_browser
+
+        user_params = crawl_request.user_params
+        user_params['auto_id'] = self.crawl_id
+        user_params['mode'] = self.model.mode
+        user_params['coll'] = self.model.coll
+        user_params['cache'] = crawl_request.cache.value
 
         environ = self.manager.container_environ.copy()
         environ['AUTO_ID'] = self.crawl_id
         environ['NUM_TABS'] = self.model.num_tabs
-        if start_request.behavior_run_time > 0:
-            environ['BEHAVIOR_RUN_TIME'] = start_request.behavior_run_time
 
-        if start_request.screenshot_target_uri:
-            environ['SCREENSHOT_TARGET_URI'] = start_request.screenshot_target_uri
+        if crawl_request.cache == CacheMode.NEVER:
+            environ['CRAWL_NO_NETCACHE'] = '1'
+
+        if crawl_request.behavior_run_time > 0:
+            environ['BEHAVIOR_RUN_TIME'] = crawl_request.behavior_run_time
+
+        if crawl_request.screenshot_target_uri:
+            environ['SCREENSHOT_TARGET_URI'] = crawl_request.screenshot_target_uri
             environ['SCREENSHOT_FORMAT'] = 'png'
 
         screenshot_api = environ['SCREENSHOT_API_URL']
@@ -474,9 +485,11 @@ class Crawl:
             environ['SCREENSHOT_API_URL'] = screenshot_api.format(
                 coll=self.model.screenshot_coll
             )
+        else:
+            environ.pop('SCREENSHOT_API_URL', '')
 
         deferred = {'autobrowser': False}
-        if start_request.headless:
+        if crawl_request.headless:
             environ['DISPLAY'] = ''
             deferred['xserver'] = True
 
@@ -486,18 +499,15 @@ class Crawl:
                 'xserver': 'oldwebtoday/vnc-webrtc-audio',
             },
             deferred=deferred,
-            user_params=start_request.user_params,
+            user_params=crawl_request.user_params,
             environ=environ,
         )
 
+        # init browsers (and start)
+
         errors = []
 
-        update = {
-            'start_time': int(time.time()),
-            'headless': '1' if start_request.headless else '0',
-        }
-
-        await self.redis.hmset_dict(self.info_key, update)
+        browsers = []
 
         for _ in range(self.model.num_browsers):
             res = await self.manager.request_flock(opts)
@@ -507,21 +517,28 @@ class Crawl:
                     errors.append(res['error'])
                 continue
 
-            res = await self.manager.start_flock(reqid)
+            if crawl_request.start:
+                res = await self.manager.start_flock(reqid)
 
             if 'error' in res:
                 errors.append(res['error'])
             else:
+                browsers.append(reqid)
                 await self.redis.sadd(self.browser_key, reqid)
 
         if errors:
             raise HTTPException(400, detail=errors)
 
-        await self.redis.hset(self.info_key, 'status', 'running')
+        if crawl_request.start:
+            self.model.status = 'running'
+            await self.redis.hset(self.info_key, 'status', 'running')
 
-        browsers = list(await self.redis.smembers(self.browser_key))
-
-        return {'success': True, 'browsers': browsers}
+        return {
+            'success': True,
+            'browsers': browsers,
+            'status': self.model.status,
+            'id': self.crawl_id,
+        }
 
     async def is_done(self) -> Dict[str, bool]:
         """Is this crawl done

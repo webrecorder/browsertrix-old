@@ -4,6 +4,9 @@ proxy:
   coll: coll
   recording: true
 
+  ca_name: pywb OWT CA
+  ca_file_cache: /app/proxy-certs/pywb-ca.pem
+
 recorder: live
 
 autoindex: 30

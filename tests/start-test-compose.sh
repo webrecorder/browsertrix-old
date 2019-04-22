@@ -10,5 +10,6 @@ fi
 
 tar xvfz testcoll.tar.gz --directory $CURR_DIR/test-webarchive
 
+docker-compose -f $CURR_DIR/test-docker-compose.yml build
 docker-compose -f $CURR_DIR/test-docker-compose.yml up -d
 

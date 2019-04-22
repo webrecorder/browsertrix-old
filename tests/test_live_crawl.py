@@ -20,9 +20,9 @@ class TestCrawls(object):
             assert res.get('success') or res.get('detail') == 'not found'
 
     def test_crawl_create_and_start(self, crawl, headless):
-        crawl['start']['headless'] = headless
-        if 'browser' not in crawl['start']:
-            crawl['start']['browser'] = self.default_browser
+        crawl['headless'] = headless
+        if 'browser' not in crawl:
+            crawl['browser'] = self.default_browser
 
         print(crawl)
         res = requests.post(self.api_host + '/crawls', json=crawl)

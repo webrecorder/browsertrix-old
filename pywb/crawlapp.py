@@ -48,12 +48,11 @@ class CrawlProxyApp(FrontEndApp):
     def proxy_route_request(self, url, environ):
         try:
             key = 'up:' + environ['REMOTE_ADDR']
-            timestamp = self.redis.hget(key, 'TIMESTAMP') or timestamp_now()
-            environ['pywb_redis_key'] = key
-            environ['pywb_proxy_default_timestamp'] = timestamp
+            timestamp, coll, mode, cache = self.redis.hmget(key, 'timestamp', 'coll', 'mode', 'cache')
 
-            coll = self.redis.hget(key, 'coll')
-            mode = self.redis.hget(key, 'mode')
+            #environ['pywb_redis_key'] = key
+            environ['pywb_proxy_default_timestamp'] = timestamp or timestamp_now()
+            environ['pywb_cache'] = cache
 
             if coll:
                 self.ensure_coll_exists(coll)
@@ -97,6 +96,14 @@ class CrawlProxyApp(FrontEndApp):
 
         res = res.json()
         return WbResponse.json_response(res)
+
+    def serve_content(self, environ, *args, **kwargs):
+        res = super(CrawlProxyApp, self).serve_content(environ, *args, **kwargs)
+
+        if environ.get('pywb_cache') == 'always' and res.status_headers.statusline.startswith('200'):
+            res.status_headers.headers.append(('Cache-Control', 'public, max-age=31536000, immutable'))
+
+        return res
 
 
 #=============================================================================

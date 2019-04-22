@@ -1,8 +1,8 @@
 version: '3.5'
 
 services:
-    crawlman:
-        image: webrecorder/crawlman
+    browsertrix:
+        image: webrecorder/browsertrix
         build:
             context: ../
 
