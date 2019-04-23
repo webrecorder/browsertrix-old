@@ -7,7 +7,7 @@ function getEndpointConfig() {
       ep: 'http://localhost:8000/crawls',
       retrieve: { method: 'GET' },
       create: {
-        defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1 },
+        defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1, start: false },
         method: 'POST'
       }
     },

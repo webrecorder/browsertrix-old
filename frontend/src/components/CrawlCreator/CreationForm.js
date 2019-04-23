@@ -81,7 +81,7 @@ function CrawlCreationForm({ crawlType, handleSubmit, valid, submitting }) {
             name='crawl_depth'
             type='number'
             label='Crawl Depth'
-            props={{ disabled: crawlType !== 'custom' }}
+            props={{ disabled: crawlType !== 'custom', min: 1 }}
             component={CrawlConfigInputField}
           />
           <Field

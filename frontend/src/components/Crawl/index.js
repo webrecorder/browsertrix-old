@@ -41,13 +41,14 @@ class Crawl extends Component {
     const { crawl } = this.props;
 
     if (
+      crawl &&
       crawl.get('status') === 'running' &&
       prevProps.crawl.get('status') !== 'running'
     ) {
       this.autoUpdate();
     } else if (
-      crawl.get('status') !== 'running' &&
-      prevProps.crawl.get('status') === 'running'
+      !crawl ||
+      (crawl.get('status') !== 'running' && prevProps.crawl.get('status') === 'running')
     ) {
       clearInterval(this.handle);
     }
@@ -58,7 +59,7 @@ class Crawl extends Component {
   }
 
   autoUpdate = () => {
-    this.handle = setInterval(this.props.getCrawlInfo, 750);
+    this.handle = setInterval(this.props.getCrawlInfo, 1000);
   }
 
   render() {

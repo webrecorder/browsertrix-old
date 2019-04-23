@@ -1,4 +1,4 @@
-import { List, Map, Record } from 'immutable';
+import { fromJS, List, Map, Record } from 'immutable';
 import { ActionTypes } from '../actions/crawls';
 
 export class CrawlRecord extends Record({
@@ -27,7 +27,8 @@ export class CrawlRecord extends Record({
     const existingBrowsers = this.browsers;
     return this.merge({
       browsers: existingBrowsers.concat(browsers),
-      running: true
+      running: true,
+      status: 'running'
     });
   }
 
@@ -48,13 +49,14 @@ export function crawlsFetchedReducer(state = false, action) {
 }
 
 export function crawlIds(state = List([]), { type, payload, meta }) {
+
   switch (type) {
     case ActionTypes.deleteCrawl:
       const idx = state.indexOf(payload.id);
       return state.delete(idx);
     case ActionTypes.gotAllInit:
     case ActionTypes.gotAll:
-      return state.withMutations(mutable => {
+      return List().withMutations(mutable => {
         const { crawls } = payload;
         for (let i = 0; i < crawls.length; i++) {
           mutable.push(crawls[i].id);
@@ -101,7 +103,7 @@ export function crawlsReducer(state = Map({}), { type, payload, meta }) {
       return state.updateIn([payload.id], crawl => crawl.mergeDeep(payload));
     case ActionTypes.info:
       if (!state.has(payload.id)) return state;
-      return state.updateIn([payload.id], crawl => crawl.mergeDeep(payload));
+      return state.updateIn([payload.id], crawl => crawl.merge(fromJS(payload)));
   }
   return state;
 }
