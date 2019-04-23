@@ -472,7 +472,7 @@ class Crawl:
         environ['NUM_TABS'] = self.model.num_tabs
 
         if crawl_request.mode != CaptureMode.LIVE:
-            environ['PROXY_HOST'] = os.environ['PROXY_HOST']
+            environ['PROXY_HOST'] = os.environ.get('PROXY_HOST', 'pywb')
 
         if crawl_request.cache == CacheMode.NEVER:
             environ['CRAWL_NO_NETCACHE'] = '1'
