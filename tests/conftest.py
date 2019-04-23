@@ -8,8 +8,6 @@ from starlette.testclient import TestClient
 
 from .utils import init_fake_redis
 
-environ.update({"TESTING": "true"})
-
 crawl_names = []
 crawls = []
 
@@ -67,6 +65,7 @@ def api_test_client(request):
     with TestClient(app) as tc:
         request.cls.client = tc
         yield
+
 
 
 @pytest.fixture(scope="class")

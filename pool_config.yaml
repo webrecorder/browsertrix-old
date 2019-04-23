@@ -1,6 +1,14 @@
-default_pool: auto-pool
+default_pool: fixed-pool
 
 pools:
+  - name: fixed-pool
+    type: fixed
+    duration: 300
+    max_size: 10
+    expire_check: 30
+    number_ttl: 30
+    wait_ping_ttl: 30
+
   - name: auto-pool
     type: persist
     duration: 300

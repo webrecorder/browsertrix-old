@@ -1,5 +1,6 @@
-from . import cli
-import browsertrix_cli.crawls
+from browsertrix_cli.basecli import cli
+import browsertrix_cli.crawl
+import browsertrix_cli.profile
 
 
 # ============================================================================

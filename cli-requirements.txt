@@ -1,3 +1,4 @@
 click
+docker
 pyyaml
 requests

@@ -100,7 +100,10 @@ class CrawlProxyApp(FrontEndApp):
     def serve_content(self, environ, *args, **kwargs):
         res = super(CrawlProxyApp, self).serve_content(environ, *args, **kwargs)
 
-        if environ.get('pywb_cache') == 'always' and res.status_headers.statusline.startswith('200'):
+        if (environ.get('pywb_cache') == 'always' and
+            res.status_headers.statusline.startswith('200') and
+            environ.get('HTTP_REFERER')):
+
             res.status_headers.headers.append(('Cache-Control', 'public, max-age=31536000, immutable'))
 
         return res

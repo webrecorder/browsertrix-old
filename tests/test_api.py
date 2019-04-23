@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import fakeredis
 import pytest
+import os
 from mock import patch
 
 from .utils import convert_list_str_to_list, convert_list_str_to_set
@@ -11,7 +12,10 @@ shepherd_api_urls = defaultdict(list)
 shepherd_api_post_datas = defaultdict(list)
 reqid_counter = 0
 
+os.environ['DEFAULT_POOL'] = 'test-pool'
 
+
+# ============================================================================
 async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
     global shepherd_api_urls
     global shepherd_api_post_datas
@@ -72,8 +76,8 @@ class TestCrawlAPI:
 
         # shepherd api urls
         assert shepherd_api_urls['request'] == [
-            '/flock/request/browsers?pool=',
-            '/flock/request/browsers?pool=',
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
         ]
 
     def test_crawl_queue_urls(self):
@@ -145,10 +149,10 @@ class TestCrawlAPI:
 
         # shepherd api urls
         assert shepherd_api_urls['request'] == [
-            '/flock/request/browsers?pool=',
-            '/flock/request/browsers?pool=',
-            '/flock/request/browsers?pool=',
-            '/flock/request/browsers?pool=',
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
         ]
 
 
