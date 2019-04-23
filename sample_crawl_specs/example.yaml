@@ -1,0 +1,11 @@
+crawls:
+  - name: example
+    crawl_type: all-links
+    num_browsers: 1
+
+    coll: example
+    mode: record
+
+    seed_urls:
+      - https://www.iana.org/
+
