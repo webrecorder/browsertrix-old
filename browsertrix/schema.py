@@ -11,12 +11,10 @@ __all__ = [
     'CrawlInfosResponse',
     'CrawlType',
     'CreateCrawlRequest',
-    'CreateNewCrawlResponse',
+    'CreateStartResponse',
     'FullCrawlInfoResponse',
     'OperationSuccessResponse',
     'QueueUrlsRequest',
-    'StartCrawlRequest',
-    'StartCrawlResponse',
 ]
 
 # ============================================================================
@@ -28,15 +26,27 @@ UrlStr.relative = True
 
 
 class CrawlType(str, Enum):
-    single_page = 'single-page'
-    all_links = 'all-links'
-    same_domain = 'same-domain'
-    custom = 'custom'
+    SINGLE_PAGE = 'single-page'
+    ALL_LINKS = 'all-links'
+    SAME_DOMAIN = 'same-domain'
+    CUSTOM = 'custom'
+
+
+class CaptureMode(str, Enum):
+    RECORD = 'record'
+    REPLAY = 'replay'
+    LIVE = 'live'
+
+
+class CacheMode(str, Enum):
+    ALWAYS = 'always'
+    NEVER = 'never'
+    DEFAULT = 'default'
 
 
 class BaseCreateCrawl(BaseModel):
     crawl_type: CrawlType = Schema(
-        CrawlType.single_page, description='What type of crawl should be launched'
+        CrawlType.SINGLE_PAGE, description='What type of crawl should be launched'
     )
     crawl_depth: Optional[int] = None
     num_browsers: int = Schema(
@@ -45,32 +55,38 @@ class BaseCreateCrawl(BaseModel):
     num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
     name: Optional[str] = Schema('', description='User friendly name for the crawl')
     coll: Optional[str] = Schema('live', description='Default Collection')
-    mode: Optional[str] = Schema('record', description='Default Mode')
+
+    mode: CaptureMode = Schema(CaptureMode.RECORD, description='Default Mode')
+
     screenshot_coll: Optional[str] = Schema(
         '', description='Collection to store screenshots, if any'
     )
 
 
-class StartCrawlRequest(BaseModel):
-    browser: Optional[str] = 'chrome:67'
+class CreateCrawlRequest(BaseCreateCrawl):
+    seed_urls: List[UrlStr] = []
+    scopes: List[Dict[Any, Any]] = []
+
+    cache: CacheMode = CacheMode.ALWAYS
+
+    browser: Optional[str] = 'chrome:73'
     user_params: Dict[Any, Any] = dict()
 
-    behavior_run_time: int = 0
+    behavior_time: int = 0
     headless: bool = False
     screenshot_target_uri: Optional[str] = None
+
+    start: bool = True
 
 
 class OperationSuccessResponse(BaseModel):
     success: bool
 
 
-class StartCrawlResponse(OperationSuccessResponse):
-    browsers: List[str]
-
-
-class CreateCrawlRequest(BaseCreateCrawl):
-    start: Optional[StartCrawlRequest]
-    seed_urls: List[UrlStr] = []
+class CreateStartResponse(OperationSuccessResponse):
+    id: str
+    status: str = 'new'
+    browsers: Optional[List[str]]
 
 
 class CrawlInfoResponse(BaseCreateCrawl):
@@ -109,20 +125,14 @@ class CrawlInfo(BaseModel):
 
 
 class CrawlInfoUrlsResponse(BaseModel):
-    scopes: OptionalSet
-    queue: OptionalList
+    scopes: List[Dict[Any, Any]]
+    queue: List[Dict[Any, Any]]
     pending: OptionalList
     seen: OptionalSet
 
 
 class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):
     success: bool
-
-
-class CreateNewCrawlResponse(OperationSuccessResponse):
-    id: str
-    status: str = 'new'
-    browsers: Optional[List[str]]
 
 
 class QueueUrlsRequest(BaseModel):

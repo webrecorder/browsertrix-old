@@ -4,19 +4,7 @@ from starlette.responses import FileResponse, UJSONResponse
 from starlette.staticfiles import StaticFiles
 
 from .crawl import CrawlManager
-from .schema import (
-    CrawlDoneResponse,
-    CrawlInfoResponse,
-    CrawlInfoUrlsResponse,
-    CrawlInfosResponse,
-    CreateCrawlRequest,
-    CreateNewCrawlResponse,
-    FullCrawlInfoResponse,
-    OperationSuccessResponse,
-    QueueUrlsRequest,
-    StartCrawlRequest,
-    StartCrawlResponse,
-)
+from .schema import *
 
 app = FastAPI(debug=True)
 crawl_man = CrawlManager()
@@ -24,7 +12,7 @@ crawl_router = APIRouter()
 
 
 # ============================================================================
-@app.post('/crawls', response_model=CreateNewCrawlResponse, content_type=UJSONResponse)
+@app.post('/crawls', response_model=CreateStartResponse, content_type=UJSONResponse)
 async def create_crawl(new_crawl: CreateCrawlRequest):
     return await crawl_man.create_new(new_crawl)
 
@@ -68,11 +56,11 @@ async def get_full_crawl_info(crawl_id: str):
 
 
 @crawl_router.post(
-    '/{crawl_id}/start', response_model=StartCrawlResponse, content_type=UJSONResponse
+    '/{crawl_id}/start', response_model=CreateStartResponse, content_type=UJSONResponse
 )
-async def start_crawl(crawl_id: str, start_request: StartCrawlRequest):
+async def start_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
-    return await crawl.start(start_request)
+    return await crawl.start()
 
 
 @crawl_router.post(

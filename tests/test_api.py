@@ -2,16 +2,19 @@ from collections import defaultdict
 
 import fakeredis
 import pytest
+import os
 from mock import patch
 
-from .utils import convert_list_str_to_list, convert_list_str_to_set
 
 # ============================================================================
 shepherd_api_urls = defaultdict(list)
 shepherd_api_post_datas = defaultdict(list)
 reqid_counter = 0
 
+os.environ['DEFAULT_POOL'] = 'test-pool'
 
+
+# ============================================================================
 async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
     global shepherd_api_urls
     global shepherd_api_post_datas
@@ -41,21 +44,40 @@ async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
 
 
 # ============================================================================
+@patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
 @pytest.mark.usefixtures('browsertrix_use_fake_redis', 'api_test_client')
 class TestCrawlAPI:
     crawl_id = None
     crawl_id_2 = None
 
+    params = {
+            'browser': 'chrome:67',
+            'screenshot_target_uri': 'file://test',
+            'user_params': {'some': 'value', 'some_int': 7},
+            'behavior_run_time': 30,
+            'headless': False,
+            'start': False,
+            'num_tabs': 2,
+    }
+
     def test_crawl_create(self):
+        params = self.params.copy()
+        params['crawl_type'] = 'all-links'
+        params['name'] = 'First Crawl!'
+
         res = self.client.post(
-            '/crawls', json={'num_tabs': 2,
-                             'crawl_type': 'all-links',
-                             'name': 'First Crawl!'}
+            '/crawls', json=params
         )
 
         res = res.json()
         assert res['success']
         TestCrawlAPI.crawl_id = res['id']
+
+        # shepherd api urls
+        assert shepherd_api_urls['request'] == [
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
+        ]
 
     def test_crawl_queue_urls(self):
         urls = {'urls': ['https://example.com/', 'http://iana.org/']}
@@ -91,7 +113,7 @@ class TestCrawlAPI:
 
         json = res.json()
 
-        assert convert_list_str_to_list(json['queue']) == [
+        assert json['queue'] == [
             {'url': 'https://example.com/', 'depth': 0},
             {'url': 'http://iana.org/', 'depth': 0},
         ]
@@ -103,8 +125,10 @@ class TestCrawlAPI:
         assert json['pending'] == []
 
     def test_crawl_same_domain_scopes(self):
+        params = self.params.copy()
+        params['crawl_type'] = 'same-domain'
         res = self.client.post(
-            '/crawls', json={'num_tabs': 2, 'crawl_type': 'same-domain'}
+            '/crawls', json=params
         )
         assert res.json()['success'] == True
 
@@ -116,11 +140,23 @@ class TestCrawlAPI:
         assert res.json()['success']
 
         res = self.client.get(f'/crawl/{crawl_id}/urls')
-        scopes = convert_list_str_to_set(res.json()['scopes'], lambda x: x['domain'])
-        assert scopes == {'example.com', 'iana.org'}
+        scopes = res.json()['scopes']
+        assert len(scopes) == 2
+        assert {'domain': 'example.com'} in scopes
+        assert {'domain': 'iana.org'} in scopes
 
         # save for deletion
         TestCrawlAPI.crawl_id_2 = crawl_id
+
+        # shepherd api urls
+        assert shepherd_api_urls['request'] == [
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
+            '/flock/request/browsers?pool=test-pool',
+        ]
+
+
 
     def test_get_all_crawls(self):
         res = self.client.get(f'/crawls')
@@ -159,36 +195,14 @@ class TestCrawlAPI:
 
         assert res.json() == {'detail': 'not found'}
 
-    @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_start_crawl(self):
-
-        global shepherd_api_urls
-        shepherd_api_urls.clear()
-
-        global shepherd_api_post_datas
-        shepherd_api_post_datas.clear()
-
-        params = {
-            'browser': 'chrome:67',
-            'screenshot_target_uri': 'file://test',
-            'user_params': {'some': 'value', 'some_int': 7},
-            'behavior_run_time': 30,
-            'headless': False,
-        }
-
-        res = self.client.post(f'/crawl/{self.crawl_id}/start', json=params)
+        res = self.client.post(f'/crawl/{self.crawl_id}/start')
         json = res.json()
 
         assert json['success']
 
         # two browsers started
         assert set(json['browsers']) == {'ID_1', 'ID_2'}
-
-        # shepherd api urls
-        assert shepherd_api_urls['request'] == [
-            '/flock/request/browsers?pool=',
-            '/flock/request/browsers?pool=',
-        ]
 
         assert set(shepherd_api_urls['start']) == {'/flock/start/ID_1', '/flock/start/ID_2'}
 
@@ -206,10 +220,8 @@ class TestCrawlAPI:
             assert data['user_params']['some'] == 'value'
             assert data['user_params']['some_int'] == 7
 
-        assert shepherd_api_post_datas['start'] == [
-            {'environ': {'REQ_ID': 'ID_1'}},
-            {'environ': {'REQ_ID': 'ID_2'}},
-        ]
+        assert {'environ': {'REQ_ID': 'ID_1'}} in shepherd_api_post_datas['start']
+        assert {'environ': {'REQ_ID': 'ID_2'}} in shepherd_api_post_datas['start']
 
     def test_is_done(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/done')
@@ -285,14 +297,12 @@ class TestCrawlAPI:
                                   'https://example.com/',
                                   'https://iana.org/'
                                 ],
-                             'start':
-                                {
-                                  'browser': 'chrome:67',
-                                  'screenshot_target_uri': 'file://test',
-                                  'user_params': {'some': 'value', 'some_int': 7},
-                                  'behavior_run_time': 30,
-                                  'headless': True,
-                                }
+                             'browser': 'chrome:67',
+                             'screenshot_target_uri': 'file://test',
+                             'user_params': {'some': 'value', 'some_int': 7},
+                             'behavior_run_time': 30,
+                             'headless': True,
+                             'start': True,
                              }
 
         )
@@ -311,7 +321,7 @@ class TestCrawlAPI:
         assert json['screenshot_coll'] == 'screen-coll'
         assert json['headless'] == True
 
-        assert len(shepherd_api_post_datas['request']) == 5
+        assert len(shepherd_api_post_datas['request']) == 7
 
         # assert last 3 shepherd api requests were headless
         for data in shepherd_api_post_datas['request'][-3:]:
@@ -329,9 +339,9 @@ class TestCrawlAPI:
         assert set(shepherd_api_urls['stop']) == {
             '/flock/stop/ID_1',
             '/flock/stop/ID_2',
-            '/flock/stop/ID_3',
-            '/flock/stop/ID_4',
             '/flock/stop/ID_5',
+            '/flock/stop/ID_6',
+            '/flock/stop/ID_7',
         }
 
         # no post data for stop

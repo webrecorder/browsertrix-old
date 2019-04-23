@@ -27,9 +27,7 @@ jobs:
         - DOCKER_COMPOSE_VERSION=1.23.2
 
       before_install:
-        - docker pull oldwebtoday/base-browser
-        - docker pull oldwebtoday/chrome:73
-        - docker pull webrecorder/autobrowser
+        - ./install-browsers.sh --headless
         - sudo rm /usr/local/bin/docker-compose
         - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
         - chmod +x docker-compose

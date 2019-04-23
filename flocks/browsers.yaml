@@ -25,7 +25,8 @@ containers:
       DISPLAY: ':99'
       PULSE_SERVER: '/tmp/.X11-unix/pulse-socket'
 
-      PROXY_HOST: 'pywb'
+      #default to no proxy, set by crawler
+      #PROXY_HOST: 'pywb'
       PROXY_PORT: '8080'
       PROXY_CA_URL: 'http://wsgiprox/download/pem'
       PROXY_CA_FILE: '/tmp/proxy-ca.pem'
