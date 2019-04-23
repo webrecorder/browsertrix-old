@@ -85,6 +85,9 @@ The `coll` option specifies the pywb collection to use for crawling, and mode sp
 
 The `num_browsers` and `num_tabs` option allow for selecting total number of browsers and number of tabs per browser to use for this crawl.
 
+Some example crawl configs here are available in: [sample_crawl_specs](sample_crawl_specs/)
+
+
 ### pywb Collections and Access
 
 All data crawled is placed in the `./webarchive/collections/` directory which corresponds to the [standard pywb directory structure conventions](https://pywb.readthedocs.io/en/latest/manual/configuring.html#directory-structure) eg. a collection `test` would be found under `./webarchive/collections/test`.
@@ -119,6 +122,8 @@ Based on the above crawls, one could then query all capture and qa screenshots i
 http://localhost:8180/screenshots-capture/*/urn:screenshot:*
 http://localhost:8180/screenshots-qa/*/urn:screenshot:*
 ```
+
+An example of a replay config is available in the spec: [social-media-replay.yaml](sample_crawl_specs/social-media-replay.yaml)
 
 (The screenshot functionality will likely change and additional options will be added)
 
