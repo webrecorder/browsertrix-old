@@ -21,7 +21,7 @@ COLUMNS = [
     ('start_time', 'STARTED', 12),
     ('status', 'STATUS', 7),
     ('crawl_type', 'CRAWL TYPE', 12),
-    ('coll', 'COLL', 8),
+    ('coll', 'COLL', 16),
     ('mode', 'MODE', 8),
     ('num_queue', 'TO CRAWL', 8),
     ('num_pending', 'PENDING', 8),
@@ -136,6 +136,12 @@ def list_crawls():
     help='Set the capture mode (overrides setting in spec)',
 )
 @click.option(
+    '--screenshot_coll',
+    type=str,
+    default=None,
+    help='Set the collection to save screenshots (overrides setting in spec)',
+)
+@click.option(
     '--headless',
     type=bool,
     is_flag=True,
@@ -156,7 +162,16 @@ def list_crawls():
 )
 @click.argument('crawl_spec_file', type=click.File('rt'))
 def create_crawl(
-    crawl_spec_file, start, browser, profile, coll, mode, headless, behavior_time, watch
+    crawl_spec_file,
+    start,
+    browser,
+    profile,
+    coll,
+    mode,
+    screenshot_coll,
+    headless,
+    behavior_time,
+    watch,
 ):
     """ Create a new crawl!
 
@@ -166,6 +181,7 @@ def create_crawl(
         :param profile: Browser Profile Docker image to use for crawling (overrides "browser" setting)
         :param coll: Set the collection (overrides setting in spec)
         :param mode: Set the capture mode (overrides setting in spec)
+        :param screenshot_coll: Set the collection to save screenshots (overrides setting in spec)
         :param headless: Use headless mode. Browsers can not be opened for watching the crawl
         :param behavior_time: Max duration (in seconds) to run each in-page behavior
         :param watch: Watch all started browsers in a local browser (only if starting crawl)
@@ -196,6 +212,9 @@ def create_crawl(
 
         if mode is not None:
             crawl_spec['mode'] = mode
+
+        if screenshot_coll is not None:
+            crawl_spec['screenshot_coll'] = screenshot_coll
 
         res = sesh_post('/crawls', json=crawl_spec)
 

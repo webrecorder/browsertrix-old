@@ -1,0 +1,22 @@
+crawls:
+  - name: custom-scopes
+    crawl_type: custom
+    num_browsers: 1
+    num_tabs: 1
+
+    crawl_depth: 1
+
+    scopes:
+      - domain: rhizome.org
+      - domain: webrecorder.io
+
+    coll: rhiz_wr
+    mode: record
+    screenshot_coll: screenshots
+
+    seed_urls:
+      - https://rhizome.org/
+
+    behavior_time: 120
+    browser: chrome:73
+
