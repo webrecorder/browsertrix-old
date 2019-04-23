@@ -5,24 +5,8 @@ import fakeredis
 
 __all__ = [
     'AwaitFakeRedis',
-    'convert_list_str_to_list',
-    'convert_list_str_to_set',
     'init_fake_redis',
 ]
-
-PropSelector = Callable[[Dict], Any]
-
-
-def convert_list_str_to_list(
-    list_str: List[str], prop_selector: Optional[PropSelector] = lambda x: x
-) -> List[Any]:
-    return [prop_selector(json.loads(x)) for x in list_str]
-
-
-def convert_list_str_to_set(
-    list_str: List[str], prop_selector: Optional[PropSelector] = lambda x: x
-) -> Set[Any]:
-    return set(prop_selector(json.loads(x)) for x in list_str)
 
 
 class AwaitFakeRedis:

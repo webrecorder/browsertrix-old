@@ -4,12 +4,12 @@ import uuid
 from asyncio import AbstractEventLoop, gather as aio_gather, get_event_loop
 from functools import partial
 from typing import Dict, List, Optional, Union
+import ujson as json
 from urllib.parse import urlsplit
 
 from aiohttp import AsyncResolver, ClientSession, TCPConnector
 from aioredis import Redis
 from starlette.exceptions import HTTPException
-from ujson import dumps as ujson_dumps
 
 import os
 import logging
@@ -68,7 +68,11 @@ class CrawlManager:
         }
 
         self.default_browser = None
-        logger.setLevel(logging.INFO)
+
+        if os.environ.get('DEBUG'):
+            logger.setLevel(logging.DEBUG)
+        else:
+            logger.setLevel(logging.INFO)
 
     async def startup(self) -> None:
         """Initialize the crawler manager's redis connection and
@@ -82,7 +86,7 @@ class CrawlManager:
             connector=TCPConnector(
                 resolver=AsyncResolver(loop=self.loop), loop=self.loop
             ),
-            json_serialize=partial(ujson_dumps, ensure_ascii=False),
+            json_serialize=partial(json.dumps, ensure_ascii=False),
             loop=self.loop,
         )
 
@@ -309,7 +313,7 @@ class Crawl:
             return
 
         for domain in domains:
-            await self.redis.sadd(self.scopes_key, ujson_dumps({'domain': domain}))
+            await self.redis.sadd(self.scopes_key, json.dumps({'domain': domain}))
 
     async def queue_urls(self, urls: List[str]) -> Dict[str, bool]:
         """Adds the supplied list of URLs to this crawls queue
@@ -323,7 +327,7 @@ class Crawl:
 
         for url in urls:
             url_req = {'url': url, 'depth': 0}
-            await self.redis.rpush(self.frontier_q_key, ujson_dumps(url_req))
+            await self.redis.rpush(self.frontier_q_key, json.dumps(url_req))
 
             # add to seen list to avoid dupes
             await self.redis.sadd(self.seen_key, url)
@@ -379,8 +383,11 @@ class Crawl:
             loop=self.loop,
         )
 
+        queue = [json.loads(elem) for elem in queue]
+        scopes = [json.loads(scope) for scope in scopes]
+
         data = {
-            'scopes': list(scopes),
+            'scopes': scopes,
             'queue': queue,
             'pending': list(pending),
             'seen': seen,
@@ -433,7 +440,7 @@ class Crawl:
             crawl_depth = crawl_request.crawl_depth
 
             for scope in crawl_request.scopes:
-                await self.redis.sadd(self.scopes_key, ujson_dumps(scope))
+                await self.redis.sadd(self.scopes_key, json.dumps(scope))
 
         data = {
             'id': self.crawl_id,

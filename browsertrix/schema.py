@@ -125,8 +125,8 @@ class CrawlInfo(BaseModel):
 
 
 class CrawlInfoUrlsResponse(BaseModel):
-    scopes: OptionalSet
-    queue: OptionalList
+    scopes: List[Dict[Any, Any]]
+    queue: List[Dict[Any, Any]]
     pending: OptionalList
     seen: OptionalSet
 

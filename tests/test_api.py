@@ -5,7 +5,6 @@ import pytest
 import os
 from mock import patch
 
-from .utils import convert_list_str_to_list, convert_list_str_to_set
 
 # ============================================================================
 shepherd_api_urls = defaultdict(list)
@@ -114,7 +113,7 @@ class TestCrawlAPI:
 
         json = res.json()
 
-        assert convert_list_str_to_list(json['queue']) == [
+        assert json['queue'] == [
             {'url': 'https://example.com/', 'depth': 0},
             {'url': 'http://iana.org/', 'depth': 0},
         ]
@@ -141,8 +140,10 @@ class TestCrawlAPI:
         assert res.json()['success']
 
         res = self.client.get(f'/crawl/{crawl_id}/urls')
-        scopes = convert_list_str_to_set(res.json()['scopes'], lambda x: x['domain'])
-        assert scopes == {'example.com', 'iana.org'}
+        scopes = res.json()['scopes']
+        assert len(scopes) == 2
+        assert {'domain': 'example.com'} in scopes
+        assert {'domain': 'iana.org'} in scopes
 
         # save for deletion
         TestCrawlAPI.crawl_id_2 = crawl_id
