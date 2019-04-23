@@ -52,7 +52,7 @@ function seedURLsRequired(value, allValues, props) {
   if (value.size === 0) return 'Required';
 }
 
-function CrawlCreationForm({ handleSubmit, valid, submitting }) {
+function CrawlCreationForm({ crawlType, handleSubmit, valid, submitting }) {
   const submitDisabled = !valid || submitting;
   return (
     <form className='uk-form-stacked' onSubmit={handleSubmit} autoComplete='on'>
@@ -81,6 +81,7 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
             name='crawl_depth'
             type='number'
             label='Crawl Depth'
+            props={{ disabled: crawlType !== 'custom' }}
             component={CrawlConfigInputField}
           />
           <Field

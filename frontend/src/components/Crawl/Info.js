@@ -24,7 +24,7 @@ export default class Info extends Component {
     return (
       <>
         <h4 className='uk-text-center'>Queue</h4>
-        <ul className='uk-list uk-flex uk-flex-center'>{q}</ul>
+        <ul className='uk-list uk-flex uk-flex-column uk-flex-center uk-flex-middle'>{q}</ul>
       </>
     );
   }

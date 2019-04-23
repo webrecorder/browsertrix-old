@@ -18,7 +18,7 @@ export function CrawlConfigSelectField({ label, input, meta, children }) {
   );
 }
 
-export function CrawlConfigInputField({ label, type, input, meta }) {
+export function CrawlConfigInputField({ disabled, label, type, input, meta }) {
   const id = `${input.name}-${type}`;
   const className = `uk-input ${meta.valid ? '' : 'uk-form-danger'}`;
   return (
@@ -26,7 +26,7 @@ export function CrawlConfigInputField({ label, type, input, meta }) {
       <label className='uk-form-label' htmlFor={id}>
         {label}
       </label>
-      <input className={className} type={type} size='sm' id={id} {...input} />
+      <input disabled={disabled} className={className} type={type} size='sm' id={id} {...input} />
     </div>
   );
 }
