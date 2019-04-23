@@ -1,31 +1,59 @@
-Browsertrix
-=============================
-[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black)
+# Browsertrix
 
-[![Build Status](https://travis-ci.org/webrecorder/browsertrix.svg?branch=master)](https://travis-ci.org/webrecorder/browsertrix)
+[![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![Build Status](https://travis-ci.org/webrecorder/browsertrix.svg?branch=master)](https://travis-ci.org/webrecorder/browsertrix)
 
+## High Fidelity Browser-Based Crawling Automation
+
+Browsertrix is a brand new system from the Webrecorder project for automating browsers to perform complex scripted behaviors
+as well as crawl multiple pages. (The name was originally used for an older project with similar goals).
+
+Browsertrix uses Docker to manage the operation of multiple Chrome based browsers, operated via the CDP protocol, and uses [pywb](https://github.com/webrecorder/pywb) proxy mode for capture and replay.
+
+It includes the following features:
+* Crawling with different basic scope rules (Single Page, All Links, Same Domain, and custom)
+* Execution of complex domain specific in-page behaviors (provided by [webrecorder/behaviors](https://github.com/webrecorder/behaviors))
+* Capture or replay into designated pywb collections
+* Optional screenshot creation of each page.
+* Support for customized browser profiles to minimize capture of private information.
 
 ## Getting Started
 
-## Running
+### Installing Browsertrix
 
-browsertrix is designed to run with Docker and Docker Compose.
-To run, launch:
+Browsertrix is currently designed to run with Docker and Docker Compose.
+The Browsertrix CLI requires local Python 3.6+
+
+To install, run:
 
 ```bash
-docker-compose build; docker-compuse up -d
+git clone https://github.com/webrecorder/browsertrix
+cd browsertrix
+python setup.py install
+./install-browsers.sh
+docker-compose build
+docker-compuse up -d
 ```
 
-To access the browsertrix frontend, load `http://localhost:8000/`
+The `install-browsers.sh` script installs additional containers necessary for dynamic browser creation.
+The script can be used to update the containers as well.
+
+### Installing Browsertrix CLI
+
+The Browsertrix CLI is installed by running `python setup.py install` and includes full functionality for running crawls and creating browser profiles.
+
+Once installed, browsertrix commands are available via the `browsertrix` command.
+
+
+
 
 ## Testing
 
-Crawlmanager includes several test suites, also tested on automatically via Travis CI.
+Browsertrix includes several test suites, also tested on automatically via Travis CI.
 
 ### Docker Integration Tests
 
-Crawlmanager includes a Docker-based test suite that runs crawls over content replayed from a WARC
-(no live web content is accessed). This requires Python 3.6+
+Browsertrix includes a Docker-based test suite that runs crawls over content replayed from a WARC
+(no live web content is accessed). This test suite requires Python 3.6+.
 
 To run this test suite, run:
 
@@ -47,6 +75,11 @@ py.test ./tests/test_api.py
 ```
 
 ## Frontend
+
+Browsertrix also includes a frontend (still under development) which will
+have the same features as the CLI.
+
+To access the browsertrix frontend, load `http://localhost:8000/`
 
 The frontend React app is found in `./frontend` and can be started via:
 
