@@ -1,6 +1,6 @@
 from browsertrix_cli.basecli import cli
-import browsertrix_cli.crawl
 import browsertrix_cli.profile
+import browsertrix_cli.crawl
 
 
 # ============================================================================

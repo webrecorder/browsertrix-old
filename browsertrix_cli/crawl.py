@@ -1,11 +1,17 @@
 import click
-import requests
-import sys
-import yaml
-import webbrowser
 import datetime
+import sys
+import webbrowser
+import yaml
 
-from browsertrix_cli.basecli import *
+from browsertrix_cli.basecli import (
+    cli,
+    is_quiet,
+    sesh_get,
+    sesh_post,
+    sesh_delete,
+    settings,
+)
 from browsertrix_cli.profile import get_profile_image
 
 

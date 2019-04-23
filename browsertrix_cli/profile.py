@@ -1,10 +1,11 @@
 import click
 import docker
-import requests
-import webbrowser
+import sys
 import time
+import webbrowser
 
-from browsertrix_cli.basecli import *
+
+from browsertrix_cli.basecli import cli, is_quiet, sesh_get, settings
 
 
 # ============================================================================
@@ -76,7 +77,7 @@ def remove_profile(profile):
     full_tag = PROFILE_PREFIX + profile
 
     try:
-        res = docker_api.images.remove(full_tag, force=True, noprune=False)
+        docker_api.images.remove(full_tag, force=True, noprune=False)
         if not is_quiet():
             print('Removed profile "{0}"!'.format(profile))
 
