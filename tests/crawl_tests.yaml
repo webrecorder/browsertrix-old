@@ -13,7 +13,7 @@ crawls:
       - https://twitter.com/webrecorder_io
       - https://instagram.com/rhizomedotorg
 
-    behavior_time: 20
+    behavior_max_time: 20
     browser: chrome:73
 
     # params for test only
@@ -30,7 +30,7 @@ crawls:
     seed_urls:
       - https://www.iana.org/domains/reserved
 
-    behavior_time: 60
+    behavior_max_time: 60
     browser: chrome:73
 
     # params for test only
@@ -51,7 +51,7 @@ crawls:
       - https://rhizome.org/
       - https://youtube.com/watch?v=aT-Up5Y4uRI
 
-    behavior_time: 60
+    behavior_max_time: 60
     browser: chrome:73
 
     # params for test only

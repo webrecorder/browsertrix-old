@@ -6,14 +6,12 @@ services:
         build:
             context: ../
 
-        # add debug logging
-        command: uvicorn --reload --host 0.0.0.0 --port 8000 browsertrix.api:app --log-level debug
-
         environment:
             - REDIS_URL=redis://redis/0
             - DEFAULT_POOL=auto-pool
             - SCREENSHOT_API_URL=http://pywb:8080/screenshot/{coll}
             - PROXY_HOST=pywb
+            - DEBUG=1
 
         depends_on:
             - redis

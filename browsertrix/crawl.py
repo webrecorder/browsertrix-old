@@ -14,8 +14,6 @@ from starlette.exceptions import HTTPException
 import os
 import logging
 
-logger = logging.getLogger('browsertrix')
-
 import time
 
 from .schema import CrawlInfo, CreateCrawlRequest, CrawlType
@@ -27,6 +25,8 @@ __all__ = ['Crawl', 'CrawlManager']
 
 
 DEFAULT_REDIS_URL = 'redis://localhost'
+
+logger = logging.getLogger('browsertrix')
 
 
 # ============================================================================
@@ -484,8 +484,8 @@ class Crawl:
         if crawl_request.cache == CacheMode.NEVER:
             environ['CRAWL_NO_NETCACHE'] = '1'
 
-        if crawl_request.behavior_time > 0:
-            environ['BEHAVIOR_RUN_TIME'] = crawl_request.behavior_time
+        if crawl_request.behavior_max_time > 0:
+            environ['BEHAVIOR_RUN_TIME'] = crawl_request.behavior_max_time
 
         if crawl_request.screenshot_target_uri:
             environ['SCREENSHOT_TARGET_URI'] = crawl_request.screenshot_target_uri

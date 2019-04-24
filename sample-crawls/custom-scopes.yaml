@@ -17,6 +17,6 @@ crawls:
     seed_urls:
       - https://rhizome.org/
 
-    behavior_time: 120
+    behavior_max_time: 120
     browser: chrome:73
 

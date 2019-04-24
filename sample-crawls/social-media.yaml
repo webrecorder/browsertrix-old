@@ -5,14 +5,13 @@ crawls:
     num_tabs: 1
 
     coll: social-media
-    mode: replay
-    screenshots_coll: screenshots-qa
+    mode: record
 
     seed_urls:
       - https://twitter.com/webrecorder_io
       - https://instagram.com/rhizomedotorg
 
-    behavior_time: 300
+    behavior_max_time: 300
     browser: chrome:73
 
     cache: default
