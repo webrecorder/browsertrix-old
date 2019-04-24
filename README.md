@@ -85,9 +85,9 @@ To get more detailed info on the crawl, run `browsertrix crawl info --urls <craw
 
 Browsertrix supports a number of options, with a key option being the `crawl_type`, which can be:
 
-- `single-page` = crawl only the specified page
-- `all-links` = crawl all links on this page
-- `same-domain` = crawl all links within this domain (upto a depth of 100)
+- `single-page` -- crawl only the specified page
+- `all-links` -- crawl all links on this page
+- `same-domain` -- crawl all links within this domain (upto a depth of 100)
 - `custom` = Supports custom depth and scope rules!
 
 The first 3 options are designed to be a simple way to specify common options, and more may be added later.
@@ -106,11 +106,12 @@ The `num_browsers` and `num_tabs` option allow for selecting total number of bro
 
 The seed urls for the crawl should be provided in the `seed_urls` list.
 
-The `cache` option specifies cacheing options for a crawl, and defaults to `always`, which should limit duplicate urls
-in a single browser session. `default` uses default cacheing for a page, and `never` disables all cacheing for all urls,
-resulting in a new fetch every time.
+The `cache` option specifies cacheing options for a crawl, with available options:
+- `always` -- Strict cacheing via `Cache-Control` on almost every resource to limit duplicate urls in a single browser session (default option when omitted)
+- `default` -- Keep default cacheing for a page
+- `never` -- disables all cacheing for all urls.
 
-All example crawl configs are available in: [sample_crawl_specs](sample_crawl_specs/)
+All example crawl configs demonstrating these options are available in: [sample_crawl_specs](sample_crawl_specs/)
 
 ### In-Page Behaviors
 
@@ -239,6 +240,8 @@ pip install -U -r test-docker-requirements.txt
 py.test --headless ./tests/test_live_crawl.py
 bash ./tests/stop-test-compose.sh
 ```
+
+The test suite does not perform any live crawling, but runs all the [tests/crawl_tests.yaml](tests/crawl_tests.yaml) in replay mode using an existing test WARC downloaded from S3.
 
 ### Local API Tests
 
