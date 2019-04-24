@@ -7,7 +7,7 @@
 Browsertrix is a brand new toolset from the Webrecorder project for automating browsers to perform complex scripted behaviors
 as well as crawl multiple pages. (The name was originally used for an older project with similar goals).
 
-Browsertrix is a system for orchestrating Docker-based Chrome browsers, crawlers, behavior systems and web archiving capture and replay.
+Browsertrix is a system for orchestrating Docker-based Chrome browsers, crawling processes, behavior systems and web archiving capture and replay.
 
 It includes the following features:
 * Crawling via customiazable YAML-based crawl spec
@@ -86,9 +86,9 @@ To get more detailed info on the crawl, run `browsertrix crawl info --urls <craw
 
 Browsertrix supports a number of options, with a key option being the `crawl_type`, which can be:
 
-- `single-page` -- crawl only the specified page
-- `all-links` -- crawl all links on this page
-- `same-domain` -- crawl all links within this domain (upto a depth of 100)
+- `single-page` -- crawl only the specified seed urls
+- `all-links` -- crawl the seed urls and all links from the seed (depth of 1)
+- `same-domain` -- crawl all links within the seed url domain and subdomains (upto a depth of 100)
 - `custom` -- Supports custom depth and scope rules!
 
 The first 3 options are designed to be a simple way to specify common options, and more may be added later.

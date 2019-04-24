@@ -28,7 +28,7 @@ setup(
         'browsertrix_cli',
         ],
     install_requires=load_requirements('cli-requirements.txt'),
-    zip_safe=True,
+    zip_safe=False,
     entry_points="""
         [console_scripts]
         browsertrix=browsertrix_cli.main:cli

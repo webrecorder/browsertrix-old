@@ -22,7 +22,7 @@ def get_profile_image(profile):
     try:
         global docker_api
         if not docker_api:
-            docker_api = docker.from_env()
+            docker_api = docker.from_env(version='auto')
 
         image_name = PROFILE_PREFIX + profile
         image = docker_api.images.get(image_name)
@@ -39,7 +39,7 @@ def get_profile_image(profile):
 @cli.group(help='Commands for creating/removing browser profiles')
 def profile():
     global docker_api
-    docker_api = docker.from_env()
+    docker_api = docker.from_env(version='auto')
 
 
 # ============================================================================
@@ -131,7 +131,10 @@ def create_profile(browser):
         }
 
         res = curr_browser.commit(
-            PROFILE_PREFIX + profile_name, message='Browser Profile', conf=conf
+            repository=PROFILE_PREFIX[:-1],
+            tag=profile_name,
+            message='Browser Profile',
+            conf=conf,
         )
 
         if not is_quiet():
