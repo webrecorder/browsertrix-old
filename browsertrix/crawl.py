@@ -14,8 +14,6 @@ from starlette.exceptions import HTTPException
 import os
 import logging
 
-logger = logging.getLogger('browsertrix')
-
 import time
 
 from .schema import CrawlInfo, CreateCrawlRequest, CrawlType
@@ -27,6 +25,8 @@ __all__ = ['Crawl', 'CrawlManager']
 
 
 DEFAULT_REDIS_URL = 'redis://localhost'
+
+logger = logging.getLogger('browsertrix')
 
 
 # ============================================================================

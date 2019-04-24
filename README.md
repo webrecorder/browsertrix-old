@@ -4,15 +4,16 @@
 
 ## High Fidelity Browser-Based Crawling Automation
 
-Browsertrix is a brand new system from the Webrecorder project for automating browsers to perform complex scripted behaviors
+Browsertrix is a brand new toolset from the Webrecorder project for automating browsers to perform complex scripted behaviors
 as well as crawl multiple pages. (The name was originally used for an older project with similar goals).
 
-Browsertrix uses Docker to manage the operation of multiple Chrome based browsers, operated via the Chrome Debug Protocol (CDP), and uses [pywb](https://github.com/webrecorder/pywb) proxy mode for capture and replay.
+Browsertrix is a system for orchestrating Docker-based Chrome browsers, crawlers, behavior systems and web archiving capture and replay.
 
 It includes the following features:
-* Crawling with different basic scope rules (Single Page, All Links, Same Domain, and custom)
-* Execution of complex domain specific in-page behaviors (provided by [webrecorder/behaviors](https://github.com/webrecorder/behaviors))
-* Capture or replay into designated pywb collections
+* Crawling via customiazable YAML-based crawl spec
+* High-fidelity browser-based crawlers (controlled via [webrecorder/autobrowser](https://github.com/webrecorder/autobrowser))
+* Execution of complex, domain-specific in-page behaviors (provided by [webrecorder/behaviors](https://github.com/webrecorder/behaviors))
+* Capture or replay into designated [pywb]((https://github.com/webrecorder/pywb) collections
 * Optional screenshot creation of each page.
 * Support for customized browser profiles to minimize capture of private information.
 
