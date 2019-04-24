@@ -89,7 +89,10 @@ export function crawlsReducer(state = Map({}), { type, payload, meta }) {
         crawl.crawlRunning(payload.browsers)
       );
     case ActionTypes.stop:
-      return crawl.crawlStopped();
+      if (!state.has(payload.id)) return state;
+      return state.updateIn([payload.id], crawl =>
+        crawl.crawlStopped()
+      );
     case ActionTypes.deleteCrawl:
       return state.delete(payload.id);
     case ActionTypes.addURLs:
