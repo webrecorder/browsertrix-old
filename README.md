@@ -214,7 +214,7 @@ PROFILE           BASE BROWSER
 logged-in         chrome:73
 ```
 
-5. To use the profile, set the `profile: ` property in the crawl spec YAML, or add it to the command line:
+5. To use the profile, set the `profile` property in the crawl spec YAML, or simply include `--profile` in the command line:
 
 ```
 browsertrix crawl create ./my_crawl.yaml --profile logged-in
