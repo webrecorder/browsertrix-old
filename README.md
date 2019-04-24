@@ -89,7 +89,7 @@ Browsertrix supports a number of options, with a key option being the `crawl_typ
 - `single-page` -- crawl only the specified page
 - `all-links` -- crawl all links on this page
 - `same-domain` -- crawl all links within this domain (upto a depth of 100)
-- `custom` = Supports custom depth and scope rules!
+- `custom` -- Supports custom depth and scope rules!
 
 The first 3 options are designed to be a simple way to specify common options, and more may be added later.
 
@@ -172,8 +172,10 @@ Sample record and replay configs, [social-media.yaml](sample-crawls/social-media
 
 ### Other Crawl operations
 
-Browsertrix also includes other operations, such as `browsertrix stop` for stopping a crawl,
-and `browsertrix watch <crawl_id>` for attaching and watching all the browsers in a given crawl.
+Other crawl operations include:
+* `browsertrix crawl stop` for stopping a crawl
+* `browsertrix crawl watch <crawl_id>` for attaching and watching all the browsers in a given crawl.
+* `browsertrix crawl remove-all` for stopping and removing all crawls.
 
 See `browsertrix crawl -h` for a complete reference of available commands.
 
