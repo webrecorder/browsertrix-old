@@ -34,8 +34,8 @@ docker-compose build
 docker-compuse up -d
 ```
 
-The `install-browsers.sh` script installs additional containers necessary for dynamic browser creation.
-The script can be used to update the containers as well.
+The `install-browsers.sh` script installs additional Docker images necessary for dynamic browser creation.
+The script can be used to update the images as well.
 
 ### Installing Browsertrix CLI
 
@@ -46,7 +46,7 @@ Once installed, browsertrix commands are available via the `browsertrix` command
 ## Creating a Crawl
 
 To create a crawl, first a crawl spec should be defined in a yaml file.
-A simple spec, [sample_crawl_specs/example.yaml](sample_crawl_specs/example.yaml) might look as follows:
+An example spec, [sample_crawl_specs/example.yaml](sample_crawl_specs/example.yaml) might look as follows:
 
 ```yaml
 crawls:
@@ -112,6 +112,22 @@ resulting in a new fetch every time.
 
 All example crawl configs are available in: [sample_crawl_specs](sample_crawl_specs/)
 
+### In-Page Behaviors
+
+For every page, Browsertrix runs a designated behavior before collecting outlinks, (optionally) taking screenshots,
+and moving on to the next page.
+
+The behaviors are served via a separate behavior API server. The current list of available behaviors is available at:
+https://github.com/webrecorder/behaviors/tree/master/behaviors
+
+The behaviors are built using a special library of behavior functions (preliminary docs available here:
+http://blog.webrecorder.io/behaviors/)
+
+If no site-specific behavior is found, the default `autoscroll.js`
+
+The `behavior_max_time` crawl option specifies the maximum time a behavior can run (current default is 60 seconds). 
+When crawling sites with infinite scroll, it is recommended to set the `behavior_max_time` to be much higher.
+
 
 ### pywb Collections and Access
 
@@ -176,7 +192,7 @@ To create a profile:
 
 2. This should start a new remote browser (Chrome 73 by default) and open it in a new window. You can now interact with the browser and log in to any sites as needed.
 
-3. The command line should have the following message and a prompt to enter the profile name, eg. `social-media-logged-in`
+3. The command line should have the following message and a prompt to enter the profile name, eg. `logged-in`
 
 ```
 A new browser window should have been opened
@@ -187,14 +203,22 @@ When done, please enter a new name to save the browser profile:
 
 4. Once the name is entered the profile is saved, and you can continue browsing to make a new profile, or select 'no' and close the browser.
 
-To use the profile, set the `profile: ` property in the crawl spec YAML, or add it to the command line:
+   If everything worked, running ```browsertrix profile list``` should show:
+
 ```
-browsertrix crawl create ./my_crawl.yaml --profile social-media-logged-in
+PROFILE           BASE BROWSER
+logged-in         chrome:73
+```
+
+5. To use the profile, set the `profile: ` property in the crawl spec YAML, or add it to the command line:
+
+```
+browsertrix crawl create ./my_crawl.yaml --profile logged-in
 ```
 
 The browsers used for the crawl will be a copy of the browser saved during profile creation.
 
-`browsertrix profile list` and `browsertrix profile remove` allow for profile listing and removal, respectively.
+`browsertrix profile remove` can be used to remove an unneeded profile.
 
 Note: The profile functionality is brand new and subject to change. At present, it is tied to the particular browser Docker image used an extend the image. The system may switch to Docker volumes in the future.
 
