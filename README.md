@@ -7,7 +7,7 @@
 Browsertrix is a brand new system from the Webrecorder project for automating browsers to perform complex scripted behaviors
 as well as crawl multiple pages. (The name was originally used for an older project with similar goals).
 
-Browsertrix uses Docker to manage the operation of multiple Chrome based browsers, operated via the CDP protocol, and uses [pywb](https://github.com/webrecorder/pywb) proxy mode for capture and replay.
+Browsertrix uses Docker to manage the operation of multiple Chrome based browsers, operated via the Chrome Debug Protocol (CDP), and uses [pywb](https://github.com/webrecorder/pywb) proxy mode for capture and replay.
 
 It includes the following features:
 * Crawling with different basic scope rules (Single Page, All Links, Same Domain, and custom)
@@ -21,7 +21,7 @@ It includes the following features:
 ### Installing Browsertrix
 
 Browsertrix is currently designed to run with Docker and Docker Compose.
-The Browsertrix CLI requires local Python 3.6+
+The Browsertrix CLI requires local Python 3.6+.
 
 To install, run:
 
@@ -46,38 +46,57 @@ Once installed, browsertrix commands are available via the `browsertrix` command
 ## Creating a Crawl
 
 To create a crawl, first a crawl spec should be defined in a yaml file.
-A simple spec, ``example_spec.yaml`` might look as follows:
+A simple spec, [sample_crawl_specs/example.yaml](sample_crawl_specs/example.yaml) might look as follows:
 
 ```yaml
 crawls:
-  - name: test-crawl
-    crawl_type: single-page
+  - name: example
+    crawl_type: all-links
     num_browsers: 1
 
     coll: example
     mode: record
 
     seed_urls:
-      - http://example.com/
+      - https://www.iana.org/
 ```
 
-Then, simply run `browsertrix crawl create example_spec.yaml --watch`
+Then, simply run `browsertrix crawl create sample_crawl_specs/example.yaml --watch`
 
-The `--watch` param will also result in the crawling browser opening in a new browser window via VNC.
+The `--watch` param will also result in the crawling browser opening in a new browser window via vnc connection.
 
-The spec may have multiple crawls defined and all be started.
+If started successfully, the output will be similar to:
+```
+Crawl Created and Started: cf30281efc7a
+Status: running
+Opening Browser 1 of 1 (CKVEMACNI6YBUKLQI6UKKBLB) for crawl cf30281efc7a
+```
+
+To view all running crawls, simply run `browsertrix crawl list` which should result in output similar to:
+
+```
+CRAWL ID      NAME          STARTED       STATUS   CRAWL TYPE    COLL              MODE      TO CRAWL  PENDING   SEEN      BROWSERS   TABS  
+cf30281efc7a  example       0:00:35 ago   running  all-links     example           record    15        1         25        1          1    
+```
+
+To get more detailed info on the crawl, run `browsertrix crawl info --urls <crawl_id>` (where `<crawl_id> = cf30281efc7a` in this example)
 
 ### Crawling Options
 
 Browsertrix supports a number of options, with a key option being the `crawl_type`, which can be:
 
-- `single-page = crawl only the specified page
+- `single-page` = crawl only the specified page
 - `all-links` = crawl all links on this page
 - `same-domain` = crawl all links within this domain (upto a depth of 100)
 - `custom` = Supports custom depth and scope rules!
 
+The first 3 options are designed to be a simple way to specify common options, and more may be added later.
+
 When using `custom`, the `crawl_depth` param can specify the crawl depth (hops) from each seed url.
+
 The `scopes` list can contain one or more [urlcanon MatchRules](https://github.com/iipc/urlcanon/blob/master/python/urlcanon/rules.py#L70) specifying urls that are in scope for the crawl.
+
+See [custom-scopes.yaml](sample_crawl_spec/custom-scopes.yaml) for an example on how to use the custom option.
 
 
 The `coll` option specifies the pywb collection to use for crawling, and mode specifies `record` (default) or `replay` or
@@ -85,7 +104,13 @@ The `coll` option specifies the pywb collection to use for crawling, and mode sp
 
 The `num_browsers` and `num_tabs` option allow for selecting total number of browsers and number of tabs per browser to use for this crawl.
 
-Some example crawl configs here are available in: [sample_crawl_specs](sample_crawl_specs/)
+The seed urls for the crawl should be provided in the `seed_urls` list.
+
+The `cache` option specifies cacheing options for a crawl, and defaults to `always`, which should limit duplicate urls
+in a single browser session. `default` uses default cacheing for a page, and `never` disables all cacheing for all urls,
+resulting in a new fetch every time.
+
+All example crawl configs are available in: [sample_crawl_specs](sample_crawl_specs/)
 
 
 ### pywb Collections and Access
@@ -102,7 +127,7 @@ Browsertrix supports crawling in replay mode, over an existing collection, which
 especially when combined with screenshot creation.
 
 By adding the `screenshot_coll` property to each crawl, Browsertrix will also create a screenshot of each page.
-Additional screenshot options are to be added soon! (Currently, the screenshot is taken after the behavior is run).
+Additional screenshot options are to be added soon. (Currently, the screenshot is taken after the behavior is run but this will likely change).
 
 Crawl options can also be overriden via command line.
 
@@ -123,16 +148,16 @@ http://localhost:8180/screenshots-capture/*/urn:screenshot:*
 http://localhost:8180/screenshots-qa/*/urn:screenshot:*
 ```
 
-An example of a replay config is available in the spec: [social-media-replay.yaml](sample_crawl_specs/social-media-replay.yaml)
+Sample record and replay configs, [social-media.yaml](sample_crawl_specs/social-media.yaml) and [social-media-replay.yaml](sample_crawl_specs/social-media-replay.yaml), are also available.
 
-(The screenshot functionality will likely change and additional options will be added)
+(Note: The screenshot functionality will likely change and additional options will be added)
 
 ### Other Crawl operations
 
-Browsertrix also includes other operations, such as `browsertrix list` for listing crawls,
+Browsertrix also includes other operations, such as `browsertrix stop` for stopping a crawl,
 and `browsertrix watch <crawl_id>` for attaching and watching all the browsers in a given crawl.
 
-See `browsertrix crawl -h` for a complete reference of availablecommands
+See `browsertrix crawl -h` for a complete reference of available commands.
 
 
 ## Browser Profiles
@@ -151,7 +176,7 @@ To create a profile:
 
 2. This should start a new remote browser (Chrome 73 by default) and open it in a new window. You can now interact with the browser and log in to any sites as needed.
 
-3. The command line should have the following message and a prompt to enter the profile name, eg. `social-media`
+3. The command line should have the following message and a prompt to enter the profile name, eg. `social-media-logged-in`
 
 ```
 A new browser window should have been opened
@@ -164,7 +189,7 @@ When done, please enter a new name to save the browser profile:
 
 To use the profile, set the `profile: ` property in the crawl spec YAML, or add it to the command line:
 ```
-browsertrix crawl create ./my_crawl.yaml --profile social-media
+browsertrix crawl create ./my_crawl.yaml --profile social-media-logged-in
 ```
 
 The browsers used for the crawl will be a copy of the browser saved during profile creation.
