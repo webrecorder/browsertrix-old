@@ -2,21 +2,26 @@ import { fromJS, List, Map, Record } from 'immutable';
 import { ActionTypes } from '../actions/crawls';
 
 export class CrawlRecord extends Record({
-  crawl_type: '',
-  crawl_depth: 0,
-  num_browsers: 0,
-  num_tabs: 0,
-  scopes: [],
-  queue: [],
-  pending: [],
-  seen: [],
-  id: '',
+  behavior_max_time: 60,
   browser: 'chrome:67',
   browsers: [],
   browsersDone: [],
+  crawl_type: '',
+  crawl_depth: 0,
+  id: '',
+  mode: '',
+  num_browsers: 0,
+  num_queue: 0,
+  num_pending: 0,
+  num_seen: 0,
+  num_tabs: 0,
+  name: '',
+  pending: [],
+  queue: [],
   running: false,
-  status: 'new',
-  behavior_run_time: 60
+  scopes: [],
+  seen: [],
+  status: 'new'
 }) {
   updateBrowsers(browsers) {
     const existingBrowsers = this.browsers;
@@ -32,10 +37,17 @@ export class CrawlRecord extends Record({
     });
   }
 
+  crawlStopped() {
+    return this.merge({
+      running: false,
+      status: 'stopped'
+    });
+  }
+
   startCrawlConfig() {
     return {
       browser: this.browser,
-      behavior_run_time: this.behavior_run_time,
+      behavior_max_time: this.behavior_max_time,
       headless: this.headless
     };
   }
@@ -76,6 +88,8 @@ export function crawlsReducer(state = Map({}), { type, payload, meta }) {
       return state.updateIn([payload.id], crawl =>
         crawl.crawlRunning(payload.browsers)
       );
+    case ActionTypes.stop:
+      return crawl.crawlStopped();
     case ActionTypes.deleteCrawl:
       return state.delete(payload.id);
     case ActionTypes.addURLs:
@@ -91,7 +105,7 @@ export function crawlsReducer(state = Map({}), { type, payload, meta }) {
           if (!crec) {
             mutable.set(rawCrawl.id, new CrawlRecord(rawCrawl));
           } else {
-            mutable.set(rawCrawl.id, crec.mergeDeep(rawCrawl));
+            mutable.set(rawCrawl.id, crec.merge(rawCrawl));
           }
         }
         return mutable;

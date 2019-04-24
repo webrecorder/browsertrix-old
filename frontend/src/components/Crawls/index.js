@@ -34,6 +34,9 @@ class Crawls extends Component {
   componentDidUpdate() {
     if (this.props.crawls.size > 0 && !this.handle) {
       this.autoUpdate();
+    } else if (this.props.crawls.size === 0 && this.handle) {
+      clearInterval(this.handle);
+      this.handle = null;
     }
   }
 
