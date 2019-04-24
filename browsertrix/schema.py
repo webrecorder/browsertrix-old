@@ -72,7 +72,7 @@ class CreateCrawlRequest(BaseCreateCrawl):
     browser: Optional[str] = 'chrome:73'
     user_params: Dict[Any, Any] = dict()
 
-    behavior_time: int = 0
+    behavior_max_time: int = 0
     headless: bool = False
     screenshot_target_uri: Optional[str] = None
 

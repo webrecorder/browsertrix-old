@@ -46,7 +46,7 @@ Once installed, browsertrix commands are available via the `browsertrix` command
 ## Creating a Crawl
 
 To create a crawl, first a crawl spec should be defined in a yaml file.
-An example spec, [sample_crawl_specs/example.yaml](sample_crawl_specs/example.yaml) might look as follows:
+An example spec, [sample-crawls/example.yaml](sample-crawls/example.yaml) might look as follows:
 
 ```yaml
 crawls:
@@ -61,7 +61,7 @@ crawls:
       - https://www.iana.org/
 ```
 
-Then, simply run `browsertrix crawl create sample_crawl_specs/example.yaml --watch`
+Then, simply run `browsertrix crawl create sample-crawls/example.yaml --watch`
 
 The `--watch` param will also result in the crawling browser opening in a new browser window via vnc connection.
 
@@ -111,7 +111,7 @@ The `cache` option specifies cacheing options for a crawl, with available option
 - `default` -- Keep default cacheing for a page
 - `never` -- disables all cacheing for all urls.
 
-All example crawl configs demonstrating these options are available in: [sample_crawl_specs](sample_crawl_specs/)
+All example crawl configs demonstrating these options are available in: [sample-crawls](sample-crawls/)
 
 ### In-Page Behaviors
 
@@ -165,7 +165,7 @@ http://localhost:8180/screenshots-capture/*/urn:screenshot:*
 http://localhost:8180/screenshots-qa/*/urn:screenshot:*
 ```
 
-Sample record and replay configs, [social-media.yaml](sample_crawl_specs/social-media.yaml) and [social-media-replay.yaml](sample_crawl_specs/social-media-replay.yaml), are also available.
+Sample record and replay configs, [social-media.yaml](sample-crawls/social-media.yaml) and [social-media-replay.yaml](sample-crawls/social-media-replay.yaml), are also available.
 
 (Note: The screenshot functionality will likely change and additional options will be added)
 
