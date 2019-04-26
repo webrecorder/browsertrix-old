@@ -577,11 +577,11 @@ class Crawl:
             return {'done': False}
 
         # if frontier not empty, not done
-        #if await self.redis.llen(self.frontier_q_key) > 0:
+        # if await self.redis.llen(self.frontier_q_key) > 0:
         #    return {'done': False}
 
         # if pending q not empty, not done
-        #if await self.redis.scard(self.pending_q_key) > 0:
+        # if await self.redis.scard(self.pending_q_key) > 0:
         #    return {'done': False}
 
         # if not all browsers are done, not done

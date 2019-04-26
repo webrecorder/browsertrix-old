@@ -41,7 +41,9 @@ async def get_crawl(crawl_id: str):
 
 
 @crawl_router.get(
-    '/{crawl_id}/urls', response_model=CrawlInfoUrlsResponse, response_class=UJSONResponse
+    '/{crawl_id}/urls',
+    response_model=CrawlInfoUrlsResponse,
+    response_class=UJSONResponse,
 )
 async def get_crawl_urls(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -49,14 +51,18 @@ async def get_crawl_urls(crawl_id: str):
 
 
 @crawl_router.get(
-    '/{crawl_id}/info', response_model=FullCrawlInfoResponse, response_class=UJSONResponse
+    '/{crawl_id}/info',
+    response_model=FullCrawlInfoResponse,
+    response_class=UJSONResponse,
 )
 async def get_full_crawl_info(crawl_id: str):
     return await crawl_man.get_full_crawl_info(crawl_id)
 
 
 @crawl_router.post(
-    '/{crawl_id}/start', response_model=CreateStartResponse, response_class=UJSONResponse
+    '/{crawl_id}/start',
+    response_model=CreateStartResponse,
+    response_class=UJSONResponse,
 )
 async def start_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)

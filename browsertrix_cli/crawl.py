@@ -103,15 +103,18 @@ def print_logs(browsers, follow=False, wait=False):
 def open_browsers(browsers, crawl_id, tabs_done=None, num_tabs=-1):
     count = 1
     for reqid in browsers:
-        if tabs_done and tabs_done.get(reqid) != num_tabs:
+        skip = False
+        if not tabs_done or tabs_done.get(reqid) != num_tabs:
             msg = 'Opening Browser {0} of {1} ({2}) for crawl {3}'
         else:
             msg = 'Skipping Finished Browser {0} of {1}, ({2}) for crawl {3}'
+            skip = True
 
         if not is_quiet():
             print(msg.format(count, len(browsers), reqid, crawl_id))
 
-        webbrowser.open(settings.view_browsers_prefix + reqid)
+        if not skip:
+            webbrowser.open(settings.view_browsers_prefix + reqid)
         count += 1
 
 
@@ -368,7 +371,6 @@ def watch_crawl(crawl_id):
                 print('No Browsers')
                 continue
 
-        print(done_count, res['num_tabs'])
         open_browsers(browsers, id_, done_count, res['num_tabs'])
 
 
@@ -455,7 +457,6 @@ def logs(crawl_id, browser, follow):
     :param follow: follow crawl log in real-time (for one browser only)
     """
     res = sesh_get('/crawl/{0}'.format(crawl_id))
-
 
     num_browsers = len(res['browsers'])
     if browser <= 0:
