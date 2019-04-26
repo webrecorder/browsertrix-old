@@ -12,12 +12,12 @@ crawl_router = APIRouter()
 
 
 # ============================================================================
-@app.post('/crawls', response_model=CreateStartResponse, content_type=UJSONResponse)
+@app.post('/crawls', response_model=CreateStartResponse, response_class=UJSONResponse)
 async def create_crawl(new_crawl: CreateCrawlRequest):
     return await crawl_man.create_new(new_crawl)
 
 
-@app.get('/crawls', response_model=CrawlInfosResponse, content_type=UJSONResponse)
+@app.get('/crawls', response_model=CrawlInfosResponse, response_class=UJSONResponse)
 async def get_all_crawls():
     return await crawl_man.get_all_crawls()
 
@@ -25,7 +25,7 @@ async def get_all_crawls():
 @crawl_router.put(
     '/{crawl_id}/urls',
     response_model=OperationSuccessResponse,
-    content_type=UJSONResponse,
+    response_class=UJSONResponse,
 )
 async def queue_urls(crawl_id: str, url_list: QueueUrlsRequest):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -33,7 +33,7 @@ async def queue_urls(crawl_id: str, url_list: QueueUrlsRequest):
 
 
 @crawl_router.get(
-    '/{crawl_id}', response_model=CrawlInfoResponse, content_type=UJSONResponse
+    '/{crawl_id}', response_model=CrawlInfoResponse, response_class=UJSONResponse
 )
 async def get_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -41,7 +41,7 @@ async def get_crawl(crawl_id: str):
 
 
 @crawl_router.get(
-    '/{crawl_id}/urls', response_model=CrawlInfoUrlsResponse, content_type=UJSONResponse
+    '/{crawl_id}/urls', response_model=CrawlInfoUrlsResponse, response_class=UJSONResponse
 )
 async def get_crawl_urls(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -49,14 +49,14 @@ async def get_crawl_urls(crawl_id: str):
 
 
 @crawl_router.get(
-    '/{crawl_id}/info', response_model=FullCrawlInfoResponse, content_type=UJSONResponse
+    '/{crawl_id}/info', response_model=FullCrawlInfoResponse, response_class=UJSONResponse
 )
 async def get_full_crawl_info(crawl_id: str):
     return await crawl_man.get_full_crawl_info(crawl_id)
 
 
 @crawl_router.post(
-    '/{crawl_id}/start', response_model=CreateStartResponse, content_type=UJSONResponse
+    '/{crawl_id}/start', response_model=CreateStartResponse, response_class=UJSONResponse
 )
 async def start_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -66,7 +66,7 @@ async def start_crawl(crawl_id: str):
 @crawl_router.post(
     '/{crawl_id}/stop',
     response_model=OperationSuccessResponse,
-    content_type=UJSONResponse,
+    response_class=UJSONResponse,
 )
 async def stop_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -74,7 +74,7 @@ async def stop_crawl(crawl_id: str):
 
 
 @crawl_router.get(
-    '/{crawl_id}/done', response_model=CrawlDoneResponse, content_type=UJSONResponse
+    '/{crawl_id}/done', response_model=CrawlDoneResponse, response_class=UJSONResponse
 )
 async def is_done_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
@@ -82,7 +82,7 @@ async def is_done_crawl(crawl_id: str):
 
 
 @crawl_router.delete(
-    '/{crawl_id}', response_model=OperationSuccessResponse, content_type=UJSONResponse
+    '/{crawl_id}', response_model=OperationSuccessResponse, response_class=UJSONResponse
 )
 async def delete_crawl(crawl_id: str):
     crawl = await crawl_man.load_crawl(crawl_id)
