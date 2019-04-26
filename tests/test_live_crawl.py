@@ -17,7 +17,7 @@ class TestCrawls(object):
         for crawl_id in cls.all_crawl_ids:
             res = requests.delete(cls.api_host + '/crawl/' + crawl_id)
             res = res.json()
-            assert res.get('success') or res.get('detail') == 'not found'
+            assert res.get('success') or res.get('detail') == 'crawl not found'
 
     def test_crawl_create_and_start(self, crawl, headless):
         crawl['headless'] = headless

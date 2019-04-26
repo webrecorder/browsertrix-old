@@ -133,7 +133,7 @@ class CrawlManager:
         crawl = Crawl(crawl_id, self)
         data = await self.redis.hgetall(crawl.info_key)
         if not data:
-            raise HTTPException(404, detail='not found')
+            raise HTTPException(404, detail='crawl not found')
 
         crawl.model = CrawlInfo(**data)
         return crawl
@@ -207,13 +207,23 @@ class CrawlManager:
         return response
 
     async def stop_flock(self, reqid: str) -> Dict:
-        """Requests that shepherd stop the flock identified by the
-        supplied request id
+        """Requests that shepherd stop, but not remove, the flock
+        identified by the supplied request id
 
         :param reqid: The request id of the flock to be stopped
         :return: The response from shepherd
         """
         response = await self.do_request(f'/flock/stop/{reqid}')
+        return response
+
+    async def remove_flock(self, reqid: str) -> Dict:
+        """Requests that shepherd stop and remove the flock
+        identified by the supplied request id
+
+        :param reqid: The request id of the flock to be stopped
+        :return: The response from shepherd
+        """
+        response = await self.do_request(f'/flock/remove/{reqid}')
         return response
 
 
@@ -282,8 +292,7 @@ class Crawl:
         :return: An dictionary indicating if this operation
         was successful
         """
-        if self.model and self.model.status == 'running':
-            await self.stop()
+        await self.stop(remove=True)
 
         await self.redis.delete(self.info_key)
 
@@ -586,18 +595,18 @@ class Crawl:
         else:
             finish_time = 0
 
-        update = {'status': 'done',
-                  'finish_time': finish_time}
+        update = {'status': 'done', 'finish_time': finish_time}
 
         await self.redis.hmset_dict(self.info_key, update)
         return {'done': True}
 
-    async def stop(self) -> Dict[str, bool]:
+    async def stop(self, remove=False) -> Dict[str, bool]:
         """Stops the crawl
 
+        :param remove: remove the crawl (if its stopped or not)
         :return: An dictionary indicating if the operation was successful
         """
-        if self.model.status != 'running':
+        if not remove and self.model.status != 'running':
             raise HTTPException(400, detail='not running')
 
         errors = []
@@ -605,7 +614,11 @@ class Crawl:
         browsers = await self.redis.smembers(self.browser_key)
 
         for reqid in browsers:
-            res = await self.manager.stop_flock(reqid)
+            if remove:
+                res = await self.manager.remove_flock(reqid)
+            else:
+                res = await self.manager.stop_flock(reqid)
+
             if 'error' in res:
                 errors.append(res['error'])
 

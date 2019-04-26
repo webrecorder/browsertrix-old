@@ -3,6 +3,9 @@ import datetime
 import sys
 import webbrowser
 import yaml
+import docker
+import time
+
 
 from browsertrix_cli.basecli import (
     cli,
@@ -59,7 +62,37 @@ def format_duration(start_time, finish_time):
         elapsed = finish - start
         return str(elapsed).split('.', 1)[0]
     except Exception:
-        return timestr
+        return start_time
+
+
+# ============================================================================
+def print_logs(browsers, follow=False, wait=False):
+    docker_api = docker.from_env(version='auto')
+
+    for browser in browsers:
+        skip = False
+        print('**** Logs for Browser {0} ****'.format(browser))
+        while True:
+            try:
+                container = docker_api.containers.get('autobrowser-' + browser)
+                break
+            except docker.errors.NotFound:
+                if not wait:
+                    skip = True
+                    print('Crawler not found, already finished?')
+                    break
+
+                print('Waiting for Logs...')
+                time.sleep(0.25)
+                continue
+
+        if skip:
+            continue
+
+        res = container.logs(follow=follow, stream=True)
+        for line in res:
+            sys.stdout.write(line.decode('utf-8'))
+
 
 # ============================================================================
 def open_browsers(browsers, browsers_done, crawl_id):
@@ -169,6 +202,13 @@ def list_crawls():
     type=bool,
     help='Watch all started browsers in a local browser (only if starting crawl)',
 )
+@click.option(
+    '--log',
+    is_flag=True,
+    default=False,
+    type=bool,
+    help='Tail the log for the browser crawler',
+)
 @click.argument('crawl_spec_file', type=click.File('rt'))
 def create_crawl(
     crawl_spec_file,
@@ -181,6 +221,7 @@ def create_crawl(
     headless,
     behavior_time,
     watch,
+    log,
 ):
     """ Create a new crawl!
 
@@ -245,6 +286,9 @@ def create_crawl(
             else:
                 open_browsers(res['browsers'], [], res['id'])
 
+        if log:
+            print_logs(res['browsers'], follow=True, wait=True)
+
 
 # ============================================================================
 @crawl.command(name='start', help='Start an existing crawl')
@@ -308,7 +352,7 @@ def watch_crawl(crawl_id):
                 continue
 
         browsers = res['browsers']
-        browsers_done = res.get('browsers_done', [])
+        browsers_done = [info['id'] for info in res.get('browsers_done', [])]
 
         if not browsers:
             if not is_quiet():
@@ -319,28 +363,15 @@ def watch_crawl(crawl_id):
 
 
 # ============================================================================
-@crawl.command(
-    name='stop', help='Stop one or more existing crawls (and optionally remove)'
-)
+@crawl.command(name='stop', help='Stop one or more existing crawls')
 @click.argument('crawl_id', nargs=-1)
-@click.option(
-    '--remove',
-    type=bool,
-    default=False,
-    is_flag=True,
-    help='Crawl should be removed, not just stopped',
-)
-def stop_crawl(crawl_id, remove=False):
-    """ Stop one or more existing crawls (and optionally remove)
+def stop_crawl(crawl_id):
+    """ Stop one or more existing crawls
 
         :param crawl_id: list of crawl ids to stop
-        :param remove: Crawl should be removed, not just stopped
     """
     for id_ in crawl_id:
-        if remove:
-            res = sesh_delete('/crawl/{0}'.format(id_))
-        else:
-            res = sesh_post('/crawl/{0}/stop'.format(id_))
+        res = sesh_post('/crawl/{0}/stop'.format(id_))
 
         if not res.get('success'):
             print('Error stopping: ' + res)
@@ -348,10 +379,29 @@ def stop_crawl(crawl_id, remove=False):
 
         if is_quiet():
             print(id_)
-        elif remove:
-            print('Stopped and Removed Crawl: {0}'.format(id_))
         else:
             print('Stopped Crawl: {0}'.format(id_))
+
+
+# ============================================================================
+@crawl.command(name='remove', help='Remove one or more existing crawls')
+@click.argument('crawl_id', nargs=-1)
+def remove_crawl(crawl_id):
+    """ Remove one or more existing crawls
+
+        :param crawl_id: list of crawl ids to stop
+    """
+    for id_ in crawl_id:
+        res = sesh_delete('/crawl/{0}'.format(id_))
+
+        if not res.get('success'):
+            print('Error removing: ' + res)
+            return
+
+        if is_quiet():
+            print(id_)
+        else:
+            print('Removed Crawl: {0}'.format(id_))
 
 
 # ============================================================================
@@ -368,3 +418,42 @@ def remove_all():
         res = sesh_delete('/crawl/{0}'.format(id_))
         if not is_quiet():
             print('Removed Crawl: {0}'.format(id_))
+
+
+# ============================================================================
+@crawl.command(name='logs', help='View crawl logs for one or all crawlers')
+@click.argument('crawl_id', nargs=1)
+@click.option(
+    '-b',
+    '--browser',
+    type=int,
+    default=0,
+    help='1-based index of browser to show logs for, or 0 for all (default)',
+)
+@click.option(
+    '-f',
+    '--follow',
+    type=bool,
+    default=False,
+    is_flag=True,
+    help='follow crawl log in real-time',
+)
+def logs(crawl_id, browser, follow):
+    """ View crawl logs for one or all crawlers
+    :param crawl_id: The crawl_id to view logs for
+    :param browser: 1-based index of browser to show logs for, or 0 for all (default)
+    :param follow: follow crawl log in real-time (for one browser only)
+    """
+    res = sesh_get('/crawl/{0}'.format(crawl_id))
+
+    num_browsers = len(res['browsers'])
+    if browser <= 0:
+        print_logs(res['browsers'], follow=follow)
+    elif browser > num_browsers:
+        print(
+            'Crawl has {0} browsers. Index must be 1 to {0}'.format(
+                num_browsers, num_browsers
+            )
+        )
+    else:
+        print_logs([res['browsers'][browser - 1]], follow=follow)
