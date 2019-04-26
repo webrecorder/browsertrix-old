@@ -53,9 +53,9 @@ class TestCrawls(object):
                 break
 
             if time.time() - start_time > max_time:
-                print('Waiting for crawl done')
                 break
 
+            print('Waiting for crawl done')
             time.sleep(sleep_time)
 
         assert done

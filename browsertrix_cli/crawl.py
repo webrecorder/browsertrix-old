@@ -1,10 +1,12 @@
 import click
 import datetime
-import sys
-import webbrowser
-import yaml
 import docker
+import sys
 import time
+import yaml
+import webbrowser
+
+from collections import defaultdict
 
 
 from browsertrix_cli.basecli import (
@@ -69,6 +71,9 @@ def format_duration(start_time, finish_time):
 def print_logs(browsers, follow=False, wait=False):
     docker_api = docker.from_env(version='auto')
 
+    if follow is None:
+        follow = False
+
     for browser in browsers:
         skip = False
         print('**** Logs for Browser {0} ****'.format(browser))
@@ -95,10 +100,10 @@ def print_logs(browsers, follow=False, wait=False):
 
 
 # ============================================================================
-def open_browsers(browsers, browsers_done, crawl_id):
+def open_browsers(browsers, crawl_id, tabs_done=None, num_tabs=-1):
     count = 1
     for reqid in browsers:
-        if reqid not in browsers_done:
+        if tabs_done and tabs_done.get(reqid) != num_tabs:
             msg = 'Opening Browser {0} of {1} ({2}) for crawl {3}'
         else:
             msg = 'Skipping Finished Browser {0} of {1}, ({2}) for crawl {3}'
@@ -284,7 +289,7 @@ def create_crawl(
                     print("Can't watch, crawl is running in headless mode")
 
             else:
-                open_browsers(res['browsers'], [], res['id'])
+                open_browsers(res['browsers'], res['id'])
 
         if log:
             print_logs(res['browsers'], follow=True, wait=True)
@@ -352,14 +357,19 @@ def watch_crawl(crawl_id):
                 continue
 
         browsers = res['browsers']
-        browsers_done = [info['id'] for info in res.get('browsers_done', [])]
+
+        done_count = defaultdict(int)
+
+        for info in res.get('tabs_done'):
+            done_count[info['id']] += 1
 
         if not browsers:
             if not is_quiet():
                 print('No Browsers')
                 continue
 
-        open_browsers(browsers, browsers_done, id_)
+        print(done_count, res['num_tabs'])
+        open_browsers(browsers, id_, done_count, res['num_tabs'])
 
 
 # ============================================================================
@@ -445,6 +455,7 @@ def logs(crawl_id, browser, follow):
     :param follow: follow crawl log in real-time (for one browser only)
     """
     res = sesh_get('/crawl/{0}'.format(crawl_id))
+
 
     num_browsers = len(res['browsers'])
     if browser <= 0:

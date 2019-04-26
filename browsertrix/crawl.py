@@ -234,7 +234,7 @@ class Crawl:
     """
 
     __slots__ = [
-        'browser_done_key',
+        'tabs_done_key',
         'browser_key',
         'crawl_id',
         'frontier_q_key',
@@ -266,7 +266,7 @@ class Crawl:
         self.scopes_key: str = f'a:{crawl_id}:scope'
 
         self.browser_key: str = f'a:{crawl_id}:br'
-        self.browser_done_key: str = f'a:{crawl_id}:br:done'
+        self.tabs_done_key: str = f'a:{crawl_id}:br:done'
 
         self.model: Optional[CrawlInfo] = model
 
@@ -303,7 +303,7 @@ class Crawl:
         await self.redis.delete(self.scopes_key)
 
         await self.redis.delete(self.browser_key)
-        await self.redis.delete(self.browser_done_key)
+        await self.redis.delete(self.tabs_done_key)
 
         return {'success': True}
 
@@ -357,15 +357,15 @@ class Crawl:
         except Exception as e:
             logger.exception(str(e))
 
-        data, browsers, browsers_done = await aio_gather(
+        data, browsers, tabs_done = await aio_gather(
             self.redis.hgetall(self.info_key),
             self.redis.smembers(self.browser_key),
-            self.redis.lrange(self.browser_done_key, 0, -1),
+            self.redis.lrange(self.tabs_done_key, 0, -1),
             loop=self.loop,
         )
 
         data['browsers'] = list(browsers)
-        data['browsers_done'] = [json.loads(elem) for elem in browsers_done]
+        data['tabs_done'] = [json.loads(elem) for elem in tabs_done]
 
         # do a count of the url keys
         if count_urls:
@@ -577,21 +577,21 @@ class Crawl:
             return {'done': False}
 
         # if frontier not empty, not done
-        if await self.redis.llen(self.frontier_q_key) > 0:
-            return {'done': False}
+        #if await self.redis.llen(self.frontier_q_key) > 0:
+        #    return {'done': False}
 
         # if pending q not empty, not done
-        if await self.redis.scard(self.pending_q_key) > 0:
-            return {'done': False}
+        #if await self.redis.scard(self.pending_q_key) > 0:
+        #    return {'done': False}
 
         # if not all browsers are done, not done
-        browsers = await self.redis.smembers(self.browser_key)
-        browsers_done = await self.redis.lrange(self.browser_done_key, 0, -1)
-        if len(browsers) != len(browsers_done):
+        tabs_done = await self.redis.lrange(self.tabs_done_key, 0, -1)
+
+        if self.model.num_tabs * self.model.num_browsers != len(tabs_done):
             return {'done': False}
 
-        if browsers_done:
-            finish_time = int(json.loads(browsers_done[0])['time'])
+        if tabs_done:
+            finish_time = int(json.loads(tabs_done[0])['time'])
         else:
             finish_time = 0
 

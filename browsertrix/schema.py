@@ -95,7 +95,7 @@ class CrawlInfoResponse(BaseCreateCrawl):
     start_time: int = 0
     finish_time: int = 0
     browsers: OptionalList
-    browsers_done: List[Dict[Any, Any]]
+    tabs_done: List[Dict[Any, Any]]
     headless: bool = False
     num_queue: int = 0
     num_seen: int = 0
