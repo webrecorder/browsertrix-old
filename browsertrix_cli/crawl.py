@@ -274,6 +274,9 @@ def create_crawl(
         if screenshot_coll is not None:
             crawl_spec['screenshot_coll'] = screenshot_coll
 
+        if not is_quiet():
+            print('Creating New Crawl, Please Wait...')
+
         res = sesh_post('/crawls', json=crawl_spec)
 
         if is_quiet():
