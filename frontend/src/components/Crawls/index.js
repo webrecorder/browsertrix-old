@@ -15,10 +15,37 @@ class Crawls extends Component {
     removeCrawl: PropTypes.func.isRequired
   };
 
+  constructor(props) {
+    super(props);
+
+    this.handle = null;
+  }
+
   componentDidMount() {
     if (!this.props.crawlsFetched) {
-      this.props.init();
+      this.props.loadCrawls(true);
     }
+
+    if (this.props.crawls.size > 0) {
+      this.autoUpdate();
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.props.crawls.size > 0 && !this.handle) {
+      this.autoUpdate();
+    } else if (this.props.crawls.size === 0 && this.handle) {
+      clearInterval(this.handle);
+      this.handle = null;
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.handle);
+  }
+
+  autoUpdate = () => {
+    this.handle = setInterval(this.props.loadCrawls, 1000);
   }
 
   render() {
@@ -40,8 +67,8 @@ class Crawls extends Component {
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  init() {
-    dispatch(getAllCrawls(true));
+  loadCrawls(init = false) {
+    dispatch(getAllCrawls(init));
   },
   removeCrawl(id) {
     dispatch(removeCrawl(id));

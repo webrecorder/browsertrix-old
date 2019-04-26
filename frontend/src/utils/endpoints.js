@@ -7,7 +7,7 @@ function getEndpointConfig() {
       ep: 'http://localhost:8000/crawls',
       retrieve: { method: 'GET' },
       create: {
-        defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1 },
+        defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1, start: false },
         method: 'POST'
       }
     },
@@ -18,7 +18,8 @@ function getEndpointConfig() {
       start: {
         defaults: {
           browser: 'chrome:67',
-          behavior_run_time: 60,
+          behavior_max_time: 60,
+          cache: 'always',
           headless: false
         },
         method: 'POST',
@@ -44,11 +45,13 @@ class Endpoints {
    */
   createNewCrawl(newCrawlConfig) {
     const { defaults = {}, method } = this.crawls.create;
-    const body = Object.assign({}, defaults, newCrawlConfig.crawlInfo);
+    const body = Object.assign(
+      {},
+      defaults,
+      newCrawlConfig.crawlInfo,
+      newCrawlConfig.crawlRunInfo
+    );
 
-    if (Array.isArray(newCrawlConfig.crawlRunInfo.seed_urls)) {
-      body.seed_urls = newCrawlConfig.crawlRunInfo.seed_urls;
-    }
     return {
       body,
       request: new Request(this.crawls.ep, {

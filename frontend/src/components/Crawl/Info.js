@@ -10,13 +10,13 @@ export default class Info extends Component {
   renderQueue() {
     const crawlId = this.props.crawl.id;
     const queue = this.props.crawl.queue;
-    const q = new Array(queue.length);
-    for (let i = 0; i < queue.length; i++) {
-      const qinfo = JSON.parse(queue[i]);
+    const q = new Array(queue.size);
+    for (let i = 0; i < queue.size; i++) {
+      const qinfo = queue.get(i);
       q[i] = (
         <li key={`${crawlId}-seeds-${i}`}>
           <p>
-            {qinfo.url} @ depth {qinfo.depth}
+            {qinfo.get('url')} @ depth {qinfo.get('depth')}
           </p>
         </li>
       );
@@ -24,7 +24,7 @@ export default class Info extends Component {
     return (
       <>
         <h4 className='uk-text-center'>Queue</h4>
-        <ul className='uk-list uk-flex uk-flex-center'>{q}</ul>
+        <ul className='uk-list uk-flex uk-flex-column uk-flex-center uk-flex-middle'>{q}</ul>
       </>
     );
   }
@@ -34,7 +34,6 @@ export default class Info extends Component {
     const browsers = this.props.crawl.browsers;
     const b = new Array(browsers.length);
     for (let i = 0; i < browsers.length; i++) {
-      console.log(browsers[i]);
       b[i] = (
         <li key={`${crawlId}-browsers-${i}`}>
           <a
@@ -49,7 +48,7 @@ export default class Info extends Component {
     return (
       <>
         <h4 className='uk-text-center'>View Running Crawl</h4>
-        <ul className='uk-list uk-flex uk-flex-center'>{b}</ul>
+        <ul className='uk-list uk-flex uk-flex-column uk-flex-center uk-flex-middle'>{b}</ul>
       </>
     );
   }
@@ -80,7 +79,7 @@ export default class Info extends Component {
           </tbody>
         </table>
         {crawl.browsers.length > 0 && this.renderBrowsers()}
-        {crawl.queue.length > 0 && this.renderQueue()}
+        {crawl.queue.size > 0 && this.renderQueue()}
       </>
     );
   }

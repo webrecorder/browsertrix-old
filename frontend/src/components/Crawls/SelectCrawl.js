@@ -19,20 +19,33 @@ export default function SelectCrawls({ crawls, removeCrawl }) {
     accessor: 'id',
     Cell: props => <Link className='uk-button uk-button-text' to={`/crawl/${props.value}`}>{props.value}</Link>
   },
-  { Header: 'Crawl Type',
+  {
+    Header: 'Name',
+    accessor: 'name'
+  },
+  {
+    Header: 'Crawl Type',
     accessor: 'crawl_type'
+  },
+  {
+    Header: 'Mode',
+    accessor: 'mode'
+  },
+  {
+    Header: 'To Crawl',
+    accessor: 'num_queue'
+  },
+  {
+    Header: 'Pending',
+    accessor: 'num_pending'
+  },
+  {
+    Header: 'Seen',
+    accessor: 'num_seen'
   },
   {
     Header: 'Status',
     accessor: 'status'
-  },
-  {
-    Header: 'Browsers',
-    accessor: 'num_browsers',
-  },
-  {
-    Header: 'Tabs',
-    accessor: 'num_tabs',
   },
   {
     Header: 'Remove Crawl',

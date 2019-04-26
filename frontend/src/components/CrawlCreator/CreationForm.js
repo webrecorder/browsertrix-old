@@ -35,8 +35,8 @@ export function validate(values, props) {
   if (!cinfo) {
     errors.crawlRunInfo = 'Required';
   } else {
-    if (cinfo.get('behavior_run_time') <= 0) {
-      errors.crawlRunInfo.behavior_run_time =
+    if (cinfo.get('behavior_max_time') <= 0) {
+      errors.crawlRunInfo.behavior_max_time =
         'The runtime of behaviors must be greater than zero';
     }
     const seeds = cinfo.get('seed_urls');
@@ -52,7 +52,7 @@ function seedURLsRequired(value, allValues, props) {
   if (value.size === 0) return 'Required';
 }
 
-function CrawlCreationForm({ handleSubmit, valid, submitting }) {
+function CrawlCreationForm({ crawlType, handleSubmit, valid, submitting }) {
   const submitDisabled = !valid || submitting;
   return (
     <form className='uk-form-stacked' onSubmit={handleSubmit} autoComplete='on'>
@@ -66,7 +66,13 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
         </button>
       </div>
       <FormSection name='crawlInfo'>
-        <div className='uk-grid uk-child-width-1-4' data-uk-grid=''>
+        <div className='uk-grid uk-child-width-1-5' data-uk-grid=''>
+          <Field
+            name='name'
+            type='text'
+            label='Name'
+            component={CrawlConfigInputField}
+          />
           <Field
             name='crawl_type'
             label='Crawl Type'
@@ -81,6 +87,7 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
             name='crawl_depth'
             type='number'
             label='Crawl Depth'
+            props={{ disabled: crawlType !== 'custom', min: 1 }}
             component={CrawlConfigInputField}
           />
           <Field
@@ -100,7 +107,7 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
       <FormSection name='crawlRunInfo'>
         <>
           <div
-            className='uk-grid uk-child-width-1-3 uk-margin-top'
+            className='uk-grid uk-child-width-1-4 uk-margin-top'
             data-uk-grid=''
           >
             <Field
@@ -119,9 +126,19 @@ function CrawlCreationForm({ handleSubmit, valid, submitting }) {
               <option value={true}>Yes</option>
             </Field>
             <Field
-              name='behavior_run_time'
+              name='cache'
+              label='Cache Settings'
+              component={CrawlConfigSelectField}
+            >
+              <option value='always'>Always</option>
+              <option value='never'>Never</option>
+              <option value='default'>Default</option>
+            </Field>
+            <Field
+              name='behavior_max_time'
               type='number'
-              label='How Long Should Behaviors Run (Seconds)'
+              label='Behaviors Runtime (Seconds)'
+              title='How Long Should Behaviors run for, in seconds.'
               component={CrawlConfigInputField}
             />
           </div>
@@ -141,13 +158,14 @@ export const initialValues = {
     crawl_type: 'single-page',
     num_browsers: 1,
     num_tabs: 1,
+    name: '',
     crawl_depth: 1
   },
   crawlRunInfo: {
     headless: false,
+    cache: 'always',
     browser: 'chrome:67',
-    behavior_run_time: 60,
-    urls: []
+    behavior_max_time: 60
   }
 };
 

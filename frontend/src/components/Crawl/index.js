@@ -23,6 +23,45 @@ class Crawl extends Component {
     removeCrawl: PropTypes.func.isRequired
   };
 
+  constructor(props) {
+    super(props);
+
+    this.handle = null;
+  }
+
+  componentDidMount() {
+    const { crawl } = this.props;
+
+    if (crawl.get('status') === 'running') {
+      this.autoUpdate();
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    const { crawl } = this.props;
+
+    if (
+      crawl &&
+      crawl.get('status') === 'running' &&
+      prevProps.crawl.get('status') !== 'running'
+    ) {
+      this.autoUpdate();
+    } else if (
+      !crawl ||
+      (crawl.get('status') !== 'running' && prevProps.crawl.get('status') === 'running')
+    ) {
+      clearInterval(this.handle);
+    }
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.handle);
+  }
+
+  autoUpdate = () => {
+    this.handle = setInterval(this.props.getCrawlInfo, 1000);
+  }
+
   render() {
     if (this.props.crawl == null) return <Redirect to='/' />;
     const {
