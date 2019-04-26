@@ -19,6 +19,7 @@ COLUMNS = [
     ('id', 'CRAWL ID', 12),
     ('name', 'NAME', 12),
     ('start_time', 'STARTED', 12),
+    ('finish_time', 'DURATION', 12),
     ('status', 'STATUS', 7),
     ('crawl_type', 'CRAWL TYPE', 12),
     ('coll', 'COLL', 16),
@@ -38,21 +39,27 @@ def crawl():
 
 
 # ============================================================================
-def format_elapsed(timestr):
-    """ Format given time as elapsed from now
+def format_duration(start_time, finish_time):
+    """ Format duration of crawl
 
-    :param timestr: Time in seconds as str or int
+    :param start_time: start time of crawl
+    :param finish_time: finish time of crawl
     :return: string text for time elapsed since timestr
     """
     try:
-        if timestr == 0:
+        if start_time == 0:
             return '-'
-        text = datetime.datetime.fromtimestamp(int(timestr))
-        elapsed = datetime.datetime.now() - text
-        return str(elapsed).split('.', 1)[0] + ' ago'
+
+        if not finish_time:
+            finish = datetime.datetime.now()
+        else:
+            finish = datetime.datetime.fromtimestamp(int(finish_time))
+
+        start = datetime.datetime.fromtimestamp(int(start_time))
+        elapsed = finish - start
+        return str(elapsed).split('.', 1)[0]
     except Exception:
         return timestr
-
 
 # ============================================================================
 def open_browsers(browsers, browsers_done, crawl_id):
@@ -95,7 +102,9 @@ def list_crawls():
         for field, _, size in COLUMNS:
             value = crawl[field]
             if field == 'start_time':
-                value = format_elapsed(value)
+                value = format_duration(value, None) + ' ago'
+            elif field == 'finish_time':
+                value = format_duration(crawl['start_time'], value)
 
             sys.stdout.write(format_str.format(value=value, size=size))
         print()

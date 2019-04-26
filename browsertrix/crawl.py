@@ -343,17 +343,20 @@ class Crawl:
         :param count_urls: If true, include count of frontier queue, pending set, seen set
         :return: The crawl information
         """
-        await self.is_done()
+        try:
+            await self.is_done()
+        except Exception as e:
+            logger.exception(str(e))
 
         data, browsers, browsers_done = await aio_gather(
             self.redis.hgetall(self.info_key),
             self.redis.smembers(self.browser_key),
-            self.redis.smembers(self.browser_done_key),
+            self.redis.lrange(self.browser_done_key, 0, -1),
             loop=self.loop,
         )
 
         data['browsers'] = list(browsers)
-        data['browsers_done'] = list(browsers_done)
+        data['browsers_done'] = [json.loads(elem) for elem in browsers_done]
 
         # do a count of the url keys
         if count_urls:
@@ -454,6 +457,7 @@ class Crawl:
             'status': 'new',
             'crawl_depth': crawl_depth,
             'start_time': int(time.time()) if crawl_request.start else 0,
+            'finish_time': 0,
             'headless': '1' if crawl_request.headless else '0',
             'cache': crawl_request.cache.value,
         }
@@ -573,11 +577,19 @@ class Crawl:
 
         # if not all browsers are done, not done
         browsers = await self.redis.smembers(self.browser_key)
-        browsers_done = await self.redis.smembers(self.browser_done_key)
-        if browsers != browsers_done:
+        browsers_done = await self.redis.lrange(self.browser_done_key, 0, -1)
+        if len(browsers) != len(browsers_done):
             return {'done': False}
 
-        await self.redis.hset(self.info_key, 'status', 'done')
+        if browsers_done:
+            finish_time = int(json.loads(browsers_done[0])['time'])
+        else:
+            finish_time = 0
+
+        update = {'status': 'done',
+                  'finish_time': finish_time}
+
+        await self.redis.hmset_dict(self.info_key, update)
         return {'done': True}
 
     async def stop(self) -> Dict[str, bool]:
