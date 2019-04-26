@@ -133,7 +133,7 @@ class CrawlManager:
         crawl = Crawl(crawl_id, self)
         data = await self.redis.hgetall(crawl.info_key)
         if not data:
-            raise HTTPException(404, detail='not found')
+            raise HTTPException(404, detail='crawl not found')
 
         crawl.model = CrawlInfo(**data)
         return crawl
@@ -207,13 +207,23 @@ class CrawlManager:
         return response
 
     async def stop_flock(self, reqid: str) -> Dict:
-        """Requests that shepherd stop the flock identified by the
-        supplied request id
+        """Requests that shepherd stop, but not remove, the flock
+        identified by the supplied request id
 
         :param reqid: The request id of the flock to be stopped
         :return: The response from shepherd
         """
         response = await self.do_request(f'/flock/stop/{reqid}')
+        return response
+
+    async def remove_flock(self, reqid: str) -> Dict:
+        """Requests that shepherd stop and remove the flock
+        identified by the supplied request id
+
+        :param reqid: The request id of the flock to be stopped
+        :return: The response from shepherd
+        """
+        response = await self.do_request(f'/flock/remove/{reqid}')
         return response
 
 
@@ -224,7 +234,7 @@ class Crawl:
     """
 
     __slots__ = [
-        'browser_done_key',
+        'tabs_done_key',
         'browser_key',
         'crawl_id',
         'frontier_q_key',
@@ -256,7 +266,7 @@ class Crawl:
         self.scopes_key: str = f'a:{crawl_id}:scope'
 
         self.browser_key: str = f'a:{crawl_id}:br'
-        self.browser_done_key: str = f'a:{crawl_id}:br:done'
+        self.tabs_done_key: str = f'a:{crawl_id}:br:done'
 
         self.model: Optional[CrawlInfo] = model
 
@@ -282,8 +292,7 @@ class Crawl:
         :return: An dictionary indicating if this operation
         was successful
         """
-        if self.model and self.model.status == 'running':
-            await self.stop()
+        await self.stop(remove=True)
 
         await self.redis.delete(self.info_key)
 
@@ -294,7 +303,7 @@ class Crawl:
         await self.redis.delete(self.scopes_key)
 
         await self.redis.delete(self.browser_key)
-        await self.redis.delete(self.browser_done_key)
+        await self.redis.delete(self.tabs_done_key)
 
         return {'success': True}
 
@@ -343,17 +352,20 @@ class Crawl:
         :param count_urls: If true, include count of frontier queue, pending set, seen set
         :return: The crawl information
         """
-        await self.is_done()
+        try:
+            await self.is_done()
+        except Exception as e:
+            logger.exception(str(e))
 
-        data, browsers, browsers_done = await aio_gather(
+        data, browsers, tabs_done = await aio_gather(
             self.redis.hgetall(self.info_key),
             self.redis.smembers(self.browser_key),
-            self.redis.smembers(self.browser_done_key),
+            self.redis.lrange(self.tabs_done_key, 0, -1),
             loop=self.loop,
         )
 
         data['browsers'] = list(browsers)
-        data['browsers_done'] = list(browsers_done)
+        data['tabs_done'] = [json.loads(elem) for elem in tabs_done]
 
         # do a count of the url keys
         if count_urls:
@@ -454,6 +466,7 @@ class Crawl:
             'status': 'new',
             'crawl_depth': crawl_depth,
             'start_time': int(time.time()) if crawl_request.start else 0,
+            'finish_time': 0,
             'headless': '1' if crawl_request.headless else '0',
             'cache': crawl_request.cache.value,
         }
@@ -564,28 +577,36 @@ class Crawl:
             return {'done': False}
 
         # if frontier not empty, not done
-        if await self.redis.llen(self.frontier_q_key) > 0:
-            return {'done': False}
+        # if await self.redis.llen(self.frontier_q_key) > 0:
+        #    return {'done': False}
 
         # if pending q not empty, not done
-        if await self.redis.scard(self.pending_q_key) > 0:
-            return {'done': False}
+        # if await self.redis.scard(self.pending_q_key) > 0:
+        #    return {'done': False}
 
         # if not all browsers are done, not done
-        browsers = await self.redis.smembers(self.browser_key)
-        browsers_done = await self.redis.smembers(self.browser_done_key)
-        if browsers != browsers_done:
+        tabs_done = await self.redis.lrange(self.tabs_done_key, 0, -1)
+
+        if self.model.num_tabs * self.model.num_browsers != len(tabs_done):
             return {'done': False}
 
-        await self.redis.hset(self.info_key, 'status', 'done')
+        if tabs_done:
+            finish_time = int(json.loads(tabs_done[0])['time'])
+        else:
+            finish_time = 0
+
+        update = {'status': 'done', 'finish_time': finish_time}
+
+        await self.redis.hmset_dict(self.info_key, update)
         return {'done': True}
 
-    async def stop(self) -> Dict[str, bool]:
+    async def stop(self, remove=False) -> Dict[str, bool]:
         """Stops the crawl
 
+        :param remove: remove the crawl (if its stopped or not)
         :return: An dictionary indicating if the operation was successful
         """
-        if self.model.status != 'running':
+        if not remove and self.model.status != 'running':
             raise HTTPException(400, detail='not running')
 
         errors = []
@@ -593,7 +614,11 @@ class Crawl:
         browsers = await self.redis.smembers(self.browser_key)
 
         for reqid in browsers:
-            res = await self.manager.stop_flock(reqid)
+            if remove:
+                res = await self.manager.remove_flock(reqid)
+            else:
+                res = await self.manager.stop_flock(reqid)
+
             if 'error' in res:
                 errors.append(res['error'])
 

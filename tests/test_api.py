@@ -35,6 +35,10 @@ async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
         type_ = 'stop'
         resp = {'success': True}
 
+    elif 'flock/remove' in url_path:
+        type_ = 'remove'
+        resp = {'success': True}
+
     else:
         assert False, 'Unknown API call'
 
@@ -98,6 +102,7 @@ class TestCrawlAPI:
         assert json['status'] == 'new'
         assert json['crawl_depth'] == 1
         assert json['start_time'] == 0
+        assert json['finish_time'] == 0
         assert json['coll'] == 'live'
         assert json['mode'] == 'record'
         assert json['num_queue'] == 2
@@ -106,7 +111,7 @@ class TestCrawlAPI:
         assert json['headless'] == False
         assert json['screenshot_coll'] == ''
 
-        assert len(json) == 17
+        assert len(json) == 18
 
     def test_get_crawl_details(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
@@ -179,7 +184,7 @@ class TestCrawlAPI:
 
         assert res.status_code == 404
 
-        assert res.json() == {'detail': 'not found'}
+        assert res.json() == {'detail': 'crawl not found'}
 
     def test_invalid_request_body(self):
         res = self.client.put(f'/crawl/x-another-invalid/urls', json={})
@@ -193,7 +198,7 @@ class TestCrawlAPI:
 
         assert res.status_code == 404
 
-        assert res.json() == {'detail': 'not found'}
+        assert res.json() == {'detail': 'crawl not found'}
 
     def test_start_crawl(self):
         res = self.client.post(f'/crawl/{self.crawl_id}/start')
@@ -238,12 +243,13 @@ class TestCrawlAPI:
         assert json['name'] == 'First Crawl!'
         assert json['status'] == 'running'
         assert json['start_time'] > 0
+        assert json['finish_time'] == 0
         assert json['headless'] == False
         assert json['num_queue'] == 2
         assert json['num_seen'] == 2
         assert json['num_pending'] == 0
 
-        assert len(json) == 17
+        assert len(json) == 18
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):
@@ -281,7 +287,7 @@ class TestCrawlAPI:
 
         res = self.client.delete(f'/crawl/{self.crawl_id_2}')
 
-        assert res.json()['detail'] == 'not found'
+        assert res.json()['detail'] == 'crawl not found'
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_create_and_start(self):
@@ -345,7 +351,7 @@ class TestCrawlAPI:
         }
 
         # no post data for stop
-        assert shepherd_api_post_datas['stop'] == [None, None, None, None, None]
+        assert shepherd_api_post_datas['stop'] == [None] * 5
 
         res = self.client.get(f'/crawl/{self.crawl_id}')
 
@@ -357,7 +363,16 @@ class TestCrawlAPI:
 
         assert res.json()['success'] == True
 
+        assert set(shepherd_api_urls['remove']) == {
+            '/flock/remove/ID_1',
+            '/flock/remove/ID_2',
+            '/flock/remove/ID_3',
+            '/flock/remove/ID_4',
+            '/flock/remove/ID_5',
+            '/flock/remove/ID_6',
+            '/flock/remove/ID_7',
+        }
+        assert shepherd_api_post_datas['remove'] == [None] * 7
+
         assert fakeredis.FakeStrictRedis().keys('a:*') == []
-
-
 

@@ -93,8 +93,9 @@ class CrawlInfoResponse(BaseCreateCrawl):
     id: str
     status: str = 'new'
     start_time: int = 0
+    finish_time: int = 0
     browsers: OptionalList
-    browsers_done: OptionalList
+    tabs_done: List[Dict[Any, Any]]
     headless: bool = False
     num_queue: int = 0
     num_seen: int = 0
@@ -121,6 +122,7 @@ class CrawlInfo(BaseModel):
     num_browsers: int
     num_tabs: int
     start_time: int = 0
+    finish_time: int = 0
     headless: bool = False
 
 

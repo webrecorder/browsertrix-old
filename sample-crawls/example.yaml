@@ -1,6 +1,6 @@
 crawls:
   - name: example
-    crawl_type: all-links
+    crawl_type: single-page
     num_browsers: 1
 
     coll: example

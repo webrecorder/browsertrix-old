@@ -32,6 +32,7 @@ setup(
     entry_points="""
         [console_scripts]
         browsertrix=browsertrix_cli.main:cli
+        btrix=browsertrix_cli.main:cli
     """,
     test_suite='',
     tests_require=load_requirements('test-local-requirements.txt'),
