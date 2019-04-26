@@ -76,11 +76,13 @@ Opening Browser 1 of 1 (CKVEMACNI6YBUKLQI6UKKBLB) for crawl cf30281efc7a
 To view all running crawls, simply run `browsertrix crawl list` which should result in output similar to:
 
 ```
-CRAWL ID      NAME          STARTED       STATUS   CRAWL TYPE    COLL              MODE      TO CRAWL  PENDING   SEEN      BROWSERS   TABS  
-cf30281efc7a  example       0:00:35 ago   running  all-links     example           record    15        1         25        1          1    
+CRAWL ID      NAME          STARTED       DURATION      STATUS   CRAWL TYPE    COLL              MODE      TO CRAWL  PENDING   SEEN      BROWSERS   TABS  
+cf30281efc7a  example       0:00:35 ago   0:00:10       running  all-links     example           record    15        1         25        1          1    
 ```
 
 To get more detailed info on the crawl, run `browsertrix crawl info --urls <crawl_id>` (where `<crawl_id> = cf30281efc7a` in this example)
+
+To follow the crawl log in the console window, add the `--log` option (the log followed will be from the first browser).
 
 ### Crawling Options
 
@@ -174,7 +176,9 @@ Sample record and replay configs, [social-media.yaml](sample-crawls/social-media
 
 Other crawl operations include:
 * `browsertrix crawl stop` for stopping a crawl
+* `browsertrix crawl logs` for printing and following logs for one or all crawlers
 * `browsertrix crawl watch <crawl_id>` for attaching and watching all the browsers in a given crawl.
+* `browsertrix crawl remove` for removing a crawl
 * `browsertrix crawl remove-all` for stopping and removing all crawls.
 
 See `browsertrix crawl -h` for a complete reference of available commands.
