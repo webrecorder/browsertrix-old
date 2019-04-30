@@ -32,7 +32,7 @@ cd browsertrix
 python setup.py install
 ./install-browsers.sh
 docker-compose build
-docker-compuse up -d
+docker-compose up -d
 ```
 
 The `install-browsers.sh` script installs additional Docker images necessary for dynamic browser creation.
