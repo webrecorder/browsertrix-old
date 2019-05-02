@@ -68,35 +68,53 @@ def format_duration(start_time, finish_time):
 
 
 # ============================================================================
-def print_logs(browsers, follow=False, wait=False):
+def print_container_log(
+    docker_api, reqid, name='autobrowser-', follow=False, wait=False
+):
+
+    full_name = name + reqid
+    while True:
+        try:
+            container = docker_api.containers.get(full_name)
+            break
+        except docker.errors.NotFound:
+            if not wait:
+                return False
+
+            print('Waiting for Logs...')
+            time.sleep(0.25)
+            continue
+
+    print('---- Logs for Crawl {0}: {1} ----'.format(reqid, full_name))
+    res = container.logs(follow=follow, stream=True)
+    for line in res:
+        sys.stdout.write(line.decode('utf-8'))
+
+    print('-----------------------------------')
+    print('')
+    print('')
+
+    return True
+
+
+# ============================================================================
+def print_logs(browsers, follow=False, wait=False, all_containers=False):
     docker_api = docker.from_env(version='auto')
 
     if follow is None:
         follow = False
 
-    for browser in browsers:
-        skip = False
-        print('**** Logs for Browser {0} ****'.format(browser))
-        while True:
-            try:
-                container = docker_api.containers.get('autobrowser-' + browser)
-                break
-            except docker.errors.NotFound:
-                if not wait:
-                    skip = True
-                    print('Crawler not found, already finished?')
-                    break
+    for reqid in browsers:
+        if all_containers:
+            print_container_log(
+                docker_api, reqid, wait=False, follow=False, name='browser-'
+            )
 
-                print('Waiting for Logs...')
-                time.sleep(0.25)
-                continue
+            print_container_log(
+                docker_api, reqid, wait=False, follow=False, name='xserver-'
+            )
 
-        if skip:
-            continue
-
-        res = container.logs(follow=follow, stream=True)
-        for line in res:
-            sys.stdout.write(line.decode('utf-8'))
+        print_container_log(docker_api, reqid, wait=wait, follow=follow)
 
 
 # ============================================================================
@@ -453,17 +471,26 @@ def remove_all():
     is_flag=True,
     help='follow crawl log in real-time',
 )
-def logs(crawl_id, browser, follow):
+@click.option(
+    '-a',
+    '--all-containers',
+    type=bool,
+    default=False,
+    is_flag=True,
+    help='include logs from all containers, not just crawler',
+)
+def logs(crawl_id, browser, follow, all_containers):
     """ View crawl logs for one or all crawlers
     :param crawl_id: The crawl_id to view logs for
     :param browser: 1-based index of browser to show logs for, or 0 for all (default)
     :param follow: follow crawl log in real-time (for one browser only)
+    :param all_containers: include logs from all containers, not just crawler
     """
     res = sesh_get('/crawl/{0}'.format(crawl_id))
 
     num_browsers = len(res['browsers'])
     if browser <= 0:
-        print_logs(res['browsers'], follow=follow)
+        print_logs(res['browsers'], follow=follow, all_containers=all_containers)
     elif browser > num_browsers:
         print(
             'Crawl has {0} browsers. Index must be 1 to {0}'.format(
@@ -471,4 +498,6 @@ def logs(crawl_id, browser, follow):
             )
         )
     else:
-        print_logs([res['browsers'][browser - 1]], follow=follow)
+        print_logs(
+            [res['browsers'][browser - 1]], follow=follow, all_containers=all_containers
+        )
