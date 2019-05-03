@@ -17,8 +17,8 @@ crawls:
     browser: chrome:73
 
     # params for test only
-    test_params:
-      max_timeout: 120
+    ignore_extra:
+      test_max_timeout: 120
 
   - name: all-links-single-page
     crawl_type: all-links
@@ -34,11 +34,11 @@ crawls:
     browser: chrome:73
 
     # params for test only
-    test_params:
-      max_timeout: 600
+    ignore_extra:
+      test_max_timeout: 600
 
       # expected size of seen list
-      expected_seen: 51
+      test_expected_seen: 51
    
   - name: multi-browser-test
     crawl_type: single-page
@@ -55,6 +55,6 @@ crawls:
     browser: chrome:73
 
     # params for test only
-    test_params:
-      max_timeout: 300
+    ignore_extra:
+      test_max_timeout: 300
 

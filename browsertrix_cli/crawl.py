@@ -278,7 +278,10 @@ def create_crawl(
             crawl_spec['behavior_time'] = behavior_time
 
         if profile is not None:
-            browser = get_profile_image(profile)
+            crawl_spec['profile'] = profile
+
+        if 'profile' in crawl_spec:
+            browser = get_profile_image(crawl_spec.get('profile', ''))
 
         if browser is not None:
             crawl_spec['browser'] = browser

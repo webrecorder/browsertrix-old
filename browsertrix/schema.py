@@ -64,6 +64,9 @@ class BaseCreateCrawl(BaseModel):
 
 
 class CreateCrawlRequest(BaseCreateCrawl):
+    class Config:
+        extra = 'forbid'
+
     seed_urls: List[UrlStr] = []
     scopes: List[Dict[Any, Any]] = []
 
@@ -71,6 +74,8 @@ class CreateCrawlRequest(BaseCreateCrawl):
 
     browser: Optional[str] = 'chrome:73'
     user_params: Dict[Any, Any] = dict()
+
+    ignore_extra: Optional[Dict[Any, Any]] = None
 
     behavior_max_time: int = 0
     headless: bool = False
