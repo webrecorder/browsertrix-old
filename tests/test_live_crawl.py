@@ -24,11 +24,9 @@ class TestCrawls(object):
         if 'browser' not in crawl:
             crawl['browser'] = self.default_browser
 
-        print(crawl)
         res = requests.post(self.api_host + '/crawls', json=crawl)
         res = res.json()
 
-        print(res)
         assert res.get('success'), res
         assert len(res['browsers']) == crawl.get('num_browsers', 1)
 
@@ -63,7 +61,6 @@ class TestCrawls(object):
     def test_get_stats(self, crawl):
         res = requests.get(self.api_host + f'/crawl/{self.crawl_id}/urls')
         res = res.json()
-        print(res)
         assert len(res['queue']) == 0
         assert len(res['pending']) == 0
 
