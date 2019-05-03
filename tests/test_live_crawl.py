@@ -44,7 +44,7 @@ class TestCrawls(object):
     def test_sleep_wait(self, crawl):
         start_time = time.time()
         sleep_time = 5
-        max_time = crawl.get('max_timeout', 600) + 30
+        max_time = crawl.get('ignore_extra', {}).get('test_max_timeout', 600) + 30
         done = False
         while True:
             res = requests.get(self.api_host + f'/crawl/{self.crawl_id}/done')
@@ -68,8 +68,9 @@ class TestCrawls(object):
         assert len(res['pending']) == 0
 
         assert len(res['seen']) >= len(crawl['seed_urls'])
-        if crawl.get('expected_seen'):
-            assert len(res['seen']) == crawl.get('expected_seen')
+        expected_seen = crawl.get('ignore_extra', {}).get('test_expected_seen')
+        if expected_seen:
+            assert len(res['seen']) == expected_seen
 
         TestCrawls.seen = res['seen']
 

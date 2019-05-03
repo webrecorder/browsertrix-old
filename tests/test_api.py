@@ -58,7 +58,7 @@ class TestCrawlAPI:
             'browser': 'chrome:67',
             'screenshot_target_uri': 'file://test',
             'user_params': {'some': 'value', 'some_int': 7},
-            'behavior_run_time': 30,
+            'behavior_max_time': 30,
             'headless': False,
             'start': False,
             'num_tabs': 2,
@@ -74,6 +74,7 @@ class TestCrawlAPI:
         )
 
         res = res.json()
+        print(res)
         assert res['success']
         TestCrawlAPI.crawl_id = res['id']
 
@@ -306,7 +307,7 @@ class TestCrawlAPI:
                              'browser': 'chrome:67',
                              'screenshot_target_uri': 'file://test',
                              'user_params': {'some': 'value', 'some_int': 7},
-                             'behavior_run_time': 30,
+                             'behavior_max_time': 30,
                              'headless': True,
                              'start': True,
                              }
