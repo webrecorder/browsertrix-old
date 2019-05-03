@@ -74,7 +74,6 @@ class TestCrawlAPI:
         )
 
         res = res.json()
-        print(res)
         assert res['success']
         TestCrawlAPI.crawl_id = res['id']
 
