@@ -75,6 +75,8 @@ class CreateCrawlRequest(BaseCreateCrawl):
     browser: Optional[str] = 'chrome:73'
     user_params: Dict[Any, Any] = dict()
 
+    profile: Optional[str] = None
+
     ignore_extra: Optional[Dict[Any, Any]] = None
 
     behavior_max_time: int = 0
