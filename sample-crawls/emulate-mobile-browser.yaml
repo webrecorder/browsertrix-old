@@ -1,0 +1,28 @@
+crawls:
+  - name: social-media-device-override
+    crawl_type: single-page
+    num_browsers: 2
+    num_tabs: 1
+
+    coll: emulated-device
+    mode: record
+
+    seed_urls:
+      - https://twitter.com/webrecorder_io
+      - https://instagram.com/rhizomedotorg
+
+    behavior_max_time: 300
+    browser: chrome:73
+
+    cache: default
+    browser_overrides:
+      # https://chromedevtools.github.io/devtools-protocol/tot/Network/#method-setUserAgentOverride
+      user_agent: "Mozilla/5.0 (Linux; Android 7.0; SM-N920V) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.136 Mobile Safari/537.36"
+      navigator_platform: "Linux armv8l"
+      device:
+        width: 412
+        height: 732
+        deviceScaleFactor: 3
+        isMobile: true
+        hasTouch: true
+        isLandscape: false

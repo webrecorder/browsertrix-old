@@ -1,24 +1,20 @@
 from __future__ import annotations
 
+import logging
+import os
+import time
 import uuid
 from asyncio import AbstractEventLoop, gather as aio_gather, get_event_loop
 from functools import partial
 from typing import Dict, List, Optional, Union
-import ujson as json
 from urllib.parse import urlsplit
 
+import ujson as json
 from aiohttp import AsyncResolver, ClientSession, TCPConnector
 from aioredis import Redis
 from starlette.exceptions import HTTPException
 
-import os
-import logging
-
-import time
-
-from .schema import CrawlInfo, CreateCrawlRequest, CrawlType
-from .schema import CacheMode, CaptureMode
-
+from .schema import CacheMode, CaptureMode, CrawlInfo, CrawlType, CreateCrawlRequest
 from .utils import env, init_redis
 
 __all__ = ['Crawl', 'CrawlManager']
@@ -440,7 +436,6 @@ class Crawl:
         :return: An dictionary that includes an indication if this operation
         was successful and a list of browsers in the crawl
         """
-
         # init base crawl data
         if crawl_request.crawl_type == CrawlType.ALL_LINKS:
             crawl_depth = 1
@@ -470,6 +465,9 @@ class Crawl:
             'headless': '1' if crawl_request.headless else '0',
             'cache': crawl_request.cache.value,
         }
+
+        if crawl_request.browser_overrides is not None:
+            data['browser_overrides'] = crawl_request.browser_overrides.dict(skip_defaults=True)
 
         self.model = CrawlInfo(**data)
         await self.redis.hmset_dict(self.info_key, data)
