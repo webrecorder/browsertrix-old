@@ -1,0 +1,25 @@
+crawls:
+  - name: social-media-http-override
+    crawl_type: single-page
+    num_browsers: 2
+    num_tabs: 1
+
+    coll: emulated-device
+    mode: record
+
+    seed_urls:
+      - https://twitter.com/webrecorder_io
+      - https://instagram.com/rhizomedotorg
+
+    behavior_max_time: 300
+    browser: chrome:73
+
+    cache: default
+    browser_overrides:
+      accept_language: "fr-CH, fr;q=0.9, de;q=0.8, en;q=0.7, *;q=0.5"
+      cookies:
+      # https://chromedevtools.github.io/devtools-protocol/tot/Network#type-CookieParam
+        - name: foo
+          value: bar
+      extra_headers:
+        DNT: 1

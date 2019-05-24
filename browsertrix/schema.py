@@ -1,9 +1,15 @@
 import math
-from typing import Any, Dict, List, Optional, Set
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set, Union
+
 from pydantic import BaseModel, Schema, UrlStr
 
 __all__ = [
+    'BrowserCookie',
+    'BrowserOverrides',
+    'CacheMode',
+    'CaptureMode',
+    'CookieSameSite',
     'CrawlDoneResponse',
     'CrawlInfo',
     'CrawlInfoResponse',
@@ -12,6 +18,8 @@ __all__ = [
     'CrawlType',
     'CreateCrawlRequest',
     'CreateStartResponse',
+    'EmulatedDevice',
+    'EmulatedGeoLocation',
     'FullCrawlInfoResponse',
     'OperationSuccessResponse',
     'QueueUrlsRequest',
@@ -20,6 +28,7 @@ __all__ = [
 # ============================================================================
 OptionalList = Optional[List[str]]
 OptionalSet = Optional[Set[str]]
+Number = Union[int, float]
 
 UrlStr.max_length = math.inf
 UrlStr.relative = True
@@ -42,6 +51,50 @@ class CacheMode(str, Enum):
     ALWAYS = 'always'
     NEVER = 'never'
     DEFAULT = 'default'
+
+
+class CookieSameSite(str, Enum):
+    STRICT = 'Strict'
+    LAX = 'LAX'
+    EXTENDED = 'Extended'
+    NONE = 'None'
+
+
+class EmulatedDevice(BaseModel):
+    width: Number
+    height: Number
+    deviceScaleFactor: Optional[Number] = None
+    maxTouchPoints: Optional[Number] = None
+    isMobile: Optional[bool] = None
+    hasTouch: Optional[bool] = None
+    isLandscape: Optional[bool] = None
+
+
+class EmulatedGeoLocation(BaseModel):
+    latitude: Number
+    longitude: Number
+
+
+class BrowserCookie(BaseModel):
+    name: str
+    value: str
+    url: Optional[UrlStr] = None
+    domain: Optional[str] = None
+    path: Optional[str] = None
+    secure: Optional[bool] = None
+    httpOnly: Optional[bool] = None
+    expires: Optional[Number] = None
+    sameSite: Optional[CookieSameSite] = None
+
+
+class BrowserOverrides(BaseModel):
+    user_agent: Optional[str] = None
+    accept_language: Optional[str] = None
+    navigator_platform: Optional[str] = None
+    extra_headers: Optional[Dict[str, str]] = None
+    cookies: Optional[List[BrowserCookie]] = None
+    geo_location: Optional[EmulatedGeoLocation] = None
+    device: Optional[EmulatedDevice] = None
 
 
 class BaseCreateCrawl(BaseModel):
@@ -84,6 +137,7 @@ class CreateCrawlRequest(BaseCreateCrawl):
     screenshot_target_uri: Optional[str] = None
 
     start: bool = True
+    browser_overrides: Optional[BrowserOverrides] = None
 
 
 class OperationSuccessResponse(BaseModel):
@@ -131,6 +185,7 @@ class CrawlInfo(BaseModel):
     start_time: int = 0
     finish_time: int = 0
     headless: bool = False
+    browser_overrides: Optional[BrowserOverrides] = None
 
 
 class CrawlInfoUrlsResponse(BaseModel):
