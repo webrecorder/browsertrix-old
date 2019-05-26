@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8;charset=utf-8">
+    <title>{% if metadata %} {{ metadata.title if metadata.title else coll }} {% else %} {{ coll }} {% endif %} Pages</title>
+    <link rel="stylesheet" href="{{ static_prefix }}/css/bootstrap.min.css">
+    <style>
+    #resDiv {
+        margin-top: 30px;
+    }
+
+    #resDiv h3 {
+        text-align: center;
+    }
+    #resTitle {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .dup {
+        float: right;
+    }
+    li {
+        margin-bottom: 20px;
+    }
+    li div {
+        display: inline-block;
+        vertical-align: top;
+    }
+    .liContent {
+        width: 66%;
+    }
+    .row {
+        margin-bottom: 10px;
+    }
+    .urlmatch {
+        color: darkgreen;
+    }
+    .capturedon {
+        font-style: italic;
+        font-size: smaller;
+    }
+    img.thumb {
+        max-width: 100%;
+    }
+    .img-crop {
+        max-height: 200px;
+        overflow: hidden;
+    }
+    em {
+        font-weight: bold;
+        font-style: italic;
+        color: magenta;
+    }
+    .snippet {
+        font-family: monospace;
+    }
+    </style>
+    <script>
+    var coll = "{{ coll }}";
+
+    var sp = new URLSearchParams(window.location.search);
+
+    var searchQ = sp.get("search");
+
+    function tsToDate(ts, is_gmt) {
+        if (ts.length < 14) return ts;
+        
+        var datestr =
+        ts.substring(0, 4) +
+        '-' +
+        ts.substring(4, 6) +
+        '-' +
+        ts.substring(6, 8) +
+        'T' +
+        ts.substring(8, 10) +
+        ':' +
+        ts.substring(10, 12) +
+        ':' +
+        ts.substring(12, 14) +
+        '-00:00';
+
+      var date = new Date(datestr);
+      return is_gmt ? date.toGMTString() : date.toLocaleString();
+    };
+
+
+    function fetchPages(start, limit) {
+        var fetchUrl = "/api/search/" + coll + "?sort=desc";
+
+        if (start) {
+            fetchUrl += "&start=" + start;
+        }
+
+        if (limit) {
+            fetchUrl += "&limit=" + limit;
+        }
+
+        if (searchQ) {
+            fetchUrl += "&search=" + searchQ;
+        }
+            
+        window.fetch(fetchUrl)
+        .then(function(response) {
+            return response.json()
+        }).then(function(data) {
+            parseResults(data);
+        });
+    }
+
+    function getHref(coll, timestamp, url) {
+        return "/" + coll + "/" + timestamp + "/" + url;
+    }
+
+    function parseResults(results) {
+        var ol = document.querySelector("ol");
+
+        for (var page of results.results) {
+            var li = document.createElement("li");
+            var href = getHref(coll, page.timestamp[0], page.url);
+            var content = "";
+            if (page.has_screenshot) {
+                var imgUrl = getHref(coll, page.timestamp[0] + 'im_', "urn:screenshot:" + page.url);
+                content += '<div class="col-3 img-crop"><a href="' + imgUrl + '" target="_blank"><img class="thumb" src="' + imgUrl + '"/></a></div>';
+            }
+
+            content += '<div class="col-9">'
+            content += '<h5><a href="' + href + '">' + page.title + "</a></h5>";
+            content += '<p><span class="urlmatch">' + page.url + '</span><br/>';
+            content += '<span class="capturedon">Captured on ' + tsToDate(page.timestamp[0]);
+
+            if (page.timestamp.length > 1) {
+                content += "<span class='dup'>" + (page.timestamp.length - 1) + " text duplicate";
+
+                if (page.timestamp.length > 2) {
+                    content += "(s)";
+                }
+
+                content += ": ";
+                for (var i = 1; i < page.timestamp.length; i++) {
+                    if (i > 1) {
+                        content += ", ";
+                    }
+                    content += '<a href="' + getHref(coll, page.timestamp[i], page.url) + '">Link</a>';
+                }
+                content += "</span>";
+            }
+
+            content += '</span></p>';
+
+            if (page.matched) {
+                for (match of page.matched) {
+                    content += "<p class='snippet'>" + match + "</p>";
+                }
+            }
+
+            content += '</div>';
+            console.log(content);
+
+            li.innerHTML = content;
+            ol.appendChild(li);
+        }
+
+        var count = document.querySelector("ol").children.length;
+        var totalStr = "Showing " + count + " of " + results.total;
+        document.querySelector("#resTotal").innerText = totalStr;
+
+        document.querySelector("#resTitle").innerText = (!searchQ ? "All Pages": "Search Results");
+
+        document.querySelector("button").style.display = ((count < results.total) ? "" : "none");
+    }
+
+    function fetchMore() {
+        var count = document.querySelector("ol").children.length;
+        fetchPages(count, 20);
+    }
+
+    function init() {
+        fetchPages();
+
+        document.querySelector("#search-text").value = searchQ;
+    }
+
+    document.addEventListener("DOMContentLoaded", init, {once: true});
+
+    </script>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <h1>
+            Explore Collection
+        </h1>
+    </div>
+</div>
+<div class="container mt-4">
+    <div class="form-row">
+        <div class="col-12">
+            <form>
+                <label for="search-text" class="lead" aria-label="Search Text">Enter Search Text</label>
+                <span style="float: right">(Go to: <a href="search">Url Search</a>)</span>
+                <input aria-label="text" aria-required="true" name="search" placeholder="" class="form-control form-control-lg" id="search-text"/>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12" id="resDiv">
+            <h2 id="resTitle"></h2>
+            <ol id="resList">
+            </ol>
+            <span id="resTotal"></span>
+            <button onclick="fetchMore()" class="btn btn-primary" style="display: none">Show More</button>
+        </div>
+    </div>
+</div>
+</body>
+</html>
+

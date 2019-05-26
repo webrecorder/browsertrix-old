@@ -61,6 +61,7 @@ class CrawlManager:
             'IDLE_TIMEOUT': '',
             'BEHAVIOR_API_URL': 'http://behaviors:3030',
             'SCREENSHOT_API_URL': env('SCREENSHOT_API_URL'),
+            'EXTRACTED_RAW_DOM_API_URL': env('EXTRACTED_RAW_DOM_API_URL')
         }
 
         self.default_browser = None
@@ -449,11 +450,16 @@ class Crawl:
             for scope in crawl_request.scopes:
                 await self.redis.sadd(self.scopes_key, json.dumps(scope))
 
+        mode = crawl_request.mode.value
+        screenshot_coll = crawl_request.screenshot_coll or (mode == 'record' and crawl_request.coll)
+        text_coll = crawl_request.text_coll or (mode == 'record' and crawl_request.coll)
+
         data = {
             'id': self.crawl_id,
             'coll': crawl_request.coll,
-            'screenshot_coll': crawl_request.screenshot_coll or '',
-            'mode': crawl_request.mode.value,
+            'screenshot_coll': screenshot_coll,
+            'text_coll': text_coll,
+            'mode': mode,
             'name': crawl_request.name,
             'num_browsers': crawl_request.num_browsers,
             'num_tabs': crawl_request.num_tabs,
@@ -498,10 +504,6 @@ class Crawl:
         if crawl_request.behavior_max_time > 0:
             environ['BEHAVIOR_RUN_TIME'] = crawl_request.behavior_max_time
 
-        if crawl_request.screenshot_target_uri:
-            environ['SCREENSHOT_TARGET_URI'] = crawl_request.screenshot_target_uri
-            environ['SCREENSHOT_FORMAT'] = 'png'
-
         screenshot_api = environ['SCREENSHOT_API_URL']
         if self.model.screenshot_coll and screenshot_api:
             environ['SCREENSHOT_API_URL'] = screenshot_api.format(
@@ -509,6 +511,14 @@ class Crawl:
             )
         else:
             environ.pop('SCREENSHOT_API_URL', '')
+
+        raw_dom_api =  environ['EXTRACTED_RAW_DOM_API_URL']
+        if self.model.text_coll and raw_dom_api:
+            environ['EXTRACTED_RAW_DOM_API_URL'] = raw_dom_api.format(
+                coll=self.model.text_coll
+            )
+        else:
+            environ.pop('EXTRACTED_RAW_DOM_API_URL', '')
 
         deferred = {'autobrowser': False}
         if crawl_request.headless:

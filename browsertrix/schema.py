@@ -115,6 +115,9 @@ class BaseCreateCrawl(BaseModel):
         '', description='Collection to store screenshots, if any'
     )
 
+    text_coll: Optional[str] = Schema(
+        '', description='Collection to store full-text indexes, if any'
+    )
 
 class CreateCrawlRequest(BaseCreateCrawl):
     class Config:
@@ -176,6 +179,7 @@ class CrawlInfo(BaseModel):
     name: str
     coll: str
     screenshot_coll: str
+    text_coll: str
     mode: str
     status: str
     crawl_type: str
