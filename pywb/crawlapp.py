@@ -21,26 +21,36 @@ from werkzeug.routing import Rule
 EMPTY_LIST = []
 EMPTY_DICT = {}
 SKIPPED_NODES = {'script', 'style'}
-TEXT_OR_TITLE = {'#text', 'title'}
+TITLE = 'title'
+TEXT = '#text'
 
 
 def extract_text(node, metadata=None):
-    nname = node.get('nodeName', '').lower()
-    if nname not in SKIPPED_NODES:
-        if nname in TEXT_OR_TITLE:
+    node_name = node.get('nodeName', '').lower()
+    if node_name not in SKIPPED_NODES:
+        children = node.get('children', EMPTY_LIST)
+        if node_name == TEXT:
             text_value = node.get('nodeValue', '').strip()
             if text_value:
-                if nname == 'title' and metadata is not None:
-                    metadata['title'] = text_value
                 yield text_value
-        kids = node.get('children', EMPTY_LIST)
-        if kids:
-            for t in chain.from_iterable(extract_text(child, metadata) for child in kids):
-                yield t
-        content_doc = node.get('contentDocument')
-        if content_doc:
-            for t in extract_text(content_doc, None):
-                yield t
+        elif node_name == TITLE:
+            title = ' '.join(
+                chain.from_iterable(extract_text(child, None) for child in children)
+            )
+            if metadata is not None:
+                metadata['title'] = title
+            else:
+                yield title
+        else:
+            if children:
+                for text_value in chain.from_iterable(
+                    extract_text(child, metadata) for child in children
+                ):
+                    yield text_value
+            content_doc = node.get('contentDocument')
+            if content_doc:
+                for text_value in extract_text(content_doc, None):
+                    yield text_value
 
 
 # ============================================================================
