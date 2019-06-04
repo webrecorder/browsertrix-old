@@ -451,8 +451,8 @@ class Crawl:
                 await self.redis.sadd(self.scopes_key, json.dumps(scope))
 
         mode = crawl_request.mode.value
-        screenshot_coll = crawl_request.screenshot_coll or (mode == 'record' and crawl_request.coll)
-        text_coll = crawl_request.text_coll or (mode == 'record' and crawl_request.coll)
+        screenshot_coll = crawl_request.screenshot_coll or (mode == 'record' and crawl_request.coll) or ''
+        text_coll = crawl_request.text_coll or (mode == 'record' and crawl_request.coll) or ''
 
         data = {
             'id': self.crawl_id,
