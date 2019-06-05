@@ -109,9 +109,10 @@ class TestCrawlAPI:
         assert json['num_seen'] == 2
         assert json['num_pending'] == 0
         assert json['headless'] == False
-        assert json['screenshot_coll'] == ''
+        assert json['screenshot_coll'] == 'live'
+        assert json['text_coll'] == 'live'
 
-        assert len(json) == 18
+        assert len(json) == 19
 
     def test_get_crawl_details(self):
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
@@ -220,7 +221,7 @@ class TestCrawlAPI:
 
             assert data['deferred'] == {'autobrowser': False}
 
-            assert data['environ']['SCREENSHOT_TARGET_URI'] == 'file://test'
+            #assert data['environ']['SCREENSHOT_TARGET_URI'] == 'file://test'
 
             assert data['user_params']['some'] == 'value'
             assert data['user_params']['some_int'] == 7
@@ -249,7 +250,7 @@ class TestCrawlAPI:
         assert json['num_seen'] == 2
         assert json['num_pending'] == 0
 
-        assert len(json) == 18
+        assert len(json) == 19
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):

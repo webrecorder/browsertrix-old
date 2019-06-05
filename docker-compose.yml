@@ -8,7 +8,8 @@ services:
         environment:
             - REDIS_URL=redis://redis/0
             - DEFAULT_POOL=auto-pool
-            - SCREENSHOT_API_URL=http://pywb:8080/screenshot/{coll}
+            - SCREENSHOT_API_URL=http://pywb:8080/api/screenshot/{coll}
+            - EXTRACTED_RAW_DOM_API_URL=http://pywb:8080/api/dom/{coll}
             - PROXY_HOST=pywb
 
         depends_on:
@@ -41,6 +42,20 @@ services:
         depends_on:
             - redis
 
+    solr:
+        image: solr
+
+        volumes:
+          - ./solr:/var/solr
+
+        entrypoint:
+          - docker-entrypoint.sh
+          - solr-precreate
+          - browsertrix
+
+        ports:
+          - 8983:8983
+
     shepherd:
         image: oldwebtoday/shepherd:1.1.0-dev
 
@@ -68,6 +83,8 @@ services:
     behaviors:
       image: webrecorder/behaviors
 
+      ports:
+            - 3030:3030
 
 networks:
     default:

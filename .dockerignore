@@ -1,3 +1,8 @@
+pywb
+build
+webarchive
+browsertrix_cli
+
 # Created by .ignore support plugin (hsz.mobi)
 ### Node template
 # Logs
@@ -223,6 +228,7 @@ venv.bak/
 
 # mkdocs documentation
 /site
+
 
 # mypy
 .mypy_cache/
