@@ -61,7 +61,7 @@ class CrawlManager:
             'IDLE_TIMEOUT': '',
             'BEHAVIOR_API_URL': 'http://behaviors:3030',
             'SCREENSHOT_API_URL': env('SCREENSHOT_API_URL'),
-            'EXTRACTED_RAW_DOM_API_URL': env('EXTRACTED_RAW_DOM_API_URL')
+            'EXTRACTED_RAW_DOM_API_URL': env('EXTRACTED_RAW_DOM_API_URL'),
         }
 
         self.default_browser = None
@@ -473,7 +473,9 @@ class Crawl:
         }
 
         if crawl_request.browser_overrides is not None:
-            data['browser_overrides'] = crawl_request.browser_overrides.dict(skip_defaults=True)
+            data['browser_overrides'] = crawl_request.browser_overrides.dict(
+                skip_defaults=True
+            )
 
         self.model = CrawlInfo(**data)
         await self.redis.hmset_dict(self.info_key, data)
@@ -512,7 +514,7 @@ class Crawl:
         else:
             environ.pop('SCREENSHOT_API_URL', '')
 
-        raw_dom_api =  environ['EXTRACTED_RAW_DOM_API_URL']
+        raw_dom_api = environ['EXTRACTED_RAW_DOM_API_URL']
         if self.model.text_coll and raw_dom_api:
             environ['EXTRACTED_RAW_DOM_API_URL'] = raw_dom_api.format(
                 coll=self.model.text_coll

@@ -119,6 +119,7 @@ class BaseCreateCrawl(BaseModel):
         '', description='Collection to store full-text indexes, if any'
     )
 
+
 class CreateCrawlRequest(BaseCreateCrawl):
     class Config:
         extra = 'forbid'
