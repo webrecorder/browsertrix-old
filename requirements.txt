@@ -4,7 +4,7 @@ aiohttp
 aioredis
 better_exceptions
 cchardet
-fastapi==0.27.2
+fastapi==0.29.0
 pyyaml
 ujson
 uvloop

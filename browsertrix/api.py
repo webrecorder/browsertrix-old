@@ -7,6 +7,9 @@ from .crawl import CrawlManager
 from .schema import *
 
 app = FastAPI(debug=True)
+app.add_middleware(
+    CORSMiddleware, allow_origins=["*"], allow_methods=ALL_METHODS, allow_headers=["*"]
+)
 crawl_man = CrawlManager()
 crawl_router = APIRouter()
 
@@ -93,7 +96,6 @@ def ui(*args, **kwargs):
     return FileResponse('static/index.html')
 
 
-app.add_middleware(CORSMiddleware, allow_origins=['*'], allow_methods=ALL_METHODS)
 app.include_router(crawl_router, prefix='/crawl', tags=['crawl'])
 app.mount('/static', StaticFiles(directory='static', check_dir=True), 'static')
 app.add_event_handler('startup', crawl_man.startup)
