@@ -10,10 +10,10 @@ as well as crawl multiple pages. (The name was originally used for an older proj
 Browsertrix is a system for orchestrating Docker-based Chrome browsers, crawling processes, behavior systems, and web archiving capture and replay.
 
 It includes the following features:
-* Crawling via customiazable YAML-based crawl spec
+* Crawling via customizable YAML-based crawl spec
 * High-fidelity browser-based crawlers (controlled via [webrecorder/autobrowser](https://github.com/webrecorder/autobrowser))
 * Execution of complex, domain-specific in-page behaviors (provided by [webrecorder/behaviors](https://github.com/webrecorder/behaviors))
-* Capture or replay into designated [pywb]((https://github.com/webrecorder/pywb) collections
+* Capture or replay into designated [pywb](https://github.com/webrecorder/pywb) collections
 * Optional screenshot creation of each page.
 * Support for customized browser profiles to minimize capture of private information.
 
