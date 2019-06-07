@@ -47,6 +47,11 @@ def extract_text(node, metadata=None):
 # ============================================================================
 class CrawlProxyApp(FrontEndApp):
     def __init__(self, config_file=None, custom_config=None):
+        self.colls_dir = os.path.join(os.environ.get('VOLUME_DIR', '.'), 'collections')
+
+        # ensure collections dir exists for auto-index
+        os.makedirs(self.colls_dir, exist_ok=True)
+
         super(CrawlProxyApp, self).__init__(
             config_file='./config.yaml', custom_config=custom_config
         )
@@ -62,11 +67,6 @@ class CrawlProxyApp(FrontEndApp):
         )
 
         self.solr_ingester = FullTextIngester()
-
-        self.colls_dir = os.path.join(os.environ.get('VOLUME_DIR', '.'), 'collections')
-
-        # ensure collections dir exists for auto-index
-        os.makedirs(self.colls_dir, exist_ok=True)
 
     def ensure_coll_exists(self, coll):
         if coll == 'live':
