@@ -9,10 +9,12 @@ proxy:
 
 recorder: live
 
-autoindex: 30
+autoindex: 10
 
 enable_auto_fetch: true
 
 collections:
   live: $live
+
+collections_root: /webarchive/collections
   

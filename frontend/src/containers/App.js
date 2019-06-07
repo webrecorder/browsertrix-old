@@ -13,7 +13,7 @@ function AllCrawls(props) {
 function CreateCrawl(props) {
   return (
     <div className='uk-container'>
-      <CrawlCreator message={'Create a new crawl!'} />
+      <CrawlCreator/>
     </div>
   );
 }

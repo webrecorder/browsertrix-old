@@ -19,14 +19,13 @@ services:
         ports:
             - 8000:8000
 
-        volumes:
-            - ./:/app/
+        #volumes:
+        #    - ./:/app/
 
     pywb:
         build: ./pywb/
 
         environment:
-            - INIT_COLLECTION=coll
             - REDIS_URL=redis://redis/0
 
         volumes:

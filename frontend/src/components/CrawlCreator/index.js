@@ -6,10 +6,10 @@ import { withRouter } from 'react-router-dom';
 import { createCrawl } from '../../actions';
 import CrawlCreationForm, { initialValues } from './CreationForm';
 
-function CrawlCreator({ crawlType, createCrawl, message }) {
+function CrawlCreator({ crawlType, createCrawl }) {
   return (
     <>
-      <h1 className='display-4 uk-text-center'>{message}</h1>
+      <h3 className='display-4 uk-text-center'>New Crawl</h3>
       <CrawlCreationForm
         crawlType={crawlType}
         initialValues={initialValues}
@@ -19,7 +19,6 @@ function CrawlCreator({ crawlType, createCrawl, message }) {
 }
 
 CrawlCreator.propTypes = {
-  message: PropTypes.string.isRequired,
   createCrawl: PropTypes.func.isRequired
 };
 
