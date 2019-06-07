@@ -5,21 +5,18 @@ import HeaderLink from './HeaderLink';
 
 function Header(props) {
   return (
-    <div className='uk-container uk-container-small'>
-      <nav className='uk-navbar-container' data-uk-navbar='' data-uk-sticky=''>
-        <div className='uk-navbar-center'>
-          <ul className='uk-navbar-nav'>
+    <div className='uk-container'>
+      <img className='logo' src="/static/browsertrix-logo.svg"/>
+      <nav className='uk-navbar-container' uk-navbar="true">
+        <div className="uk-navbar-left">
+        <ul className="uk-nav uk-tab uk-flex-left">
             <HeaderLink location={props.location} to='/'>
-              Crawl Select
+              View All Crawls
             </HeaderLink>
-          </ul>
-        </div>
-        <div className='uk-navbar-right'>
-          <div className='uk-navbar-item'>
-            <HeaderLink button location={location} to='/createCrawl'>
-              Create Crawl
+            <HeaderLink location={props.location} to='/createCrawl'>
+              Create New Crawl
             </HeaderLink>
-          </div>
+        </ul>
         </div>
       </nav>
     </div>

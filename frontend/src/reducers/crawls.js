@@ -6,8 +6,10 @@ export class CrawlRecord extends Record({
   browser: 'chrome:67',
   browsers: [],
   browsersDone: [],
+  coll: '',
   crawl_type: '',
   crawl_depth: 0,
+  finish_time: 0,
   id: '',
   mode: '',
   num_browsers: 0,
@@ -21,6 +23,7 @@ export class CrawlRecord extends Record({
   running: false,
   scopes: [],
   seen: [],
+  start_time: 0,
   status: 'new'
 }) {
   updateBrowsers(browsers) {

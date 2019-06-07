@@ -52,8 +52,6 @@ class Crawls extends Component {
     let component;
     if (!this.props.crawlsFetched) {
       component = <LoadingCrawls />;
-    } else if (this.props.crawls.size === 0) {
-      component = <CrawlCreator message={'There are no pre-existing crawls'} />;
     } else {
       component = (
         <SelectCrawl

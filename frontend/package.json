@@ -5,7 +5,9 @@
   "license": "Appache-2.0",
   "dependencies": {
     "@hot-loader/react-dom": "16.8.6",
+    "fstream": "^1.0.12",
     "immutable": "^4.0.0-rc.12",
+    "js-yaml": "^3.13.1",
     "plur": "^3.1.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",

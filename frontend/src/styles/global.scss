@@ -23,6 +23,13 @@ body {
   overflow: hidden;
 }
 
+.uk-tab a {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+
+
 nav {
   border-bottom: 1px solid #e8e6ea;
   transition: background-color 250ms ease;
@@ -32,7 +39,6 @@ nav {
     transition: max-height 1.5s ease;
     max-height: 90px;
   }
-
 
   &.uk-active {
     backface-visibility: hidden;
@@ -80,3 +86,11 @@ nav {
   cursor: pointer;
   color: red;
 }
+
+.logo {
+    height: auto;
+    width: 250px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+

@@ -13,7 +13,7 @@ import redis
 import requests
 from pywb.apps.frontendapp import FrontEndApp
 from pywb.apps.wbrequestresponse import WbResponse
-from pywb.manager.manager import main as manager_main
+from pywb.manager.manager import CollectionsManager
 from pywb.rewrite.templateview import BaseInsertView
 from warcio.timeutils import timestamp_now, timestamp_to_iso_date
 from werkzeug.routing import Rule
@@ -24,6 +24,7 @@ SKIPPED_NODES = {'script', 'style'}
 TEXT_OR_TITLE = {'#text', 'title'}
 
 
+# ============================================================================
 def extract_text(node, metadata=None):
     nname = node.get('nodeName', '').lower()
     if nname not in SKIPPED_NODES:
@@ -62,6 +63,11 @@ class CrawlProxyApp(FrontEndApp):
 
         self.solr_ingester = FullTextIngester()
 
+        self.colls_dir = os.path.join(os.environ.get('VOLUME_DIR', '.'), 'collections')
+
+        # ensure collections dir exists for auto-index
+        os.makedirs(self.colls_dir, exist_ok=True)
+
     def ensure_coll_exists(self, coll):
         if coll == 'live':
             return
@@ -70,7 +76,8 @@ class CrawlProxyApp(FrontEndApp):
             return
 
         try:
-            manager_main(['init', coll])
+            m = CollectionsManager(coll, colls_dir=self.colls_dir, must_exist=False)
+            m.add_collection()
         except FileExistsError:
             pass
 

@@ -7,7 +7,8 @@ COPY crawlapp.py ./
 
 COPY uwsgi.ini /uwsgi/
 
-COPY ./templates/ /webarchive/templates/
+COPY ./templates ./templates
+COPY ./static ./static
 
-WORKDIR /webarchive
+#WORKDIR /webarchive
 

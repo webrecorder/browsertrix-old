@@ -54,6 +54,15 @@
     .snippet {
         font-family: monospace;
     }
+    .logo {
+        width: 200px;
+        height: auto;
+    }
+    .coll-header {
+        font-variant: all-small-caps;
+        margin-left: 20px;
+        font-size: 1.5rem;
+    }
     </style>
     <script>
     var coll = "{{ coll }}";
@@ -185,12 +194,9 @@
     </script>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <h1>
-            Explore Collection
-        </h1>
-    </div>
+<div class="container mt-4">
+    <span><img class="logo" src="/static/browsertrix-logo.svg"/></span>
+    <span class="coll-header"><b>{{ coll }}</b>&nbsp;Web Collection</span></div>
 </div>
 <div class="container mt-4">
     <div class="form-row">
