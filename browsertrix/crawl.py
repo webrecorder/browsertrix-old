@@ -7,7 +7,6 @@ import uuid
 from asyncio import AbstractEventLoop, gather as aio_gather, get_event_loop
 from functools import partial
 from typing import Dict, List, Optional, Union
-from urllib.parse import urlsplit
 
 import ujson as json
 from aiohttp import AsyncResolver, ClientSession, TCPConnector
@@ -15,7 +14,7 @@ from aioredis import Redis
 from starlette.exceptions import HTTPException
 
 from .schema import CacheMode, CaptureMode, CrawlInfo, CrawlType, CreateCrawlRequest
-from .utils import env, init_redis
+from .utils import env, extract_domain, init_redis
 
 __all__ = ['Crawl', 'CrawlManager']
 
@@ -116,31 +115,95 @@ class CrawlManager:
         for the /crawls endpoint
         :return: A dictionary indicating success and the id of the new crawl
         """
-        crawl_id = self.new_crawl_id()
-
-        crawl = Crawl(crawl_id, self)
-        return await crawl.init_crawl(crawl_request)
+        return await Crawl.create(self, crawl_request)
 
     async def load_crawl(self, crawl_id: str) -> Crawl:
         """Returns the crawl information for the supplied crawl id
 
         :param crawl_id: The id of the crawl to load
-        :return: The information about a crawl
+        :return: The loaded crawl
         """
-        crawl = Crawl(crawl_id, self)
-        data = await self.redis.hgetall(crawl.info_key)
-        if not data:
+        crawl = await Crawl.load(crawl_id, self)
+        if not crawl.model:
             raise HTTPException(404, detail='crawl not found')
-
-        crawl.model = CrawlInfo(**data)
         return crawl
 
+    async def get_crawl_info(self, crawl_id: str) -> Dict:
+        """Retrieves and returns a crawls info
+
+        :param crawl_id: The id of the crawl to retrieve the info for
+        :return: A dictionary containing the crawls info
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.get_info()
+
     async def get_full_crawl_info(self, crawl_id: str) -> Dict:
+        """Retrieves and returns a crawls full details
+
+        :param crawl_id: The id of the crawl to retrieve full details for
+        :return: A dictionary containing the crawls full details
+        """
         crawl = await self.load_crawl(crawl_id)
         info, urls = await aio_gather(
             crawl.get_info(count_urls=False), crawl.get_info_urls(), loop=self.loop
         )
         return dict(**info, **urls, success=True)
+
+    async def get_crawl_urls(self, crawl_id: str) -> Dict:
+        """Retrieves and returns a crawls URLs
+
+        :param crawl_id: The id of the crawl to retrieve URLs for
+        :return: A dictionary containing the crawls URL info
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.get_info_urls()
+
+    async def queue_crawl_urls(self, crawl_id: str, url_list: List[str]) -> Dict:
+        """Queues the supplied list of URLs for the crawl associated with the supplied id
+
+        :param crawl_id: The id of the crawl the URLs will be queued for
+        :param url_list: The list of URL to be queued
+        :return: A dictionary containing the results of this operation
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.queue_urls(url_list)
+
+    async def start_crawl(self, crawl_id: str) -> Dict:
+        """Starts the crawl associated with the supplied id
+
+        :param crawl_id: The id of the crawl to be started
+        :return: A dictionary containing the results of this operation
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.start()
+
+    async def stop_crawl(self, crawl_id: str) -> Dict:
+        """Stop the crawl associated with the supplied id
+
+        :param crawl_id: The id of the crawl to be stopped
+        :return: A dictionary containing the results of this operation
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.stop()
+
+    async def delete_crawl(self, crawl_id: str) -> Dict:
+        """Stops and deletes the crawl associated with the supplied id
+
+        :param crawl_id: The id of the crawl to be stopped and deleted
+        :return: A dictionary containing the results of this operation
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.delete()
+
+    async def is_crawl_done(self, crawl_id: str) -> Dict:
+        """Checks to see if the crawl associated with the supplied id
+        is done
+
+        :param crawl_id: The id of the crawl to be checked
+        :return: A dictionary containing the results of this operation
+        """
+        crawl = await self.load_crawl(crawl_id)
+        return await crawl.is_done()
 
     async def do_request(self, url_path: str, post_data: Optional[Dict] = None) -> Dict:
         """Makes an HTTP post request to the supplied URL/path
@@ -231,17 +294,48 @@ class Crawl:
     """
 
     __slots__ = [
-        'tabs_done_key',
-        'browser_key',
         'crawl_id',
-        'frontier_q_key',
-        'info_key',
         'manager',
         'model',
+        'browser_key',
+        'frontier_q_key',
+        'info_key',
         'pending_q_key',
         'scopes_key',
         'seen_key',
+        'tabs_done_key',
     ]
+
+    @classmethod
+    async def create(
+        cls, manager: CrawlManager, crawl_request: CreateCrawlRequest
+    ) -> Dict:
+        """Creates a crawl using the supplied create crawl request
+
+        :param manager: The CrawlManager instance to be used
+        :param crawl_request: The crawl creation request
+        :return: A dictionary containing information about the results of this operation
+        """
+        crawl_id = manager.new_crawl_id()
+        crawl = cls(crawl_id, manager)
+        return await crawl.init_crawl(crawl_request)
+
+    @classmethod
+    async def load(cls, crawl_id: str, manager: CrawlManager) -> Crawl:
+        """Loads the supplied crawl_id's info, if it exists, and
+        returns an instance of Crawl
+
+        :param crawl_id: The id of the crawl to be loaded
+        :param manager: The CrawlManager instance to be used
+        :return: The created instance of Crawl
+        """
+        crawl = cls(crawl_id, manager)
+        info = await manager.redis.hgetall(crawl.info_key)
+        if info:
+            if 'browser_overrides' in info:
+                info['browser_overrides'] = json.loads(info['browser_overrides'])
+            crawl.model = CrawlInfo.parse_obj(info)
+        return crawl
 
     def __init__(
         self, crawl_id: str, manager: CrawlManager, model: Optional[CrawlInfo] = None
@@ -309,17 +403,11 @@ class Crawl:
 
         :param urls: A list of URLs that define this crawls domain scope
         """
-        domains = set()
 
         for url in urls:
-            domain = urlsplit(url).netloc
-            domains.add(domain)
-
-        if not domains:
-            return
-
-        for domain in domains:
-            await self.redis.sadd(self.scopes_key, json.dumps({'domain': domain}))
+            await self.redis.sadd(
+                self.scopes_key, json.dumps({'domain': extract_domain(url)})
+            )
 
     async def queue_urls(self, urls: List[str]) -> Dict[str, bool]:
         """Adds the supplied list of URLs to this crawls queue
@@ -360,6 +448,8 @@ class Crawl:
             self.redis.lrange(self.tabs_done_key, 0, -1),
             loop=self.loop,
         )
+        if 'browser_overrides' in data:
+            data['browser_overrides'] = json.loads(data['browser_overrides'])
 
         data['browsers'] = list(browsers)
         data['tabs_done'] = [json.loads(elem) for elem in tabs_done]
@@ -404,7 +494,7 @@ class Crawl:
 
         return data
 
-    async def start(self):
+    async def start(self) -> Dict:
         if self.model.status == 'running':
             raise HTTPException(400, detail='already running')
 
@@ -430,6 +520,49 @@ class Crawl:
             'id': self.crawl_id,
         }
 
+    async def init_crawl_browsers(
+        self, browser_init_opts: Dict, start: bool = False
+    ) -> Dict:
+        """Initializes this crawls browsers and if start is true starts each browser in the crawl
+
+        :param browser_init_opts: Browser initialization options
+        :param start: T/F indicating if the the intialized browser should be started
+        :return: A dictionary containing information about the results of this operation
+        """
+        errors = []
+        browsers = []
+
+        for _ in range(self.model.num_browsers):
+            res = await self.manager.request_flock(browser_init_opts)
+            reqid = res.get('reqid')
+            if not reqid:
+                if 'error' in res:
+                    errors.append(res['error'])
+                continue
+
+            if start:
+                res = await self.manager.start_flock(reqid)
+
+            if 'error' in res:
+                errors.append(res['error'])
+            else:
+                browsers.append(reqid)
+                await self.redis.sadd(self.browser_key, reqid)
+
+        if errors:
+            raise HTTPException(400, detail=errors)
+
+        if start:
+            self.model.status = 'running'
+            await self.redis.hset(self.info_key, 'status', 'running')
+
+        return {
+            'success': True,
+            'browsers': browsers,
+            'status': self.model.status,
+            'id': self.crawl_id,
+        }
+
     async def init_crawl(self, crawl_request: CreateCrawlRequest) -> Dict:
         """Initialize the crawl (and optionally start)
 
@@ -439,9 +572,9 @@ class Crawl:
         """
         # init base crawl data
         if crawl_request.crawl_type == CrawlType.ALL_LINKS:
-            crawl_depth = 1
+            crawl_depth = crawl_request.crawl_depth or 1
         elif crawl_request.crawl_type == CrawlType.SAME_DOMAIN:
-            crawl_depth = self.manager.same_domain_depth
+            crawl_depth = crawl_request.crawl_depth or self.manager.same_domain_depth
         elif crawl_request.crawl_type == CrawlType.SINGLE_PAGE:
             crawl_depth = 0
         elif crawl_request.crawl_type == CrawlType.CUSTOM:
@@ -451,34 +584,40 @@ class Crawl:
                 await self.redis.sadd(self.scopes_key, json.dumps(scope))
 
         mode = crawl_request.mode.value
-        screenshot_coll = crawl_request.screenshot_coll or (mode == 'record' and crawl_request.coll) or ''
-        text_coll = crawl_request.text_coll or (mode == 'record' and crawl_request.coll) or ''
+        screenshot_coll = (
+            crawl_request.screenshot_coll
+            or (mode == 'record' and crawl_request.coll)
+            or ''
+        )
+        text_coll = (
+            crawl_request.text_coll or (mode == 'record' and crawl_request.coll) or ''
+        )
 
-        data = {
-            'id': self.crawl_id,
-            'coll': crawl_request.coll,
-            'screenshot_coll': screenshot_coll,
-            'text_coll': text_coll,
-            'mode': mode,
-            'name': crawl_request.name,
-            'num_browsers': crawl_request.num_browsers,
-            'num_tabs': crawl_request.num_tabs,
-            'crawl_type': crawl_request.crawl_type.value,
-            'status': 'new',
-            'crawl_depth': crawl_depth,
-            'start_time': int(time.time()) if crawl_request.start else 0,
-            'finish_time': 0,
-            'headless': '1' if crawl_request.headless else '0',
-            'cache': crawl_request.cache.value,
-        }
-
-        if crawl_request.browser_overrides is not None:
-            data['browser_overrides'] = crawl_request.browser_overrides.dict(
+        self.model = CrawlInfo(
+            id=self.crawl_id,
+            coll=crawl_request.coll,
+            screenshot_coll=screenshot_coll,
+            text_coll=text_coll,
+            mode=mode,
+            name=crawl_request.name,
+            num_browsers=crawl_request.num_browsers,
+            num_tabs=crawl_request.num_tabs,
+            crawl_type=crawl_request.crawl_type.value,
+            status='new',
+            crawl_depth=crawl_depth,
+            start_time=int(time.time()) if crawl_request.start else 0,
+            finish_time=0,
+            headless=crawl_request.headless,
+            cache=crawl_request.cache.value,
+            browser_overrides=crawl_request.browser_overrides,
+        )
+        redis_crawl_info = self.model.dict(exclude={'browser_overrides', 'headless'})
+        redis_crawl_info['headless'] = 1 if self.model.headless else 0
+        if self.model.browser_overrides is not None:
+            redis_crawl_info['browser_overrides'] = self.model.browser_overrides.json(
                 skip_defaults=True
             )
-
-        self.model = CrawlInfo(**data)
-        await self.redis.hmset_dict(self.info_key, data)
+        await self.redis.hmset_dict(self.info_key, redis_crawl_info)
 
         # init seeds
         if crawl_request.seed_urls is not None:
@@ -537,42 +676,7 @@ class Crawl:
             environ=environ,
         )
 
-        # init browsers (and start)
-
-        errors = []
-
-        browsers = []
-
-        for _ in range(self.model.num_browsers):
-            res = await self.manager.request_flock(opts)
-            reqid = res.get('reqid')
-            if not reqid:
-                if 'error' in res:
-                    errors.append(res['error'])
-                continue
-
-            if crawl_request.start:
-                res = await self.manager.start_flock(reqid)
-
-            if 'error' in res:
-                errors.append(res['error'])
-            else:
-                browsers.append(reqid)
-                await self.redis.sadd(self.browser_key, reqid)
-
-        if errors:
-            raise HTTPException(400, detail=errors)
-
-        if crawl_request.start:
-            self.model.status = 'running'
-            await self.redis.hset(self.info_key, 'status', 'running')
-
-        return {
-            'success': True,
-            'browsers': browsers,
-            'status': self.model.status,
-            'id': self.crawl_id,
-        }
+        return await self.init_crawl_browsers(opts, crawl_request.start)
 
     async def is_done(self) -> Dict[str, bool]:
         """Is this crawl done
