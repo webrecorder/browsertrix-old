@@ -1,4 +1,4 @@
-# Browsertrix
+<img src="static/browsertrix-logo.svg" width="350">
 
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![Build Status](https://travis-ci.org/webrecorder/browsertrix.svg?branch=master)](https://travis-ci.org/webrecorder/browsertrix)
 
@@ -7,14 +7,15 @@
 Browsertrix is a brand new toolset from the Webrecorder project for automating browsers to perform complex scripted behaviors
 as well as crawl multiple pages. (The name was originally used for an older project with similar goals).
 
-Browsertrix is a system for orchestrating Docker-based Chrome browsers, crawling processes, behavior systems, and web archiving capture and replay.
+Browsertrix is a system for orchestrating Docker-based Chrome browsers, crawling processes, behavior systems, web archiving capture and replay, and full-text search.
 
 It includes the following features:
 * Crawling via customizable YAML-based crawl spec
 * High-fidelity browser-based crawlers (controlled via [webrecorder/autobrowser](https://github.com/webrecorder/autobrowser))
 * Execution of complex, domain-specific in-page behaviors (provided by [webrecorder/behaviors](https://github.com/webrecorder/behaviors))
 * Capture or replay into designated [pywb](https://github.com/webrecorder/pywb) collections
-* Optional screenshot creation of each page.
+* Screenshot creation of each page (optional).
+* Text extraction for each page and full text search via Solr (optional).
 * Support for customized browser profiles to minimize capture of private information.
 
 ## Getting Started
@@ -125,7 +126,7 @@ The behaviors are served via a separate behavior API server. The current list of
 https://github.com/webrecorder/behaviors/tree/master/behaviors
 
 The behaviors are built using a special library of behavior functions (preliminary docs available here:
-http://blog.webrecorder.io/behaviors/)
+https://webrecorder.github.io/behaviors/)
 
 If no site-specific behavior is found, the default `autoscroll.js`
 
@@ -143,10 +144,14 @@ The running pywb instance can also be accessed via `http://localhost:8180/`
 
 ### Replay Crawling and Screenshots
 
+Currently, screenshot creation is automatically enabled when crawling in record mode and screenshots are added automatically
+to the same collection.
+
 Browsertrix supports crawling in replay mode, over an existing collection, which may be useful for QA processes,
 especially when combined with screenshot creation.
 
-By adding the `screenshot_coll` property to each crawl, Browsertrix will also create a screenshot of each page.
+By setting the `mode` and `screenshot_coll` properties for each crawl, it is possible to run Browsertrix over replay and generate screenshots into a different collection, which may be used for QA comparison.
+
 Additional screenshot options are to be added soon. (Currently, the screenshot is taken after the behavior is run but this will likely change).
 
 Crawl options can also be overriden via command line.
@@ -182,6 +187,17 @@ Other crawl operations include:
 * `browsertrix crawl remove-all` for stopping and removing all crawls.
 
 See `browsertrix crawl -h` for a complete reference of available commands.
+
+## Full Text Search
+
+Browsertrix now includes a prototype integration with Apache Solr. Text is extracted for each page, after taking a screenshot, and ingested into Solr. The extracted text (as provided via raw DOM text nodes) from all frames,
+as well as the title, and url are indexed in Solr using default schema. (This is likely to evolve as well).
+
+The search is available for each collection via the pywb replay interface at: `http://localhost:8180/<coll_id>`
+
+The replay interface currently includes a list of pages, screenshot (if enabled) and ability to search the collection.
+
+(Note: solr data is stored in the `./solr` volume, and may require a permission adjustment on certain systems via `chmod a+w ./solr`)
 
 
 ## Browser Profiles
@@ -260,12 +276,12 @@ pip install -U -r requirements.txt -r test-local-requirements.txt
 py.test ./tests/test_api.py
 ```
 
-## Frontend
+## UI
 
-Browsertrix also includes a frontend (still under development) which will
+Browsertrix also includes a UI (still under development) which will
 have the same features as the CLI.
 
-To access the browsertrix frontend, load `http://localhost:8000/`
+To access the browsertrix UI, load `http://localhost:8000/`
 
 The frontend React app is found in `./frontend` and can be started via:
 
