@@ -18,7 +18,7 @@ crawls:
 
     # params for test only
     ignore_extra:
-      test_max_timeout: 120
+      test_max_timeout: 240
 
   - name: all-links-single-page
     crawl_type: all-links
@@ -35,7 +35,7 @@ crawls:
 
     # params for test only
     ignore_extra:
-      test_max_timeout: 600
+      test_max_timeout: 900
 
       # expected size of seen list
       test_expected_seen: 51
@@ -56,5 +56,5 @@ crawls:
 
     # params for test only
     ignore_extra:
-      test_max_timeout: 300
+      test_max_timeout: 600
 
