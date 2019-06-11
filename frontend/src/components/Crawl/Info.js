@@ -37,7 +37,7 @@ export default class Info extends Component {
       b[i] = (
         <li key={`${crawlId}-browsers-${i}`}>
           <a
-            href={`http://localhost:9020/attach/${browsers[i]}`}
+            href={`${window.location.protocol + "//" + window.location.hostname}:9020/attach/${browsers[i]}`}
             target='_blank'
           >
             View {browsers[i]}

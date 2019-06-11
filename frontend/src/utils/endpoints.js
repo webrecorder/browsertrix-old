@@ -4,7 +4,7 @@ function getEndpointConfig() {
   }
   return {
     crawls: {
-      ep: 'http://localhost:8000/crawls',
+      ep: window.location.origin + '/crawls',
       retrieve: { method: 'GET' },
       create: {
         defaults: { crawl_type: 'single-page', num_browsers: 2, num_tabs: 1, start: true },
@@ -12,7 +12,7 @@ function getEndpointConfig() {
       }
     },
     crawl: {
-      ep: 'http://localhost:8000/crawl/',
+      ep: window.location.origin + '/crawl/',
       info: { path: '/info', method: 'GET' },
       remove: { method: 'DELETE' },
       start: {

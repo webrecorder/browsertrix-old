@@ -62,7 +62,7 @@ export default function SelectCrawls({ crawls, removeCrawl }) {
   {
     Header: 'Collection',
     accessor: 'coll',
-    Cell: props => <a href={`http://localhost:8180/${props.value}`}>{props.value}</a>
+    Cell: props => <a href={`${window.location.protocol + "//" + window.location.hostname}:8180/${props.value}`}>{props.value}</a>
   },
   {
     Header: 'Mode',
