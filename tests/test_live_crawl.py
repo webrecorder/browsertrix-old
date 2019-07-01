@@ -79,6 +79,7 @@ class TestCrawls(object):
 
     def test_replay(self, crawl):
         for seen_url in self.seen:
-            res = requests.get(f'http://localhost:8181/coll/mp_/{seen_url}', allow_redirects=True)
+            res = requests.get(
+                f'http://localhost:8181/coll/mp_/{seen_url}', allow_redirects=True
+            )
             assert 'URL Not Found' not in res.text
-

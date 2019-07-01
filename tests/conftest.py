@@ -18,6 +18,7 @@ def pytest_addoption(parser):
     parser.addoption("--run-only", action="store", default="")
     parser.addoption("--headless", action="store_true", default=False)
 
+
 @pytest.fixture
 def headless(request):
     return request.config.getoption("--headless")
@@ -65,7 +66,6 @@ def api_test_client(request):
     with TestClient(app) as tc:
         request.cls.client = tc
         yield
-
 
 
 @pytest.fixture(scope="class")

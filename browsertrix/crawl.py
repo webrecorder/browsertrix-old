@@ -4,9 +4,9 @@ import logging
 import os
 import time
 import uuid
-from asyncio import AbstractEventLoop, gather as aio_gather, get_event_loop
+from asyncio import gather, get_event_loop
 from functools import partial
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 import ujson as json
 from aiohttp import AsyncResolver, ClientSession, TCPConnector
@@ -14,6 +14,7 @@ from aioredis import Redis
 from starlette.exceptions import HTTPException
 
 from .schema import CacheMode, CaptureMode, CrawlInfo, CrawlType, CreateCrawlRequest
+from .types_ import Loop, OptionalLoop
 from .utils import env, extract_domain, init_redis
 
 __all__ = ['Crawl', 'CrawlManager']
@@ -29,12 +30,12 @@ class CrawlManager:
     """A simple class for managing crawls"""
 
     def __init__(self) -> None:
-        self.redis: Redis = None
-        self.session: ClientSession = None
-        self.loop: AbstractEventLoop = None
-        self.depth: int = env('DEFAULT_DEPTH', type_=int, default=1)
-        self.same_domain_depth: int = env(
-            'DEFAULT_SAME_DOMAIN_DEPTH', type_=int, default=100
+        self.redis: Optional[Redis] = None
+        self.session: Optional[ClientSession] = None
+        self.loop: OptionalLoop = None
+        self.default_depth: int = env('DEFAULT_DEPTH', type_=int, default=-1)
+        self.default_same_domain_depth: int = env(
+            'DEFAULT_SAME_DOMAIN_DEPTH', type_=int, default=-1
         )
 
         self.num_browsers: int = env('DEFAULT_NUM_BROWSERS', type_=int, default=2)
@@ -50,7 +51,7 @@ class CrawlManager:
 
         self.scan_key: str = 'a:*:info'
 
-        self.container_environ: Dict[str, str] = {
+        self.container_environ: Dict[str, Any] = {
             'URL': 'about:blank',
             'REDIS_URL': env('REDIS_URL', default=DEFAULT_REDIS_URL),
             'WAIT_FOR_Q': '10',
@@ -144,7 +145,7 @@ class CrawlManager:
         :return: A dictionary containing the crawls full details
         """
         crawl = await self.load_crawl(crawl_id)
-        info, urls = await aio_gather(
+        info, urls = await gather(
             crawl.get_info(count_urls=False), crawl.get_info_urls(), loop=self.loop
         )
         return dict(**info, **urls, success=True)
@@ -370,7 +371,7 @@ class Crawl:
         return self.manager.redis
 
     @property
-    def loop(self) -> AbstractEventLoop:
+    def loop(self) -> Loop:
         """Retrieve the running event loop
 
         :return: The running event loop
@@ -442,7 +443,7 @@ class Crawl:
         except Exception as e:
             logger.exception(str(e))
 
-        data, browsers, tabs_done = await aio_gather(
+        data, browsers, tabs_done = await gather(
             self.redis.hgetall(self.info_key),
             self.redis.smembers(self.browser_key),
             self.redis.lrange(self.tabs_done_key, 0, -1),
@@ -456,7 +457,7 @@ class Crawl:
 
         # do a count of the url keys
         if count_urls:
-            num_queue, num_pending, num_seen = await aio_gather(
+            num_queue, num_pending, num_seen = await gather(
                 self.redis.llen(self.frontier_q_key),
                 self.redis.scard(self.pending_q_key),
                 self.redis.scard(self.seen_key),
@@ -474,7 +475,7 @@ class Crawl:
 
         :return: The crawls URL information
         """
-        scopes, queue, pending, seen = await aio_gather(
+        scopes, queue, pending, seen = await gather(
             self.redis.smembers(self.scopes_key),
             self.redis.lrange(self.frontier_q_key, 0, -1),
             self.redis.smembers(self.pending_q_key),
@@ -571,14 +572,17 @@ class Crawl:
         was successful and a list of browsers in the crawl
         """
         # init base crawl data
+        crawl_depth = -1
         if crawl_request.crawl_type == CrawlType.ALL_LINKS:
-            crawl_depth = crawl_request.crawl_depth or 1
+            crawl_depth = crawl_request.crawl_depth or self.manager.default_depth
         elif crawl_request.crawl_type == CrawlType.SAME_DOMAIN:
-            crawl_depth = crawl_request.crawl_depth or self.manager.same_domain_depth
+            crawl_depth = (
+                crawl_request.crawl_depth or self.manager.default_same_domain_depth
+            )
         elif crawl_request.crawl_type == CrawlType.SINGLE_PAGE:
             crawl_depth = 0
         elif crawl_request.crawl_type == CrawlType.CUSTOM:
-            crawl_depth = crawl_request.crawl_depth
+            crawl_depth = crawl_request.crawl_depth or -1
 
             for scope in crawl_request.scopes:
                 await self.redis.sadd(self.scopes_key, json.dumps(scope))
