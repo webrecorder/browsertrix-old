@@ -33,9 +33,9 @@ class CrawlManager:
         self.redis: Optional[Redis] = None
         self.session: Optional[ClientSession] = None
         self.loop: OptionalLoop = None
-        self.default_depth: int = env('DEFAULT_DEPTH', type_=int, default=-1)
+        self.default_depth: int = env('DEFAULT_DEPTH', type_=int, default=250)
         self.default_same_domain_depth: int = env(
-            'DEFAULT_SAME_DOMAIN_DEPTH', type_=int, default=-1
+            'DEFAULT_SAME_DOMAIN_DEPTH', type_=int, default=self.default_depth
         )
 
         self.num_browsers: int = env('DEFAULT_NUM_BROWSERS', type_=int, default=2)
@@ -407,7 +407,7 @@ class Crawl:
 
         for url in urls:
             await self.redis.sadd(
-                self.scopes_key, json.dumps({'domain': extract_domain(url)})
+                self.scopes_key, json.dumps({'domain': extract_domain(url), 'strict': True})
             )
 
     async def queue_urls(self, urls: List[str]) -> Dict[str, bool]:
