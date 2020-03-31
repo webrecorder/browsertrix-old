@@ -6,7 +6,8 @@ volumes:
 
 containers:
   - name: xserver
-    image: oldwebtoday/vnc-webrtc-audio
+    image: oldwebtoday/remote-desktop-server
+    external_network: '${BROWSER_NET}'
     ports:
       vnc_port: 6080
       cmd_port: 6082
@@ -15,6 +16,7 @@ containers:
 
     environment:
       IDLE_TIMEOUT: '${IDLE_TIMEOUT}'
+      WEBRTC_TURN_REST_AUTH_SECRET: '${WEBRTC_TURN_REST_AUTH_SECRET}'
 
   - name: browser
     image: oldwebtoday/base-browser
@@ -33,7 +35,8 @@ containers:
       PROXY_CA_FILE: '/tmp/proxy-ca.pem'
 
   - name: autobrowser
-    image: webrecorder/autobrowser
+    #image: webrecorder/autobrowser
+    image: webrecorder/simple-driver
 
     external_network: '${MAIN_NET}'
 

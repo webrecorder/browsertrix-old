@@ -20,7 +20,7 @@ containers:
       PROXY_CA_FILE: '/tmp/proxy-ca.pem'
 
   - name: autobrowser
-    image: webrecorder/autobrowser
+    image: webrecorder/simple-driver
 
     external_network: '${MAIN_NET}'
 

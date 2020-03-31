@@ -33,7 +33,6 @@ Number = Union[int, float]
 UrlStr.max_length = math.inf
 UrlStr.relative = True
 
-
 class CrawlType(str, Enum):
     SINGLE_PAGE = 'single-page'
     ALL_LINKS = 'all-links'
@@ -58,6 +57,7 @@ class CookieSameSite(str, Enum):
     LAX = 'LAX'
     EXTENDED = 'Extended'
     NONE = 'None'
+
 
 
 class EmulatedDevice(BaseModel):
@@ -124,7 +124,7 @@ class CreateCrawlRequest(BaseCreateCrawl):
     class Config:
         extra = 'forbid'
 
-    seed_urls: List[UrlStr] = []
+    seed_urls: List[Union[UrlStr, dict]] = []
     scopes: List[Dict[Any, Any]] = []
 
     cache: CacheMode = CacheMode.ALWAYS
@@ -205,7 +205,7 @@ class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):
 
 
 class QueueUrlsRequest(BaseModel):
-    urls: List[str]
+    urls: List[Union[UrlStr, dict]]
 
 
 class CrawlDoneResponse(BaseModel):

@@ -96,6 +96,7 @@ class CrawlProxyApp(FrontEndApp):
     def proxy_route_request(self, url, environ):
         try:
             key = 'up:' + environ['REMOTE_ADDR']
+            print(key)
             timestamp, coll, mode, cache = self.redis.hmget(
                 key, 'timestamp', 'coll', 'mode', 'cache'
             )
@@ -128,7 +129,7 @@ class CrawlProxyApp(FrontEndApp):
         )
 
         self.url_map.add(
-            Rule('/api/dom/<coll>', endpoint=self.put_raw_dom, methods=['PUT'])
+            Rule('/api/text/<coll>', endpoint=self.put_raw_text, methods=['PUT'])
         )
 
         self.url_map.add(
@@ -175,13 +176,17 @@ class CrawlProxyApp(FrontEndApp):
             environ, coll, 'urn:screenshot:{url}', 'resource', params, data
         )
 
-    def put_raw_dom(self, environ, coll):
+    def put_raw_text(self, environ, coll):
         text = environ['wsgi.input'].read()
         params = dict(parse_qsl(environ.get('QUERY_STRING')))
 
-        res = self.put_record(environ, coll, 'urn:dom:{url}', 'metadata', params, text)
+        is_parsed = environ.get('CONTENT_TYPE') == 'text/plain'
 
-        self.solr_ingester.ingest(coll, text, params)
+        urn = 'urn:text:{url}' if is_parsed else 'urn:dom:{url}'
+
+        res = self.put_record(environ, coll, urn, 'metadata', params, text)
+
+        self.solr_ingester.ingest(coll, text, params, is_parsed)
         return res
 
     def put_record(self, environ, coll, target_uri_format, rec_type, params, data):
@@ -271,13 +276,22 @@ class FullTextIngester:
             print(e)
             return False
 
-    def ingest(self, coll, text, params):
-        parsed = json.loads(text)
-        mdata = {}
-        content = "\n".join(text for text in extract_text(parsed["root"], mdata))
-        title = mdata.get('title')
+    def ingest(self, coll, text, params, is_parsed):
+
+        # text already parsed
+        if is_parsed:
+            content = text.decode('utf-8')
+            title = params.get('title') or params.get('url')
+        else:
+            parsed = json.loads(text)
+            mdata = {}
+            content = "\n".join(text for text in extract_text(parsed["root"], mdata))
+
+            title = mdata.get('title')
+
         url = params.get('url')
-        timestamp_ss = params.get('timestamp')
+
+        timestamp_ss = params.get('timestamp') or timestamp_now()
         timestamp_dts = timestamp_to_iso_date(timestamp_ss)
         has_screenshot_b = params.get('hasScreenshot') == '1'
 

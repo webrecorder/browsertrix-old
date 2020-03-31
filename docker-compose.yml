@@ -9,7 +9,7 @@ services:
             - REDIS_URL=redis://redis/0
             - DEFAULT_POOL=auto-pool
             - SCREENSHOT_API_URL=http://pywb:8080/api/screenshot/{coll}
-            - EXTRACTED_RAW_DOM_API_URL=http://pywb:8080/api/dom/{coll}
+            - EXTRACTED_RAW_DOM_API_URL=http://pywb:8080/api/text/{coll}
             - PROXY_HOST=pywb
 
         depends_on:
@@ -56,7 +56,7 @@ services:
           - 8983:8983
 
     shepherd:
-        image: oldwebtoday/shepherd:1.1.0-dev
+        image: oldwebtoday/shepherd:1.2.0
 
         environment:
             - BROWSER_NET=browsertrix_browsers
@@ -84,6 +84,18 @@ services:
 
       ports:
             - 3030:3030
+
+    coturn:
+        container_name: coturn
+        image: oldwebtoday/coturn:1.0
+        ports:
+            - "33478:33478/tcp"
+            - "33478:33478/udp"
+
+        networks:
+            - browsers
+
+
 
 networks:
     default:

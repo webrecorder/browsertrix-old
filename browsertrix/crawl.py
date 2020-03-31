@@ -219,6 +219,8 @@ class CrawlManager:
                 logger.debug(str(res))
                 return res
         except Exception as e:
+            print(e)
+            print(post_data)
             text = str(e)
             logger.debug(text)
             raise HTTPException(400, text)
@@ -405,6 +407,9 @@ class Crawl:
         """
 
         for url in urls:
+            if type(url) != str:
+                url = url['url']
+
             await self.redis.sadd(
                 self.scopes_key, json.dumps({'domain': extract_domain(url)})
             )
@@ -420,7 +425,13 @@ class Crawl:
             return {'success': True}
 
         for url in urls:
-            url_req = {'url': url, 'depth': 0}
+            if type(url) == str:
+                url_req = {'url': url, 'depth': 0}
+            else:
+                url_req = url.copy()
+                url_req['depth'] = 0
+                url = url_req['url']
+
             await self.redis.rpush(self.frontier_q_key, json.dumps(url_req))
 
             # add to seen list to avoid dupes
@@ -669,7 +680,7 @@ class Crawl:
         opts = dict(
             overrides={
                 'browser': 'oldwebtoday/' + browser,
-                'xserver': 'oldwebtoday/vnc-webrtc-audio',
+                'xserver': 'oldwebtoday/remote-desktop-server',
             },
             deferred=deferred,
             user_params=crawl_request.user_params,
