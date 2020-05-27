@@ -1,4 +1,5 @@
-FROM webrecorder/pywb:new-wombat
+#FROM webrecorder/pywb:new-wombat
+FROM webrecorder/pywb:develop
 
 WORKDIR /app
 

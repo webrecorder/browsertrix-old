@@ -271,6 +271,11 @@ def create_crawl(
         else:
             msg = 'Created and Started'
 
+        if isinstance(crawl_spec['seed_urls'], str):
+            with open(crawl_spec['seed_urls'], 'rt') as fh:
+                crawl_spec['seed_urls'] = fh.read().rstrip().split('\n')
+                print(crawl_spec['seed_urls'])
+
         if headless is not None:
             crawl_spec['headless'] = headless
 

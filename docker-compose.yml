@@ -2,7 +2,7 @@ version: '3.5'
 
 services:
     browsertrix:
-        image: webrecorder/browsertrix
+        image: webrecorder/browsertrix:0.2.0
         build:
             context: .
         environment:

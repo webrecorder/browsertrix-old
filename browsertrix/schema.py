@@ -129,7 +129,7 @@ class CreateCrawlRequest(BaseCreateCrawl):
 
     cache: CacheMode = CacheMode.ALWAYS
 
-    browser: Optional[str] = 'chrome:73'
+    browser: Optional[str] = 'chrome:76'
     user_params: Dict[Any, Any] = dict()
 
     profile: Optional[str] = None
