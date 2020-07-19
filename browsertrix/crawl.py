@@ -595,14 +595,21 @@ class Crawl:
                 await self.redis.sadd(self.scopes_key, json.dumps(scope))
 
         mode = crawl_request.mode.value
-        screenshot_coll = (
-            crawl_request.screenshot_coll
-            or (mode == 'record' and crawl_request.coll)
-            or ''
-        )
-        text_coll = (
-            crawl_request.text_coll or (mode == 'record' and crawl_request.coll) or ''
-        )
+        if crawl_request.screenshot_coll == '':
+            screenshot_coll = ''
+        else:
+            screenshot_coll = (
+                crawl_request.screenshot_coll
+                or (mode == 'record' and crawl_request.coll)
+                or ''
+            )
+
+        if crawl_request.text_coll == '':
+            text_coll = ''
+        else:
+            text_coll = (
+                crawl_request.text_coll or (mode == 'record' and crawl_request.coll) or ''
+            )
 
         self.model = CrawlInfo(
             id=self.crawl_id,
@@ -657,7 +664,7 @@ class Crawl:
             environ['BEHAVIOR_RUN_TIME'] = crawl_request.behavior_max_time
 
         screenshot_api = environ['SCREENSHOT_API_URL']
-        if self.model.screenshot_coll and screenshot_api:
+        if self.model.screenshot_coll != '' and screenshot_api:
             environ['SCREENSHOT_API_URL'] = screenshot_api.format(
                 coll=self.model.screenshot_coll
             )
@@ -665,7 +672,7 @@ class Crawl:
             environ.pop('SCREENSHOT_API_URL', '')
 
         raw_dom_api = environ['EXTRACTED_RAW_DOM_API_URL']
-        if self.model.text_coll and raw_dom_api:
+        if self.model.text_coll != '' and raw_dom_api:
             environ['EXTRACTED_RAW_DOM_API_URL'] = raw_dom_api.format(
                 coll=self.model.text_coll
             )
