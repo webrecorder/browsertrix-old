@@ -1,0 +1,23 @@
+debug: true
+
+proxy:
+  coll: ${COLL}
+  recording: true
+
+  enable_banner: false
+  enable_wombat: true
+
+  keepalive_max: 0
+  tcp_keepidle: 30
+
+recorder: live
+
+autoindex: 10
+
+enable_auto_fetch: true
+
+collections:
+  live: $live
+
+collections_root: /webarchive/collections
+  

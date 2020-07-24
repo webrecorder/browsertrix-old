@@ -3,16 +3,25 @@ auto_remove: false
 
 volumes:
   tmpdir: '/tmp/.X11-unix'
+  '/Users/ilya/work/browsertrix/wa2/': '/webarchive'
 
 containers:
+  - name: pywb
+    image: webrecorder/browsertrix-pywb
+
+    external_network: '${BROWSER_NET}'
+
+    environment:
+      COLL: ${COLL}
+
   - name: xserver
     image: oldwebtoday/remote-desktop-server
     external_network: '${BROWSER_NET}'
     ports:
-      vnc_port: 6080
-      cmd_port: 6082
-      ice_tcp_port: 10235
-      ice_udp_port: '10235/udp'
+      vnc-port: 6080
+      cmd-port: 6082
+      ice-tcp-port: 10235
+      ice-udp-port: '10235/udp'
 
     environment:
       IDLE_TIMEOUT: '${IDLE_TIMEOUT}'
@@ -29,13 +38,12 @@ containers:
       PULSE_SERVER: '/tmp/.X11-unix/pulse-socket'
 
       #default to no proxy, set by crawler
-      #PROXY_HOST: 'pywb'
+      PROXY_HOST: ''
       PROXY_PORT: '8080'
-      PROXY_CA_URL: 'http://wsgiprox/download/pem'
-      PROXY_CA_FILE: '/tmp/proxy-ca.pem'
+      PROXY_CA_URL: '' #http://wsgiprox/download/pem'
+      PROXY_CA_FILE: '' #/tmp/proxy-ca.pem'
 
   - name: autobrowser
-    #image: webrecorder/autobrowser
     image: webrecorder/simple-driver
 
     external_network: '${MAIN_NET}'

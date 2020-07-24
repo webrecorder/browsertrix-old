@@ -14,7 +14,6 @@ services:
 
         depends_on:
             - redis
-            - pywb
 
         ports:
             - 8000:8000
@@ -22,41 +21,8 @@ services:
         #volumes:
         #    - ./:/app/
 
-    pywb:
-        build: ./pywb/
-
-        environment:
-            - REDIS_URL=redis://redis/0
-
-        volumes:
-            - ./webarchive:/webarchive
-
-        networks:
-            - default
-            - browsers
-
-        ports:
-            - 8180:8080
-
-        depends_on:
-            - redis
-
-    solr:
-        image: solr
-
-        volumes:
-          - ./solr:/var/solr
-
-        entrypoint:
-          - docker-entrypoint.sh
-          - solr-precreate
-          - browsertrix
-
-        ports:
-          - 8983:8983
-
     shepherd:
-        image: oldwebtoday/shepherd:1.2.0
+        image: oldwebtoday/shepherd:1.3.0-dev
 
         environment:
             - BROWSER_NET=browsertrix_browsers

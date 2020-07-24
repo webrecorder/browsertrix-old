@@ -663,6 +663,7 @@ class Crawl:
         if crawl_request.behavior_max_time > 0:
             environ['BEHAVIOR_RUN_TIME'] = crawl_request.behavior_max_time
 
+        environ['COLL'] = self.model.coll
         screenshot_api = environ['SCREENSHOT_API_URL']
         if self.model.screenshot_coll != '' and screenshot_api:
             environ['SCREENSHOT_API_URL'] = screenshot_api.format(
