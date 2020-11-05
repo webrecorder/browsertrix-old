@@ -8,6 +8,12 @@ import glob
 __version__ = '0.1.0.dev0'
 
 def load_requirements(filename):
+    """
+    Load requirements from a file.
+
+    Args:
+        filename: (str): write your description
+    """
     with open(filename, 'rt') as fh:
         requirements = fh.read().rstrip().split('\n')
     return requirements

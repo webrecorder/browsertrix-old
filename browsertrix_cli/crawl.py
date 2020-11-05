@@ -40,6 +40,11 @@ COLUMNS = [
 # ============================================================================
 @cli.group(help='Commands for working with crawls')
 def crawl():
+    """
+    Crawl the crawl.
+
+    Args:
+    """
     pass
 
 
@@ -71,6 +76,16 @@ def format_duration(start_time, finish_time):
 def print_container_log(
     docker_api, reqid, name='autobrowser-', follow=False, wait=False
 ):
+    """
+    Prints the container
+
+    Args:
+        docker_api: (todo): write your description
+        reqid: (str): write your description
+        name: (str): write your description
+        follow: (bool): write your description
+        wait: (todo): write your description
+    """
 
     full_name = name + reqid
     while True:
@@ -99,6 +114,15 @@ def print_container_log(
 
 # ============================================================================
 def print_logs(browsers, follow=False, wait=False, all_containers=False):
+    """
+    Print all docker logs
+
+    Args:
+        browsers: (str): write your description
+        follow: (bool): write your description
+        wait: (array): write your description
+        all_containers: (bool): write your description
+    """
     docker_api = docker.from_env(version='auto')
 
     if follow is None:
@@ -119,6 +143,15 @@ def print_logs(browsers, follow=False, wait=False, all_containers=False):
 
 # ============================================================================
 def open_browsers(browsers, crawl_id, tabs_done=None, num_tabs=-1):
+    """
+    Open the number of the given tabs.
+
+    Args:
+        browsers: (str): write your description
+        crawl_id: (str): write your description
+        tabs_done: (dict): write your description
+        num_tabs: (int): write your description
+    """
     count = 1
     for reqid in browsers:
         skip = False

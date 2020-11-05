@@ -14,12 +14,26 @@ class TestCrawls(object):
 
     @classmethod
     def teardown_class(cls):
+        """
+        Teardownown class.
+
+        Args:
+            cls: (todo): write your description
+        """
         for crawl_id in cls.all_crawl_ids:
             res = requests.delete(cls.api_host + '/crawl/' + crawl_id)
             res = res.json()
             assert res.get('success') or res.get('detail') == 'crawl not found'
 
     def test_crawl_create_and_start(self, crawl, headless):
+        """
+        Create a new test and create a test.
+
+        Args:
+            self: (todo): write your description
+            crawl: (dict): write your description
+            headless: (str): write your description
+        """
         crawl['headless'] = headless
         if 'browser' not in crawl:
             crawl['browser'] = self.default_browser
@@ -35,11 +49,26 @@ class TestCrawls(object):
         TestCrawls.browsers = res['browsers']
 
     def test_load_browsers(self, crawl, headless):
+        """
+        Test if the load balancer.
+
+        Args:
+            self: (todo): write your description
+            crawl: (todo): write your description
+            headless: (str): write your description
+        """
         if not headless:
             for reqid in self.browsers:
                 webbrowser.open(f'http://localhost:9323/attach/{reqid}')
 
     def test_sleep_wait(self, crawl):
+        """
+        Test for wait until a new wait_sleep.
+
+        Args:
+            self: (todo): write your description
+            crawl: (dict): write your description
+        """
         start_time = time.time()
         sleep_time = 5
         max_time = crawl.get('ignore_extra', {}).get('test_max_timeout', 600) + 30
@@ -59,6 +88,13 @@ class TestCrawls(object):
         assert done
 
     def test_get_stats(self, crawl):
+        """
+        Return the test statistics for each test.
+
+        Args:
+            self: (todo): write your description
+            crawl: (dict): write your description
+        """
         res = requests.get(self.api_host + f'/crawl/{self.crawl_id}/urls')
         res = res.json()
         assert len(res['queue']) == 0
@@ -72,12 +108,26 @@ class TestCrawls(object):
         TestCrawls.seen = res['seen']
 
     def test_delete(self, crawl):
+        """
+        Deletes a test.
+
+        Args:
+            self: (todo): write your description
+            crawl: (str): write your description
+        """
         res = requests.delete(self.api_host + '/crawl/' + self.crawl_id)
         res = res.json()
         assert res.get('success'), res
         TestCrawls.crawl_id = None
 
     def test_replay(self, crawl):
+        """
+        Sends a test.
+
+        Args:
+            self: (todo): write your description
+            crawl: (todo): write your description
+        """
         for seen_url in self.seen:
             res = requests.get(f'http://localhost:8181/coll/mp_/{seen_url}', allow_redirects=True)
             assert 'URL Not Found' not in res.text

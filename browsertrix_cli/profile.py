@@ -19,6 +19,12 @@ LABEL_BASEBROWSER = 'wr.basebrowser'
 
 # ============================================================================
 def get_profile_image(profile):
+    """
+    Get image image
+
+    Args:
+        profile: (str): write your description
+    """
     try:
         global docker_api
         if not docker_api:
@@ -38,6 +44,11 @@ def get_profile_image(profile):
 # ============================================================================
 @cli.group(help='Commands for creating/removing browser profiles')
 def profile():
+    """
+    Create a docker profile.
+
+    Args:
+    """
     global docker_api
     docker_api = docker.from_env(version='auto')
 
@@ -45,6 +56,11 @@ def profile():
 # ============================================================================
 @profile.command(name='list', help='List Profiles')
 def list_profiles():
+    """
+    List all available docker images
+
+    Args:
+    """
     res = docker_api.images.list(filters={'label': LABEL_BROWSERPROFILE})
 
     format_str = '{profile: <16}  {base}'
@@ -74,6 +90,12 @@ def list_profiles():
 @profile.command(name='remove', help='Remove Profile')
 @click.argument('profile', type=str)
 def remove_profile(profile):
+    """
+    Remove a profile
+
+    Args:
+        profile: (str): write your description
+    """
     full_tag = PROFILE_PREFIX + profile
 
     try:
@@ -93,6 +115,12 @@ def remove_profile(profile):
     '--browser', default='chrome:73', type=str, help='Base Browser Image to Extend'
 )
 def create_profile(browser):
+    """
+    Create a new profile.
+
+    Args:
+        browser: (todo): write your description
+    """
     res = sesh_get(
         '/api/request/{0}/about:blank'.format(browser), prefix=settings.shepherd_prefix
     )

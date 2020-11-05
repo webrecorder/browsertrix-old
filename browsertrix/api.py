@@ -17,11 +17,22 @@ crawl_router = APIRouter()
 # ============================================================================
 @app.post('/crawls', response_model=CreateStartResponse, response_class=UJSONResponse)
 async def create_crawl(new_crawl: CreateCrawlRequest):
+      """
+      Create a new crawl.
+
+      Args:
+          new_crawl: (str): write your description
+      """
     return await crawl_man.create_new(new_crawl)
 
 
 @app.get('/crawls', response_model=CrawlInfosResponse, response_class=UJSONResponse)
 async def get_all_crawls():
+      """
+      Get all raw crawls
+
+      Args:
+      """
     return await crawl_man.get_all_crawls()
 
 
@@ -31,6 +42,13 @@ async def get_all_crawls():
     response_class=UJSONResponse,
 )
 async def queue_urls(crawl_id: str, url_list: QueueUrlsRequest):
+      """
+      Queue a list of tasks.
+
+      Args:
+          crawl_id: (str): write your description
+          url_list: (list): write your description
+      """
     return await crawl_man.queue_crawl_urls(crawl_id, url_list.urls)
 
 
@@ -38,6 +56,12 @@ async def queue_urls(crawl_id: str, url_list: QueueUrlsRequest):
     '/{crawl_id}', response_model=CrawlInfoResponse, response_class=UJSONResponse
 )
 async def get_crawl(crawl_id: str):
+      """
+      Get crawl.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.get_crawl_info(crawl_id)
 
 
@@ -47,6 +71,12 @@ async def get_crawl(crawl_id: str):
     response_class=UJSONResponse,
 )
 async def get_crawl_urls(crawl_id: str):
+      """
+      Get crawl urls.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.get_crawl_urls(crawl_id)
 
 
@@ -56,6 +86,12 @@ async def get_crawl_urls(crawl_id: str):
     response_class=UJSONResponse,
 )
 async def get_full_crawl_info(crawl_id: str):
+      """
+      Return full crawl info.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.get_full_crawl_info(crawl_id)
 
 
@@ -65,6 +101,12 @@ async def get_full_crawl_info(crawl_id: str):
     response_class=UJSONResponse,
 )
 async def start_crawl(crawl_id: str):
+      """
+      Start a crawl.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.start_crawl(crawl_id)
 
 
@@ -74,6 +116,12 @@ async def start_crawl(crawl_id: str):
     response_class=UJSONResponse,
 )
 async def stop_crawl(crawl_id: str):
+      """
+      Stops a running crawl.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.stop_crawl(crawl_id)
 
 
@@ -81,6 +129,12 @@ async def stop_crawl(crawl_id: str):
     '/{crawl_id}/done', response_model=CrawlDoneResponse, response_class=UJSONResponse
 )
 async def is_done_crawl(crawl_id: str):
+      """
+      Return true if the given crawl.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.is_crawl_done(crawl_id)
 
 
@@ -88,11 +142,22 @@ async def is_done_crawl(crawl_id: str):
     '/{crawl_id}', response_model=OperationSuccessResponse, response_class=UJSONResponse
 )
 async def delete_crawl(crawl_id: str):
+      """
+      Delete a crawl.
+
+      Args:
+          crawl_id: (str): write your description
+      """
     return await crawl_man.delete_crawl(crawl_id)
 
 
 @app.route('/')
 def ui(*args, **kwargs):
+    """
+    Decorator that returns a : class instance.
+
+    Args:
+    """
     return FileResponse('static/index.html')
 
 
