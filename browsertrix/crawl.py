@@ -29,6 +29,12 @@ class CrawlManager:
     """A simple class for managing crawls"""
 
     def __init__(self) -> None:
+        """
+        Initialize redis client
+
+        Args:
+            self: (todo): write your description
+        """
         self.redis: Redis = None
         self.session: ClientSession = None
         self.loop: AbstractEventLoop = None
@@ -495,6 +501,12 @@ class Crawl:
         return data
 
     async def start(self) -> Dict:
+          """
+          Create a new credembers
+
+          Args:
+              self: (todo): write your description
+          """
         if self.model.status == 'running':
             raise HTTPException(400, detail='already running')
 

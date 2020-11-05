@@ -42,6 +42,14 @@ settings = Settings()
     help='quiet mode: print only crawl ids if success',
 )
 def cli(server, quiet, shepherd):
+    """
+    Print shear shear shesettings.
+
+    Args:
+        server: (str): write your description
+        quiet: (bool): write your description
+        shepherd: (todo): write your description
+    """
     settings.server_prefix = server
 
     settings.shepherd_prefix = shepherd
@@ -54,6 +62,11 @@ def cli(server, quiet, shepherd):
 
 # ============================================================================
 def is_quiet():
+    """
+    Return true if the given mode.
+
+    Args:
+    """
     return settings.quiet_mode
 
 
@@ -80,6 +93,12 @@ def ensure_success(res, exit=True):
 
 # ============================================================================
 def conn_error_exit(url):
+    """
+    Prints the given url
+
+    Args:
+        url: (str): write your description
+    """
     if not is_quiet():
         print(
             'Unable to connect to {0}. Is Browsertrix container running in Docker?'.format(
@@ -91,6 +110,13 @@ def conn_error_exit(url):
 
 # ============================================================================
 def sesh_get(url, prefix=None):
+    """
+    Get the given url.
+
+    Args:
+        url: (str): write your description
+        prefix: (str): write your description
+    """
     url = (prefix or settings.server_prefix) + url
     try:
         res = settings.sesh.get(url)
@@ -101,6 +127,14 @@ def sesh_get(url, prefix=None):
 
 # ============================================================================
 def sesh_post(url, json=None, prefix=None):
+    """
+    Perform post request.
+
+    Args:
+        url: (str): write your description
+        json: (str): write your description
+        prefix: (str): write your description
+    """
     url = (prefix or settings.server_prefix) + url
     try:
         res = settings.sesh.post(url, json=json)
@@ -111,6 +145,13 @@ def sesh_post(url, json=None, prefix=None):
 
 # ============================================================================
 def sesh_delete(url, prefix=None):
+    """
+    Delete a url
+
+    Args:
+        url: (str): write your description
+        prefix: (str): write your description
+    """
     url = (prefix or settings.server_prefix) + url
     try:
         res = settings.sesh.delete(url)

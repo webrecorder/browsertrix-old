@@ -10,6 +10,13 @@ __all__ = ['env', 'extract_domain', 'init_redis']
 
 
 async def init_redis(redis_url: str, loop: AbstractEventLoop) -> Redis:
+      """
+      Initialize redis.
+
+      Args:
+          redis_url: (str): write your description
+          loop: (str): write your description
+      """
     return await create_redis(redis_url, encoding='utf-8', loop=loop)
 
 

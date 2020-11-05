@@ -27,6 +27,13 @@ TEXT = '#text'
 
 # ============================================================================
 def extract_text(node, metadata=None):
+    """
+    Extract text from a node.
+
+    Args:
+        node: (dict): write your description
+        metadata: (todo): write your description
+    """
     node_name = node.get('nodeName', '').lower()
     if node_name not in SKIPPED_NODES:
         children = node.get('children', EMPTY_LIST)
@@ -57,6 +64,14 @@ def extract_text(node, metadata=None):
 # ============================================================================
 class CrawlProxyApp(FrontEndApp):
     def __init__(self, config_file=None, custom_config=None):
+        """
+        Initialize solr configuration.
+
+        Args:
+            self: (todo): write your description
+            config_file: (str): write your description
+            custom_config: (todo): write your description
+        """
         self.colls_dir = os.path.join(os.environ.get('VOLUME_DIR', '.'), 'collections')
 
         # ensure collections dir exists for auto-index
@@ -79,6 +94,13 @@ class CrawlProxyApp(FrontEndApp):
         self.solr_ingester = FullTextIngester()
 
     def ensure_coll_exists(self, coll):
+        """
+        Ensure that the collection exists.
+
+        Args:
+            self: (todo): write your description
+            coll: (str): write your description
+        """
         if coll == 'live':
             return
 
@@ -94,6 +116,14 @@ class CrawlProxyApp(FrontEndApp):
         self.collections_checked.add(coll)
 
     def proxy_route_request(self, url, environ):
+        """
+        This function is the proxy for the route.
+
+        Args:
+            self: (todo): write your description
+            url: (str): write your description
+            environ: (todo): write your description
+        """
         try:
             key = 'up:' + environ['REMOTE_ADDR']
             timestamp, coll, mode, cache = self.redis.hmget(
@@ -120,6 +150,12 @@ class CrawlProxyApp(FrontEndApp):
         return proxy_prefix + url
 
     def _init_routes(self):
+        """
+        Initialize routes.
+
+        Args:
+            self: (todo): write your description
+        """
         super(CrawlProxyApp, self)._init_routes()
         self.url_map.add(
             Rule(
@@ -140,9 +176,25 @@ class CrawlProxyApp(FrontEndApp):
         )
 
     def serve_orig_coll_page(self, environ, coll='$root'):
+        """
+        Called by the page.
+
+        Args:
+            self: (todo): write your description
+            environ: (todo): write your description
+            coll: (str): write your description
+        """
         return super(CrawlProxyApp, self).serve_coll_page(environ, coll)
 
     def serve_coll_page(self, environ, coll='$root'):
+        """
+        Renders the github page.
+
+        Args:
+            self: (todo): write your description
+            environ: (dict): write your description
+            coll: (str): write your description
+        """
         if not self.is_valid_coll(coll):
             self.raise_not_found(environ, 'No handler for "/{0}"'.format(coll))
 
@@ -161,6 +213,14 @@ class CrawlProxyApp(FrontEndApp):
         )
 
     def page_search(self, environ, coll):
+        """
+        Returns a : class :.
+
+        Args:
+            self: (todo): write your description
+            environ: (dict): write your description
+            coll: (str): write your description
+        """
         params = dict(parse_qsl(environ.get('QUERY_STRING')))
 
         result = self.solr_ingester.query_solr(coll, params)
@@ -168,6 +228,14 @@ class CrawlProxyApp(FrontEndApp):
         return WbResponse.json_response(result)
 
     def put_screenshot(self, environ, coll):
+        """
+        Pushes a screenshot.
+
+        Args:
+            self: (todo): write your description
+            environ: (dict): write your description
+            coll: (int): write your description
+        """
         data = environ['wsgi.input'].read()
         params = dict(parse_qsl(environ.get('QUERY_STRING')))
 
@@ -176,6 +244,14 @@ class CrawlProxyApp(FrontEndApp):
         )
 
     def put_raw_dom(self, environ, coll):
+        """
+        Parses a raw record in the raw record.
+
+        Args:
+            self: (todo): write your description
+            environ: (dict): write your description
+            coll: (todo): write your description
+        """
         text = environ['wsgi.input'].read()
         params = dict(parse_qsl(environ.get('QUERY_STRING')))
 
@@ -185,6 +261,18 @@ class CrawlProxyApp(FrontEndApp):
         return res
 
     def put_record(self, environ, coll, target_uri_format, rec_type, params, data):
+        """
+        A simple put request.
+
+        Args:
+            self: (todo): write your description
+            environ: (dict): write your description
+            coll: (todo): write your description
+            target_uri_format: (str): write your description
+            rec_type: (str): write your description
+            params: (dict): write your description
+            data: (array): write your description
+        """
         self.ensure_coll_exists(coll)
 
         headers = {'Content-Type': environ.get('CONTENT_TYPE', 'text/plain')}
@@ -209,6 +297,13 @@ class CrawlProxyApp(FrontEndApp):
         return WbResponse.json_response(res)
 
     def serve_content(self, environ, *args, **kwargs):
+        """
+        Serve the wsgi environment.
+
+        Args:
+            self: (todo): write your description
+            environ: (dict): write your description
+        """
         res = super(CrawlProxyApp, self).serve_content(environ, *args, **kwargs)
 
         if (
@@ -227,6 +322,12 @@ class CrawlProxyApp(FrontEndApp):
 # =============================================================================
 class FullTextIngester:
     def __init__(self):
+        """
+        Initialize solr query and solr.
+
+        Args:
+            self: (todo): write your description
+        """
         self.solr_api = 'http://solr:8983/solr/browsertrix/update/json/docs?commit=true'
         self.solr_update_api = 'http://solr:8983/solr/browsertrix/update?commit=true'
         self.solr_select_api = 'http://solr:8983/solr/browsertrix/select'
@@ -235,6 +336,17 @@ class FullTextIngester:
         self.text_query = '?q={q}&fq={fq}&fl=id,title_t,url_s,timestamp_ss,has_screenshot_b&hl=true&hl.fl=content_t&hl.snippets=3&rows={rows}&start={start}'
 
     def update_if_dupe(self, digest, coll, url, timestamp, timestamp_dt):
+        """
+        Update a solr if a solr.
+
+        Args:
+            self: (todo): write your description
+            digest: (str): write your description
+            coll: (todo): write your description
+            url: (str): write your description
+            timestamp: (int): write your description
+            timestamp_dt: (int): write your description
+        """
         try:
             query = 'digest_s:"{0}" AND coll_s:{1} AND url_s:"{2}"'.format(
                 digest, coll, url
@@ -272,6 +384,15 @@ class FullTextIngester:
             return False
 
     def ingest(self, coll, text, params):
+        """
+        Ingest a text search.
+
+        Args:
+            self: (todo): write your description
+            coll: (int): write your description
+            text: (str): write your description
+            params: (dict): write your description
+        """
         parsed = json.loads(text)
         mdata = {}
         content = "\n".join(text for text in extract_text(parsed["root"], mdata))
@@ -302,11 +423,26 @@ class FullTextIngester:
         result = requests.post(self.solr_api, json=data)
 
     def get_digest(self, text):
+        """
+        Return digest digest of text.
+
+        Args:
+            self: (todo): write your description
+            text: (str): write your description
+        """
         m = hashlib.sha1()
         m.update(text.encode('utf-8'))
         return 'sha1:' + base64.b32encode(m.digest()).decode('utf-8')
 
     def query_solr(self, coll, params):
+        """
+        Query solr using solr query.
+
+        Args:
+            self: (todo): write your description
+            coll: (todo): write your description
+            params: (dict): write your description
+        """
         search = params.get('search')
 
         start = int(params.get('start', 0))

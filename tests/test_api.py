@@ -16,6 +16,15 @@ os.environ['DEFAULT_POOL'] = 'test-pool'
 
 # ============================================================================
 async def mock_shepherd_api(self, url_path, post_data=None, use_pool=True):
+      """
+      Mock_shepherd api.
+
+      Args:
+          self: (todo): write your description
+          url_path: (str): write your description
+          post_data: (dict): write your description
+          use_pool: (bool): write your description
+      """
     global shepherd_api_urls
     global shepherd_api_post_datas
     global reqid_counter
@@ -65,6 +74,12 @@ class TestCrawlAPI:
     }
 
     def test_crawl_create(self):
+        """
+        Creates a new shake.
+
+        Args:
+            self: (todo): write your description
+        """
         params = self.params.copy()
         params['crawl_type'] = 'all-links'
         params['name'] = 'First Crawl!'
@@ -84,12 +99,24 @@ class TestCrawlAPI:
         ]
 
     def test_crawl_queue_urls(self):
+        """
+        Crawl_crawl.
+
+        Args:
+            self: (todo): write your description
+        """
         urls = {'urls': ['https://example.com/', 'http://iana.org/']}
 
         res = self.client.put(f'/crawl/{self.crawl_id}/urls', json=urls)
         assert res.json()['success']
 
     def test_get_crawl(self):
+        """
+        Gets the shake.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawl/{self.crawl_id}')
 
         json = res.json()
@@ -115,6 +142,12 @@ class TestCrawlAPI:
         assert len(json) == 19
 
     def test_get_crawl_details(self):
+        """
+        Gets the details of a test.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawl/{self.crawl_id}/urls')
 
         json = res.json()
@@ -131,6 +164,12 @@ class TestCrawlAPI:
         assert json['pending'] == []
 
     def test_crawl_same_domain_scopes(self):
+        """
+        Test whether the scopes have the same domain.
+
+        Args:
+            self: (todo): write your description
+        """
         params = self.params.copy()
         params['crawl_type'] = 'same-domain'
         res = self.client.post(
@@ -165,6 +204,12 @@ class TestCrawlAPI:
 
 
     def test_get_all_crawls(self):
+        """
+        Get all raw raw raw raw craw
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawls')
         res = res.json()
 
@@ -181,6 +226,12 @@ class TestCrawlAPI:
         )
 
     def test_invalid_crawl(self):
+        """
+        Check if the test was successful.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawl/x-invalid')
 
         assert res.status_code == 404
@@ -188,6 +239,12 @@ class TestCrawlAPI:
         assert res.json() == {'detail': 'crawl not found'}
 
     def test_invalid_request_body(self):
+        """
+        Validate the request body.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.put(f'/crawl/x-another-invalid/urls', json={})
 
         assert res.status_code == 422
@@ -195,6 +252,12 @@ class TestCrawlAPI:
         assert res.json()['detail']
 
     def test_invalid_crawl_2(self):
+        """
+        Test for test test test for test
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.put(f'/crawl/x-another-invalid/urls', json={'urls': []})
 
         assert res.status_code == 404
@@ -202,6 +265,12 @@ class TestCrawlAPI:
         assert res.json() == {'detail': 'crawl not found'}
 
     def test_start_crawl(self):
+        """
+        Test if a test.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.post(f'/crawl/{self.crawl_id}/start')
         json = res.json()
 
@@ -230,12 +299,24 @@ class TestCrawlAPI:
         assert {'environ': {'REQ_ID': 'ID_2'}} in shepherd_api_post_datas['start']
 
     def test_is_done(self):
+        """
+        Return true if a test is done
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawl/{self.crawl_id}/done')
         res = res.json()
 
         assert res['done'] == False
 
     def test_get_crawl_start_running(self):
+        """
+        Test if the running updates are running. json.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawl/{self.crawl_id}')
 
         json = res.json()
@@ -254,6 +335,12 @@ class TestCrawlAPI:
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_crawl(self):
+        """
+        Stops the test.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.post(f'/crawl/{self.crawl_id}/stop')
         json = res.json()
 
@@ -276,6 +363,12 @@ class TestCrawlAPI:
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_delete_crawl(self):
+        """
+        Deletes the test.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.delete(f'/crawl/{self.crawl_id}')
 
         assert res.json()['success'] == True
@@ -292,6 +385,12 @@ class TestCrawlAPI:
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_create_and_start(self):
+        """
+        Creates a new test.
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.post(
             '/crawls', json={'num_tabs': 2,
                              'crawl_type': 'all-links',
@@ -322,6 +421,12 @@ class TestCrawlAPI:
         TestCrawlAPI.crawl_id = json['id']
 
     def test_second_crawl_info(self):
+        """
+        Crawl second second
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.get(f'/crawl/{self.crawl_id}')
         json = res.json()
         assert json['coll'] == 'custom'
@@ -337,6 +442,12 @@ class TestCrawlAPI:
 
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_stop_and_delete_second_crawl(self):
+        """
+        Stop second second second
+
+        Args:
+            self: (todo): write your description
+        """
         res = self.client.post(f'/crawl/{self.crawl_id}/stop')
         json = res.json()
 

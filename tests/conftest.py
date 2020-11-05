@@ -13,6 +13,12 @@ crawls = []
 
 
 def pytest_addoption(parser):
+    """
+    Add the pytest_add pytest file. pytest.
+
+    Args:
+        parser: (todo): write your description
+    """
     default_file = os.path.join(os.path.dirname(__file__), "crawl_tests.yaml")
     parser.addoption("--crawl-file", action="store", default=default_file)
     parser.addoption("--run-only", action="store", default="")
@@ -20,10 +26,22 @@ def pytest_addoption(parser):
 
 @pytest.fixture
 def headless(request):
+    """
+    Return the head request.
+
+    Args:
+        request: (todo): write your description
+    """
     return request.config.getoption("--headless")
 
 
 def pytest_generate_tests(metafunc):
+    """
+    Generate the pytest. pytest
+
+    Args:
+        metafunc: (todo): write your description
+    """
     if "crawl" in metafunc.fixturenames:
         init_crawl_data(
             metafunc.config.getoption("--crawl-file"),
@@ -60,6 +78,12 @@ def init_crawl_data(filename, run_only):
 
 @pytest.fixture(scope="class")
 def api_test_client(request):
+    """
+    A simple test test.
+
+    Args:
+        request: (todo): write your description
+    """
     from browsertrix.api import app
 
     with TestClient(app) as tc:
@@ -70,5 +94,11 @@ def api_test_client(request):
 
 @pytest.fixture(scope="class")
 def browsertrix_use_fake_redis(request):
+    """
+    Context manager that ensures a context manager.
+
+    Args:
+        request: (todo): write your description
+    """
     with mock_patch("browsertrix.utils.init_redis", init_fake_redis):
         yield
