@@ -1,3 +1,9 @@
+**Depcrecated**: The Browsertrix system is being refactored into more modular individual components. The main component, [Browsertrix Crawler](https://github.com/webrecorder/browsertrix-crawler) will soon support most of the same crawling features via an integrated Docker image that can be deployed via the command-line. The UI and scheduling components will soon be reimplemented as additional components.
+
+Please see Browsertrix Crawler for latest development.
+
+<hr>
+
 <img src="static/browsertrix-logo.svg" width="350">
 
 [![Code Style](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/ambv/black) [![Build Status](https://travis-ci.org/webrecorder/browsertrix.svg?branch=master)](https://travis-ci.org/webrecorder/browsertrix)
