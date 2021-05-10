@@ -3,10 +3,7 @@ import json
 
 import fakeredis
 
-__all__ = [
-    'AwaitFakeRedis',
-    'init_fake_redis',
-]
+__all__ = ['AwaitFakeRedis', 'init_fake_redis']
 
 
 class AwaitFakeRedis:

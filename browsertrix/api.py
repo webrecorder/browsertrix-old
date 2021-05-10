@@ -4,7 +4,17 @@ from starlette.responses import FileResponse, UJSONResponse
 from starlette.staticfiles import StaticFiles
 
 from .crawl import CrawlManager
-from .schema import *
+from .schema import (
+    CrawlDoneResponse,
+    CrawlInfoResponse,
+    CrawlInfoUrlsResponse,
+    CrawlInfosResponse,
+    CreateCrawlRequest,
+    CreateStartResponse,
+    FullCrawlInfoResponse,
+    OperationSuccessResponse,
+    QueueUrlsRequest,
+)
 
 app = FastAPI(debug=True)
 app.add_middleware(

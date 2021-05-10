@@ -1,8 +1,19 @@
-import math
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union
+from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Schema, UrlStr
+from pydantic import BaseModel, Extra, Schema, UrlStr
+
+from .types_ import (
+    AnyDict,
+    AnyDictList,
+    Number,
+    OptionalAnyDict,
+    OptionalBool,
+    OptionalNumber,
+    OptionalSetStr,
+    OptionalStr,
+    OptionalStrList,
+)
 
 __all__ = [
     'BrowserCookie',
@@ -26,11 +37,8 @@ __all__ = [
 ]
 
 # ============================================================================
-OptionalList = Optional[List[str]]
-OptionalSet = Optional[Set[str]]
-Number = Union[int, float]
 
-UrlStr.max_length = math.inf
+UrlStr.max_length = None  # type: ignore
 UrlStr.relative = True
 
 
@@ -63,11 +71,11 @@ class CookieSameSite(str, Enum):
 class EmulatedDevice(BaseModel):
     width: Number
     height: Number
-    deviceScaleFactor: Optional[Number] = None
-    maxTouchPoints: Optional[Number] = None
-    isMobile: Optional[bool] = None
-    hasTouch: Optional[bool] = None
-    isLandscape: Optional[bool] = None
+    deviceScaleFactor: OptionalNumber = None
+    maxTouchPoints: OptionalNumber = None
+    isMobile: OptionalBool = None
+    hasTouch: OptionalBool = None
+    isLandscape: OptionalBool = None
 
 
 class EmulatedGeoLocation(BaseModel):
@@ -79,18 +87,18 @@ class BrowserCookie(BaseModel):
     name: str
     value: str
     url: Optional[UrlStr] = None
-    domain: Optional[str] = None
-    path: Optional[str] = None
-    secure: Optional[bool] = None
-    httpOnly: Optional[bool] = None
-    expires: Optional[Number] = None
+    domain: OptionalStr = None
+    path: OptionalStr = None
+    secure: OptionalBool = None
+    httpOnly: OptionalBool = None
+    expires: OptionalNumber = None
     sameSite: Optional[CookieSameSite] = None
 
 
 class BrowserOverrides(BaseModel):
-    user_agent: Optional[str] = None
-    accept_language: Optional[str] = None
-    navigator_platform: Optional[str] = None
+    user_agent: OptionalStr = None
+    accept_language: OptionalStr = None
+    navigator_platform: OptionalStr = None
     extra_headers: Optional[Dict[str, str]] = None
     cookies: Optional[List[BrowserCookie]] = None
     geo_location: Optional[EmulatedGeoLocation] = None
@@ -98,47 +106,56 @@ class BrowserOverrides(BaseModel):
 
 
 class BaseCreateCrawl(BaseModel):
-    crawl_type: CrawlType = Schema(
+    crawl_type: CrawlType = Schema(  # type: ignore
         CrawlType.SINGLE_PAGE, description='What type of crawl should be launched'
     )
-    crawl_depth: Optional[int] = None
-    num_browsers: int = Schema(
+    crawl_depth: int = Schema(  # type: ignore
+        -1,
+        description='How may pages out from the starting seed(s) should the crawl go',
+    )
+    num_browsers: int = Schema(  # type: ignore
         2, description='How many browsers should be used for the crawl'
     )
-    num_tabs: int = Schema(1, description='How many tabs should be used for the crawl')
-    name: Optional[str] = Schema('', description='User friendly name for the crawl')
-    coll: Optional[str] = Schema('live', description='Default Collection')
+    num_tabs: int = Schema(
+        1, description='How many tabs should be used for the crawl'
+    )  # type: ignore
+    name: OptionalStr = Schema(
+        '', description='User friendly name for the crawl'
+    )  # type: ignore
+    coll: OptionalStr = Schema('live', description='Default Collection')  # type: ignore
 
-    mode: CaptureMode = Schema(CaptureMode.RECORD, description='Default Mode')
+    mode: CaptureMode = Schema(
+        CaptureMode.RECORD, description='Default Mode'
+    )  # type: ignore
 
-    screenshot_coll: Optional[str] = Schema(
+    screenshot_coll: OptionalStr = Schema(  # type: ignore
         '', description='Collection to store screenshots, if any'
     )
 
-    text_coll: Optional[str] = Schema(
+    text_coll: OptionalStr = Schema(  # type: ignore
         '', description='Collection to store full-text indexes, if any'
     )
 
 
 class CreateCrawlRequest(BaseCreateCrawl):
     class Config:
-        extra = 'forbid'
+        extra: Extra = Extra.forbid
 
     seed_urls: List[UrlStr] = []
-    scopes: List[Dict[Any, Any]] = []
+    scopes: AnyDictList = []
 
     cache: CacheMode = CacheMode.ALWAYS
 
-    browser: Optional[str] = 'chrome:73'
-    user_params: Dict[Any, Any] = dict()
+    browser: OptionalStr = 'chrome:73'
+    user_params: AnyDict = {}
 
-    profile: Optional[str] = None
+    profile: OptionalStr = None
 
-    ignore_extra: Optional[Dict[Any, Any]] = None
+    ignore_extra: OptionalAnyDict = None
 
-    behavior_max_time: int = 0
+    behavior_max_time: Number = 0
     headless: bool = False
-    screenshot_target_uri: Optional[str] = None
+    screenshot_target_uri: OptionalStr = None
 
     start: bool = True
     browser_overrides: Optional[BrowserOverrides] = None
@@ -159,8 +176,8 @@ class CrawlInfoResponse(BaseCreateCrawl):
     status: str = 'new'
     start_time: int = 0
     finish_time: int = 0
-    browsers: OptionalList
-    tabs_done: List[Dict[Any, Any]]
+    browsers: OptionalStrList
+    tabs_done: AnyDictList
     headless: bool = False
     num_queue: int = 0
     num_seen: int = 0
@@ -194,10 +211,10 @@ class CrawlInfo(BaseModel):
 
 
 class CrawlInfoUrlsResponse(BaseModel):
-    scopes: List[Dict[Any, Any]]
-    queue: List[Dict[Any, Any]]
-    pending: OptionalList
-    seen: OptionalSet
+    scopes: AnyDictList
+    queue: AnyDictList
+    pending: OptionalStrList
+    seen: OptionalSetStr
 
 
 class FullCrawlInfoResponse(CrawlInfo, CrawlInfoUrlsResponse):

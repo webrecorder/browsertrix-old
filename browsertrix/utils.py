@@ -1,23 +1,19 @@
-from asyncio import AbstractEventLoop
 from os import environ
-from typing import Any, Dict, Optional, Type, Union
 from urllib.parse import urlsplit
 
 from aioredis import Redis, create_redis
-from ujson import loads as ujson_loads
+from ujson import loads
+
+from .types_ import EnvType, EnvValue, Loop, OptionalAny
 
 __all__ = ['env', 'extract_domain', 'init_redis']
 
 
-async def init_redis(redis_url: str, loop: AbstractEventLoop) -> Redis:
+async def init_redis(redis_url: str, loop: Loop) -> Redis:
     return await create_redis(redis_url, encoding='utf-8', loop=loop)
 
 
-def env(
-    key: str,
-    type_: Type[Union[str, bool, int, dict, float]] = str,
-    default: Optional[Any] = None,
-) -> Union[str, int, bool, float, Dict]:
+def env(key: str, type_: EnvType = str, default: OptionalAny = None) -> EnvValue:
     """Returns the value of the supplied env key name converting
     the env key's value to the specified type.
 
@@ -63,7 +59,7 @@ def env(
                 f'Invalid environment variable "{key}" (expected a float): "{val}"'
             )
     elif type_ == dict:
-        return ujson_loads(val)
+        return loads(val)
 
 
 def extract_domain(url: str) -> str:

@@ -55,13 +55,13 @@ class TestCrawlAPI:
     crawl_id_2 = None
 
     params = {
-            'browser': 'chrome:67',
-            'screenshot_target_uri': 'file://test',
-            'user_params': {'some': 'value', 'some_int': 7},
-            'behavior_max_time': 30,
-            'headless': False,
-            'start': False,
-            'num_tabs': 2,
+        'browser': 'chrome:67',
+        'screenshot_target_uri': 'file://test',
+        'user_params': {'some': 'value', 'some_int': 7},
+        'behavior_max_time': 30,
+        'headless': False,
+        'start': False,
+        'num_tabs': 2,
     }
 
     def test_crawl_create(self):
@@ -69,9 +69,7 @@ class TestCrawlAPI:
         params['crawl_type'] = 'all-links'
         params['name'] = 'First Crawl!'
 
-        res = self.client.post(
-            '/crawls', json=params
-        )
+        res = self.client.post('/crawls', json=params)
 
         res = res.json()
         assert res['success']
@@ -100,7 +98,7 @@ class TestCrawlAPI:
         assert json['num_tabs'] == 2
         assert json['crawl_type'] == 'all-links'
         assert json['status'] == 'new'
-        assert json['crawl_depth'] == 1
+        assert json['crawl_depth'] == -1
         assert json['start_time'] == 0
         assert json['finish_time'] == 0
         assert json['coll'] == 'live'
@@ -133,9 +131,7 @@ class TestCrawlAPI:
     def test_crawl_same_domain_scopes(self):
         params = self.params.copy()
         params['crawl_type'] = 'same-domain'
-        res = self.client.post(
-            '/crawls', json=params
-        )
+        res = self.client.post('/crawls', json=params)
         assert res.json()['success'] == True
 
         crawl_id = res.json()['id']
@@ -161,8 +157,6 @@ class TestCrawlAPI:
             '/flock/request/browsers?pool=test-pool',
             '/flock/request/browsers?pool=test-pool',
         ]
-
-
 
     def test_get_all_crawls(self):
         res = self.client.get(f'/crawls')
@@ -210,7 +204,10 @@ class TestCrawlAPI:
         # two browsers started
         assert set(json['browsers']) == {'ID_1', 'ID_2'}
 
-        assert set(shepherd_api_urls['start']) == {'/flock/start/ID_1', '/flock/start/ID_2'}
+        assert set(shepherd_api_urls['start']) == {
+            '/flock/start/ID_1',
+            '/flock/start/ID_2',
+        }
 
         # shepherd api post data
         for data in shepherd_api_post_datas['request']:
@@ -221,7 +218,7 @@ class TestCrawlAPI:
 
             assert data['deferred'] == {'autobrowser': False}
 
-            #assert data['environ']['SCREENSHOT_TARGET_URI'] == 'file://test'
+            # assert data['environ']['SCREENSHOT_TARGET_URI'] == 'file://test'
 
             assert data['user_params']['some'] == 'value'
             assert data['user_params']['some_int'] == 7
@@ -293,25 +290,22 @@ class TestCrawlAPI:
     @patch('browsertrix.crawl.CrawlManager.do_request', mock_shepherd_api)
     def test_create_and_start(self):
         res = self.client.post(
-            '/crawls', json={'num_tabs': 2,
-                             'crawl_type': 'all-links',
-                             'name': 'Second Crawl Auto Start!',
-                             'num_browsers': 3,
-                             'coll': 'custom',
-                             'screenshot_coll': 'screen-coll',
-                             'seed_urls':
-                                [
-                                  'https://example.com/',
-                                  'https://iana.org/'
-                                ],
-                             'browser': 'chrome:67',
-                             'screenshot_target_uri': 'file://test',
-                             'user_params': {'some': 'value', 'some_int': 7},
-                             'behavior_max_time': 30,
-                             'headless': True,
-                             'start': True,
-                             }
-
+            '/crawls',
+            json={
+                'num_tabs': 2,
+                'crawl_type': 'all-links',
+                'name': 'Second Crawl Auto Start!',
+                'num_browsers': 3,
+                'coll': 'custom',
+                'screenshot_coll': 'screen-coll',
+                'seed_urls': ['https://example.com/', 'https://iana.org/'],
+                'browser': 'chrome:67',
+                'screenshot_target_uri': 'file://test',
+                'user_params': {'some': 'value', 'some_int': 7},
+                'behavior_max_time': 30,
+                'headless': True,
+                'start': True,
+            },
         )
 
         json = res.json()
@@ -376,4 +370,3 @@ class TestCrawlAPI:
         assert shepherd_api_post_datas['remove'] == [None] * 7
 
         assert fakeredis.FakeStrictRedis().keys('a:*') == []
-
